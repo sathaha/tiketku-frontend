@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue, useInView } from 'framer-motion';
 import api from '../../api/axios';
 import { Loading, EmptyState, formatRupiah, formatDate } from '../../components/Ui';
+import { getImageUrl } from '../../utils/image';
 
 // ===== ICON COMPONENT =====
 function Icon({ name, className = 'w-4 h-4' }) {
@@ -233,7 +234,7 @@ function HeroPoster({ concert }) {
     <div className="absolute inset-0">
       {concert.poster ? (
         <img
-          src={concert.poster}
+          src={getImageUrl(concert.poster)}
           alt={concert.name}
           className="w-full h-full object-cover"
         />
@@ -265,7 +266,7 @@ function PromoCard({ concert }) {
         >
           {concert.poster ? (
             <img
-              src={concert.poster}
+              src={getImageUrl(concert.poster)}
               alt={concert.name}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
@@ -463,7 +464,7 @@ function EventRow({ concert, index }) {
         <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-ink-800 flex-shrink-0">
           {concert.poster ? (
             <img
-              src={concert.poster}
+              src={getImageUrl(concert.poster)}
               alt={concert.name}
               loading="lazy"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-125"
@@ -1052,7 +1053,7 @@ export default function Home() {
                 <div className="relative h-64 md:h-72 bg-ink-950">
                   {featured?.poster && (
                     <img
-                      src={featured.poster}
+                      src={getImageUrl(featured.poster)}
                       alt=""
                       className="absolute inset-0 w-full h-full object-cover opacity-30"
                     />

@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../api/axios';
 import { formatRupiah, formatDate } from '../../components/Ui';
+import { getImageUrl } from '../../utils/image';
 
 // ===== ICON COMPONENT =====
 function Icon({ name, className = 'w-4 h-4' }) {
@@ -456,7 +457,7 @@ export default function Checkout() {
                   <div className="w-20 h-20 rounded-xl overflow-hidden bg-amber-100 flex-shrink-0">
                     {concert.poster ? (
                       <img
-                        src={concert.poster}
+                        src={getImageUrl(concert.poster)}
                         alt={concert.name}
                         className="w-full h-full object-cover"
                       />

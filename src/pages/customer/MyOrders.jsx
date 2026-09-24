@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../api/axios';
 import { Loading, EmptyState, formatRupiah, formatDate } from '../../components/Ui';
+import { getImageUrl } from '../../utils/image';
 
 // ===== ICON COMPONENT =====
 function Icon({ name, className = 'w-4 h-4' }) {
@@ -148,7 +149,7 @@ function OrderCard({ order }) {
         <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-xl overflow-hidden bg-amber-100 border border-amber-200/50">
           {order.poster ? (
             <img
-              src={order.poster}
+              src={getImageUrl(order.poster)}
               alt={order.concert_name}
               loading="lazy"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

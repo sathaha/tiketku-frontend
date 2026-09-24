@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { Loading, StarRating, formatRupiah, formatDate } from '../../components/Ui';
+import { getImageUrl } from '../../utils/image';
 
 // ===== ICON COMPONENT =====
 function Icon({ name, className = 'w-4 h-4' }) {
@@ -371,7 +372,7 @@ export default function ConcertDetail() {
           transition={{ duration: 0.7, ease: 'easeOut' }}
         >
           {concert.poster ? (
-            <img src={concert.poster} alt={concert.name} className="w-full h-full object-cover" />
+            <img src={getImageUrl(concert.poster)} alt={concert.name} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-amber-900/20 text-amber-600/30">
               <Icon name="mic" className="w-20 h-20" />
