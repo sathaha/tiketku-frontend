@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import { getImageUrl } from '../utils/image';
+import { getImageUrl } from '../../utils/image';
 
 // ===== MINI ICON =====
 function Icon({ name, className = 'w-5 h-5' }) {
