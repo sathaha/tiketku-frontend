@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-ink-900 text-ink-50 font-sans antialiased;
+    background-image: radial-gradient(circle at 15% 0%, rgba(239,47,71,0.10), transparent 40%),
+      radial-gradient(circle at 85% 20%, rgba(255,138,43,0.06), transparent 45%);
+    background-attachment: fixed;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+  ::selection {
+    @apply bg-flame-500/40 text-white;
+  }
+  *:focus-visible {
+    outline: 2px solid #ef2f47;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-flame-gradient bg-flame-600 hover:brightness-110 text-white font-semibold px-4 py-2.5 rounded-xl transition
+      shadow-glow disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none;
+  }
+
+  .btn-secondary {
+    @apply bg-ink-700 border border-ink-500 hover:border-ink-400 hover:bg-ink-600 text-ink-50 font-medium px-4 py-2.5 rounded-xl transition;
+  }
+
+  .btn-ghost {
+    @apply text-ink-200 hover:text-white font-medium px-3 py-2 rounded-lg hover:bg-ink-700 transition;
+  }
+
+  .input-field {
+    @apply w-full bg-ink-800 border border-ink-500 text-ink-50 placeholder-ink-300 rounded-xl px-3.5 py-2.5
+      focus:outline-none focus:ring-2 focus:ring-flame-500 focus:border-transparent transition;
+  }
+
+  .card {
+    @apply bg-ink-800/80 backdrop-blur rounded-2xl border border-ink-600;
+  }
+
+  .card-hover {
+    @apply card hover:border-flame-600/60 hover:shadow-glow transition duration-300;
+  }
+
+  .pill {
+    @apply px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .eyebrow {
+    @apply text-flame-400 text-xs font-semibold tracking-[0.18em] uppercase;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #ff4d61, #ffb020);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* ============================================
+   Hide scrollbar utility
+   ============================================ */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;   /* IE / Edge */
+  scrollbar-width: none;       /* Firefox */
+}
