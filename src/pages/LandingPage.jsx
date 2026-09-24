@@ -12,6 +12,7 @@ import {
 } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
+import { getImageUrl } from '../utils/image';
 
 // ===================================================================
 // HELPERS
@@ -279,8 +280,8 @@ function ConcertModal({ item, onClose }) {
     <Modal onClose={onClose} label={item.name} className="max-w-3xl">
       <div className="relative aspect-[16/9] overflow-hidden bg-ink-900">
         {item.poster ? (
-          <img src={item.poster} alt={item.name} className="w-full h-full object-cover" />
-        ) : (
+          <img src={getImageUrl(item.poster)} alt={item.name} className="w-full h-full object-cover" />
+       ) : (
           <div className="w-full h-full flex items-center justify-center text-ink-600">
             <Icon name="music" className="w-14 h-14" />
           </div>
@@ -403,7 +404,7 @@ function HorizontalGallery({ items = [] }) {
             >
               {item.poster ? (
                 <img
-                  src={item.poster}
+                  src={getImageUrl(item.poster)}
                   alt={item.name}
                   loading="lazy"
                   className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
@@ -765,7 +766,7 @@ function Testimonial({ t, main = false, index = 0 }) {
           >
             {t.concert.poster && (
               <img
-                src={t.concert.poster}
+                src={getImageUrl(t.concert.poster)}
                 alt=""
                 loading="lazy"
                 className="w-10 h-10 rounded-md object-cover flex-shrink-0"

@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { getImageUrl } from '../utils/image';
 
 // ===== MINI ICON =====
 function Icon({ name, className = 'w-5 h-5' }) {
@@ -91,7 +92,7 @@ export default function ConcertCard3D({ item, idx, reducedMotion = false }) {
           >
             {item.poster ? (
               <img
-                src={item.poster}
+                src={getImageUrl(item.poster)}
                 alt={item.name}
                 loading="lazy"
                 className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, MotionConfig } from 'framer-motion';
 import api from '../api/axios';
+import { getImageUrl } from '../utils/image';
 
 function Icon({ name, className = 'w-4 h-4' }) {
   const paths = {
@@ -51,7 +52,7 @@ function ConcertCard({ item, index }) {
         <div className="relative aspect-[4/5] bg-ink-900 overflow-hidden">
           {item.poster ? (
             <img
-              src={item.poster}
+              src={getImageUrl(item.poster)}
               alt={item.name}
               loading="lazy"
               className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
