@@ -48,7 +48,16 @@ export default function Login() {
     .toUpperCase();
 
   const redirectAfterLogin = (user) => {
-    const from = location.state?.from;
+    // 1. Cek dari URL query param (?from=/checkout) — di-set oleh axios interceptor
+    const params = new URLSearchParams(location.search);
+    const fromQuery = params.get('from');
+
+    // 2. Cek dari location.state (dari ProtectedRoute)
+    const fromState = location.state?.from;
+
+    // 3. Prioritas: query param dulu, lalu state
+    const from = fromQuery || fromState;
+
     if (from && from !== '/login' && from !== '/register') {
       navigate(from, { replace: true });
     } else {
