@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import BrandLogo from './BrandLogo';
@@ -23,39 +23,24 @@ function Icon({ name, className = 'w-5 h-5' }) {
     close: 'M6 18L18 6M6 6l12 12',
     chevron: 'M9 5l7 7-7 7',
     bank: 'M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11m16-11v11M8 14v3m4-3v3m4-3v3',
-    inbox: 'M5 13l4 4L19 7 M3 3h18v18H3V3z',
-    ticket: 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z',
-    bell: 'M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0',
+    inbox: 'M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z',
   };
   return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d={paths[name]} />
     </svg>
   );
 }
 
-// ===== TRAFFIC-LIGHT WINDOW DOTS =====
-function TrafficLights() {
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="w-2.5 h-2.5 rounded-full bg-red-500/90 ring-1 ring-black/20" />
-      <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/90 ring-1 ring-black/20" />
-      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/90 ring-1 ring-black/20" />
-    </div>
-  );
-}
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-flame-400/60';
 
-// ===== TOOLTIP FOR COLLAPSED SIDEBAR =====
-function SideTooltip({ label, badge }) {
+function Badge({ count, className = '' }) {
   return (
-    <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-ink-900/70 backdrop-blur-xl border border-white/10 rounded-md text-xs font-medium text-white whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 -translate-x-1 transition-all duration-150 z-50 shadow-xl flex items-center gap-2">
-      {label}
-      {badge > 0 && (
-        <span className="inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full bg-flame-500 text-white text-[9px] font-bold">
-          {badge > 99 ? '99+' : badge}
-        </span>
-      )}
-    </div>
+    <span
+      className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-flame-500 text-white text-[10px] font-bold ${className}`}
+    >
+      {count > 99 ? '99+' : count}
+    </span>
   );
 }
 
@@ -63,11 +48,37 @@ export default function AdminLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const reduceMotion = useReducedMotion();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('sidebar-collapsed') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
+  );
   const [unreadCount, setUnreadCount] = useState(0);
   const [unseenPayouts, setUnseenPayouts] = useState(0);
-  const navRef = useRef(null);
+
+  // Mode ringkas hanya berlaku di desktop; drawer mobile selalu lebar penuh
+  const compact = collapsed && isDesktop;
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const onChange = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && setSidebarOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   useEffect(() => {
     if (user?.role === 'admin') {
@@ -108,31 +119,63 @@ export default function AdminLayout({ children }) {
     navigate('/login');
   }
 
-  const menuItems = {
+  function toggleCollapsed() {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('sidebar-collapsed', next ? '1' : '0');
+      } catch {
+        // abaikan
+      }
+      return next;
+    });
+  }
+
+  // Menu dikelompokkan supaya 12 item admin tidak jadi satu daftar panjang
+  const menuGroups = {
     admin: [
-      { to: '/admin/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { to: '/admin/concerts', label: 'Konser', icon: 'concert' },
-      { to: '/admin/approvals', label: 'Approval EO', icon: 'approval' },
-      { to: '/admin/venues', label: 'Venue', icon: 'venue' },
-      { to: '/admin/categories', label: 'Kategori', icon: 'category' },
-      { to: '/admin/users', label: 'Pengguna', icon: 'users' },
-      { to: '/admin/orders', label: 'Transaksi', icon: 'orders' },
-      { to: '/admin/payouts', label: 'Pencairan Dana', icon: 'payouts' },
-      { to: '/admin/promos', label: 'Promo', icon: 'promos' },
-      { to: '/admin/reports', label: 'Laporan', icon: 'reports' },
-      { to: '/admin/contact-messages', label: 'Pesan Masuk', icon: 'inbox', badge: unreadCount },
-      { to: '/admin/profile', label: 'Profil', icon: 'profile' },
+      { items: [{ to: '/admin/dashboard', label: 'Dashboard', icon: 'dashboard' }] },
+      {
+        label: 'Event',
+        items: [
+          { to: '/admin/concerts', label: 'Konser', icon: 'concert' },
+          { to: '/admin/approvals', label: 'Approval EO', icon: 'approval' },
+          { to: '/admin/venues', label: 'Venue', icon: 'venue' },
+          { to: '/admin/categories', label: 'Kategori', icon: 'category' },
+        ],
+      },
+      {
+        label: 'Keuangan',
+        items: [
+          { to: '/admin/orders', label: 'Transaksi', icon: 'orders' },
+          { to: '/admin/payouts', label: 'Pencairan Dana', icon: 'payouts' },
+          { to: '/admin/promos', label: 'Promo', icon: 'promos' },
+          { to: '/admin/reports', label: 'Laporan', icon: 'reports' },
+        ],
+      },
+      {
+        label: 'Lainnya',
+        items: [
+          { to: '/admin/users', label: 'Pengguna', icon: 'users' },
+          { to: '/admin/contact-messages', label: 'Pesan Masuk', icon: 'inbox', badge: unreadCount },
+          { to: '/admin/profile', label: 'Profil', icon: 'profile' },
+        ],
+      },
     ],
     eo: [
-      { to: '/eo/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { to: '/eo/concerts', label: 'Konser Saya', icon: 'concert' },
-      { to: '/eo/payouts', label: 'Pendapatan', icon: 'payouts', badge: unseenPayouts },
-      { to: '/eo/bank-account', label: 'Rekening', icon: 'bank' },
-      { to: '/eo/profile', label: 'Profil', icon: 'profile' },
+      {
+        items: [
+          { to: '/eo/dashboard', label: 'Dashboard', icon: 'dashboard' },
+          { to: '/eo/concerts', label: 'Konser Saya', icon: 'concert' },
+          { to: '/eo/payouts', label: 'Pendapatan', icon: 'payouts', badge: unseenPayouts },
+          { to: '/eo/bank-account', label: 'Rekening', icon: 'bank' },
+          { to: '/eo/profile', label: 'Profil', icon: 'profile' },
+        ],
+      },
     ],
   };
 
-  const items = menuItems[user?.role] || [];
+  const groups = menuGroups[user?.role] || [];
   const roleLabel = user?.role === 'admin' ? 'Admin' : 'Event Organizer';
   const dashboardPath = user?.role === 'admin' ? '/admin/dashboard' : '/eo/dashboard';
 
@@ -141,13 +184,14 @@ export default function AdminLayout({ children }) {
     return location.pathname.startsWith(path);
   };
 
-  const activeIndex = items.findIndex(item => isActive(item.to));
-  const activeItem = items[activeIndex];
+  const activeItem = groups.flatMap((g) => g.items).find((item) => isActive(item.to));
   const totalBadges = unreadCount + unseenPayouts;
 
+  const slide = reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 34 };
+
   return (
-    <div className="min-h-screen bg-ink-950 flex relative overflow-hidden">
-      {/* Decorative blurred backdrop — what the glass panel reveals underneath */}
+    <div className="min-h-screen bg-ink-950 flex relative">
+      {/* Latar blur yang terlihat menembus panel kaca di sidebar */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-32 -left-20 w-[32rem] h-[32rem] rounded-full bg-flame-600/20 blur-[100px]" />
         <div className="absolute top-1/3 -right-32 w-[28rem] h-[28rem] rounded-full bg-flame-400/10 blur-[110px]" />
@@ -167,153 +211,135 @@ export default function AdminLayout({ children }) {
         )}
       </AnimatePresence>
 
-      {/* Sidebar — floating glass panel */}
+      {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 lg:left-auto lg:my-4 lg:ml-4 z-50 bg-ink-900/40 backdrop-blur-2xl border border-white/10 lg:rounded-2xl shadow-2xl shadow-black/40 flex flex-col transform transition-all duration-300 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 ${
-          collapsed ? 'w-[72px]' : 'w-64'
-        } lg:h-[calc(100vh-2rem)]`}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-ink-900/40 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/40 transition-[transform,width] duration-300
+          lg:sticky lg:top-4 lg:bottom-auto lg:self-start lg:my-4 lg:ml-4 lg:h-[calc(100vh-2rem)] lg:rounded-2xl lg:translate-x-0
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${compact ? 'w-[72px]' : 'w-64'}`}
       >
-        {/* ===== WINDOW CHROME ===== */}
-        <div className={`h-11 flex items-center border-b border-white/10 shrink-0 ${collapsed ? 'justify-center px-2' : 'px-4'}`}>
-          <TrafficLights />
+        {/* Toggle collapse — menempel di tepi sidebar */}
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          aria-label={collapsed ? 'Perbesar sidebar' : 'Kecilkan sidebar'}
+          className={`hidden lg:flex absolute -right-3 top-5 z-10 w-6 h-6 items-center justify-center rounded-full bg-ink-700 border border-ink-500 text-ink-300 hover:text-flame-400 transition-colors ${focusRing}`}
+        >
+          <Icon name="chevron" className={`w-3.5 h-3.5 transition-transform duration-300 ${compact ? '' : 'rotate-180'}`} />
+        </button>
+
+        {/* Logo */}
+        <div className={`h-16 flex items-center border-b border-white/10 shrink-0 ${compact ? 'justify-center px-2' : 'px-5'}`}>
+          <BrandLogo to={dashboardPath} variant="dark" showText={!compact} />
           <button
+            type="button"
             onClick={() => setSidebarOpen(false)}
-            className={`ml-auto lg:hidden p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-white/10 transition-colors ${collapsed ? 'hidden' : ''}`}
+            aria-label="Tutup menu"
+            className={`ml-auto lg:hidden p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-white/10 transition-colors ${focusRing}`}
           >
             <Icon name="close" className="w-4 h-4" />
           </button>
         </div>
 
-        {/* ===== LOGO ===== */}
-        <div className={`h-16 flex items-center border-b border-white/10 shrink-0 ${collapsed ? 'justify-center px-2' : 'px-5'}`}>
-          <BrandLogo to={dashboardPath} variant="dark" showText={!collapsed} />
-        </div>
+        {/* Nav */}
+        <nav aria-label="Menu utama" className="flex-1 overflow-y-auto py-4 no-scrollbar">
+          {!compact && <p className="px-6 pb-3 text-xs text-ink-500">{roleLabel}</p>}
 
-        {/* Toggle collapse */}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="hidden lg:flex items-center justify-center h-8 border-b border-white/10 text-ink-500 hover:text-flame-400 hover:bg-white/5 transition-colors shrink-0 group"
-        >
-          <Icon name="chevron" className={`w-4 h-4 transition-transform duration-300 group-hover:scale-110 ${collapsed ? 'rotate-180' : ''}`} />
-        </button>
+          {groups.map((group, gi) => (
+            <div key={gi} className={gi > 0 ? 'mt-5' : ''}>
+              {group.label &&
+                (compact ? (
+                  <div className="mx-4 mb-2 border-t border-white/10" />
+                ) : (
+                  <p className="px-6 pb-1.5 text-xs text-ink-500">{group.label}</p>
+                ))}
 
-        {/* Role chip */}
-        {!collapsed && (
-          <div className="px-5 py-3 border-b border-white/10 shrink-0 flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-ink-200 bg-white/5 rounded-full px-2.5 py-1 border border-white/10">
-              <span className="relative flex w-1.5 h-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-flame-400 opacity-60" />
-                <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-flame-400" />
-              </span>
-              {roleLabel}
-            </span>
-            {totalBadges > 0 && (
-              <span className="flex items-center gap-1 text-[10px] text-ink-500">
-                <Icon name="bell" className="w-3 h-3 text-flame-400/70" />
-              </span>
-            )}
-          </div>
-        )}
+              <div className={`space-y-0.5 ${compact ? 'px-2' : 'px-3'}`}>
+                {group.items.map((item) => {
+                  const active = isActive(item.to);
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setSidebarOpen(false)}
+                      title={compact ? item.label : undefined}
+                      aria-label={compact ? item.label : undefined}
+                      aria-current={active ? 'page' : undefined}
+                      className={`group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${focusRing} ${
+                        active ? 'text-white font-medium' : 'text-ink-300 hover:text-white hover:bg-white/5'
+                      } ${compact ? 'justify-center' : ''}`}
+                    >
+                      {active && (
+                        <motion.span
+                          layoutId="sidebar-active"
+                          transition={slide}
+                          className="absolute inset-0 rounded-lg bg-flame-500/15"
+                        >
+                          <span className="absolute left-0 inset-y-2 w-[3px] rounded-r-full bg-flame-400" />
+                        </motion.span>
+                      )}
 
-        {/* Nav — scrollbar disembunyikan */}
-        <nav ref={navRef} className="flex-1 overflow-y-auto py-4 relative no-scrollbar">
-          {activeIndex >= 0 && !collapsed && (
-            <motion.div
-              layoutId="sidebar-indicator"
-              className="absolute left-0 w-[3px] h-9 bg-gradient-to-b from-flame-400 to-flame-600 rounded-r-full shadow-[0_0_12px_rgba(249,115,22,0.4)]"
-              style={{ top: `${activeIndex * 44 + 16}px` }}
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            />
-          )}
+                      <Icon
+                        name={item.icon}
+                        className={`relative w-5 h-5 shrink-0 transition-colors ${
+                          active ? 'text-flame-400' : 'text-ink-400 group-hover:text-ink-200'
+                        }`}
+                      />
 
-          <div className={`space-y-0.5 ${collapsed ? 'px-2' : 'px-3'}`}>
-            {items.map((item, index) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setSidebarOpen(false)}
-                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
-                  isActive(item.to)
-                    ? 'text-white bg-gradient-to-r from-flame-500/20 to-white/5 backdrop-blur-sm font-medium'
-                    : 'text-ink-300 hover:text-white hover:bg-white/5 hover:pl-3.5'
-                } ${collapsed ? 'justify-center hover:pl-0' : ''}`}
-              >
-                <Icon
-                  name={item.icon}
-                  className={`w-5 h-5 shrink-0 transition-colors ${isActive(item.to) ? 'text-flame-400' : 'text-ink-400 group-hover:text-ink-200'}`}
-                />
+                      {!compact && <span className="relative flex-1 truncate">{item.label}</span>}
+                      {!compact && item.badge > 0 && <Badge count={item.badge} className="relative" />}
 
-                {!collapsed && (
-                  <>
-                    <span className="flex-1 truncate">{item.label}</span>
-                    {item.badge > 0 && (
-                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-flame-500 text-white text-[10px] font-bold shadow-sm shadow-flame-500/40">
-                        {item.badge > 99 ? '99+' : item.badge}
-                      </span>
-                    )}
-                    {isActive(item.to) && !item.badge && (
-                      <span className="text-[10px] text-flame-400/50 font-mono tabular-nums">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                    )}
-                  </>
-                )}
-
-                {collapsed && item.badge > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-flame-500 ring-2 ring-ink-900" />
-                )}
-
-                {collapsed && <SideTooltip label={item.label} badge={item.badge} />}
-              </Link>
-            ))}
-          </div>
-
-          {/* fade hint at bottom when scrollable */}
-          <div className="sticky bottom-0 h-6 bg-gradient-to-t from-ink-900/60 to-transparent pointer-events-none -mt-6" />
+                      {compact && item.badge > 0 && (
+                        <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-flame-500 ring-2 ring-ink-900" />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* User & logout */}
-        <div className={`p-4 border-t border-white/10 shrink-0 ${collapsed ? 'px-2' : ''}`}>
-          <div className={`group relative flex items-center gap-3 mb-3 ${collapsed ? 'justify-center' : ''}`}>
-            <div className="relative shrink-0">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-flame-400 to-flame-600 flex items-center justify-center text-white font-semibold shadow-lg shadow-flame-500/20 ring-2 ring-white/10">
-                {user?.name?.charAt(0).toUpperCase()}
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 ring-2 ring-ink-900/60" />
+        <div className="p-3 border-t border-white/10 shrink-0">
+          <div
+            className={`flex items-center gap-3 px-1 pb-3 ${compact ? 'justify-center' : ''}`}
+            title={compact ? user?.name : undefined}
+          >
+            <div className="w-9 h-9 rounded-full bg-flame-500 flex items-center justify-center text-white font-semibold shrink-0">
+              {user?.name?.charAt(0).toUpperCase()}
             </div>
-            {!collapsed && (
+            {!compact && (
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                <p className="text-[11px] text-ink-400 truncate">{user?.email}</p>
-              </div>
-            )}
-            {collapsed && (
-              <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-ink-900/70 backdrop-blur-xl border border-white/10 rounded-md text-xs whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-xl">
-                <p className="font-medium text-white">{user?.name}</p>
-                <p className="text-ink-400 text-[10px]">{user?.email}</p>
+                <p className="text-xs text-ink-400 truncate">{user?.email}</p>
               </div>
             )}
           </div>
           <button
+            type="button"
             onClick={handleLogout}
-            title={collapsed ? 'Keluar' : ''}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-ink-300 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all ${collapsed ? 'justify-center' : ''}`}
+            title={compact ? 'Keluar' : undefined}
+            aria-label={compact ? 'Keluar' : undefined}
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-ink-300 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-colors ${focusRing} ${
+              compact ? 'justify-center' : ''
+            }`}
           >
             <Icon name="logout" className="w-4 h-4 shrink-0" />
-            {!collapsed && 'Keluar'}
+            {!compact && 'Keluar'}
           </button>
         </div>
       </aside>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="relative z-[1] flex-1 flex flex-col min-w-0">
         {/* Top bar mobile */}
         <header className="h-16 bg-ink-900/80 backdrop-blur-xl border-b border-ink-700 flex items-center px-4 sticky top-0 z-30 lg:hidden">
           <button
+            type="button"
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors"
+            aria-label="Buka menu"
+            className={`p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors ${focusRing}`}
           >
             <Icon name="menu" />
           </button>
@@ -324,23 +350,14 @@ export default function AdminLayout({ children }) {
                 <span className="text-sm font-medium text-white truncate">{activeItem.label}</span>
               </>
             ) : (
-              <>
-                <span className="w-1.5 h-1.5 rounded-full bg-flame-400" />
-                <span className="text-sm font-medium text-ink-300">{roleLabel}</span>
-              </>
+              <span className="text-sm font-medium text-ink-300">{roleLabel}</span>
             )}
           </div>
-          {totalBadges > 0 && (
-            <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-flame-500 text-white text-[10px] font-bold">
-              {totalBadges > 99 ? '99+' : totalBadges}
-            </span>
-          )}
+          {totalBadges > 0 && <Badge count={totalBadges} className="ml-auto" />}
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-x-hidden">
-          {children}
-        </main>
+        <main className="flex-1 p-4 lg:p-6 overflow-x-hidden">{children}</main>
       </div>
     </div>
   );
