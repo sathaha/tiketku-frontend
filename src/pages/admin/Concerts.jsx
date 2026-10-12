@@ -43,12 +43,12 @@ const emptyForm = {
 
 // ID badge colors (rotating per index)
 const idBadgeColors = [
-  'bg-blue-500/20 text-blue-300 border-blue-500/40',
-  'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-  'bg-purple-500/20 text-purple-300 border-purple-500/40',
-  'bg-amber-500/20 text-amber-300 border-amber-500/40',
-  'bg-rose-500/20 text-rose-300 border-rose-500/40',
-  'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
+  'bg-blue-100 text-blue-700 border-blue-200/60',
+  'bg-emerald-100 text-emerald-700 border-emerald-200/60',
+  'bg-purple-100 text-purple-700 border-purple-200/60',
+  'bg-amber-100 text-amber-700 border-amber-200/60',
+  'bg-rose-100 text-rose-700 border-rose-200/60',
+  'bg-cyan-100 text-cyan-700 border-cyan-200/60',
 ];
 
 // ===== CONCERT CARD (reference style) =====
@@ -63,21 +63,21 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
       onClick={onClick}
       className={`group cursor-pointer rounded-2xl border transition-all duration-200 p-4 ${
         isSelected
-          ? 'bg-flame-500/5 border-flame-500/50 ring-2 ring-flame-500/20'
-          : 'bg-ink-800/40 border-ink-700/60 hover:border-flame-500/30 hover:bg-ink-800/60'
+          ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-400/20'
+          : 'bg-white/90 border-amber-200/60 hover:border-amber-300 hover:bg-white'
       }`}
     >
       {/* ===== HEADER: ID badge + name + status ===== */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className={`w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 font-bold text-sm ${idColor}`}>
+          <div className={`w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 font-serif font-bold text-sm ${idColor}`}>
             {concert.id}
           </div>
           <div className="min-w-0">
-            <h3 className="font-semibold text-white text-sm leading-tight truncate">
+            <h3 className="font-serif font-semibold text-amber-950 text-sm leading-tight truncate">
               {concert.name}
             </h3>
-            <p className="text-[11px] text-ink-400 font-mono mt-0.5">
+            <p className="font-serif text-[11px] text-amber-700/60 font-mono mt-0.5">
               {concert.artist || 'Artist not set'}
             </p>
           </div>
@@ -86,9 +86,9 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
       </div>
 
       {/* ===== META ROW: date + EO ===== */}
-      <div className="flex items-center justify-between text-[11px] text-ink-400 mb-3 pb-3 border-b border-ink-700/50">
+      <div className="flex items-center justify-between font-serif text-[11px] text-amber-700/70 mb-3 pb-3 border-b border-amber-200/60">
         <span className="flex items-center gap-1 truncate">
-          <Icon name="calendar" className="w-3 h-3" />
+          <Icon name="calendar" className="w-3 h-3 text-amber-500" />
           {concert.created_at
             ? new Date(concert.created_at).toLocaleDateString('en-US', {
                 day: 'numeric', month: 'short', year: 'numeric'
@@ -97,7 +97,7 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
         </span>
         {concert.organizer_name && (
           <span className="flex items-center gap-1 truncate">
-            <Icon name="user" className="w-3 h-3" />
+            <Icon name="user" className="w-3 h-3 text-amber-500" />
             {concert.organizer_name}
           </span>
         )}
@@ -105,30 +105,30 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
 
       {/* ===== INFO LIST ===== */}
       <div className="space-y-2 mb-3">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-ink-400 flex items-center gap-1.5">
-            <Icon name="building" className="w-3.5 h-3.5" />
+        <div className="flex items-center justify-between font-serif text-xs">
+          <span className="text-amber-700/70 flex items-center gap-1.5">
+            <Icon name="building" className="w-3.5 h-3.5 text-amber-500" />
             Venue
           </span>
-          <span className="text-white font-medium truncate ml-2">
+          <span className="text-amber-950 font-medium truncate ml-2">
             {concert.venue_name || '-'}
           </span>
         </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-ink-400 flex items-center gap-1.5">
-            <Icon name="flame" className="w-3.5 h-3.5" />
+        <div className="flex items-center justify-between font-serif text-xs">
+          <span className="text-amber-700/70 flex items-center gap-1.5">
+            <Icon name="flame" className="w-3.5 h-3.5 text-amber-500" />
             Category
           </span>
-          <span className="text-white font-medium truncate ml-2">
+          <span className="text-amber-950 font-medium truncate ml-2">
             {concert.category_name || '-'}
           </span>
         </div>
       </div>
 
       {/* ===== TOTAL ===== */}
-      <div className="flex items-center justify-between pt-3 border-t border-ink-700/50 mb-3">
-        <span className="text-[10px] text-ink-500 uppercase tracking-wider">Starting from</span>
-        <span className="text-sm font-bold text-flame-400 font-mono tabular-nums">
+      <div className="flex items-center justify-between pt-3 border-t border-amber-200/60 mb-3">
+        <span className="font-serif text-[10px] text-amber-600/60 uppercase tracking-wider">Starting from</span>
+        <span className="font-serif text-sm font-bold text-amber-700 font-mono tabular-nums">
           {concert.min_price ? formatRupiah(concert.min_price) : 'Not set'}
         </span>
       </div>
@@ -138,7 +138,7 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
         <Link
           to={`/admin/concerts/${concert.id}/manage`}
           onClick={(e) => e.stopPropagation()}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-ink-700/60 hover:bg-ink-700 text-ink-200 rounded-lg text-xs font-medium transition-colors"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-amber-50 text-amber-800 border border-amber-200/60 rounded-lg font-serif text-xs font-medium transition-colors"
         >
           <Icon name="calendar" className="w-3.5 h-3.5" />
           Manage
@@ -148,10 +148,10 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
             e.stopPropagation();
             onClick?.();
           }}
-          className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+          className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg font-serif text-xs font-medium transition-colors ${
             isSelected
-              ? 'bg-flame-500 text-white'
-              : 'bg-flame-500/90 hover:bg-flame-500 text-white'
+              ? 'bg-amber-800 text-amber-50'
+              : 'bg-amber-800 hover:bg-amber-700 text-amber-50'
           }`}
         >
           <Icon name="info" className="w-3.5 h-3.5" />
@@ -166,11 +166,11 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
 function DetailPanel({ concert, onClose, onEdit, onDelete }) {
   if (!concert) {
     return (
-      <div className="card p-6 flex flex-col items-center justify-center text-center min-h-[300px]">
-        <div className="w-14 h-14 rounded-full bg-ink-800 border border-ink-700 flex items-center justify-center mb-4">
-          <Icon name="info" className="w-6 h-6 text-ink-500" />
+      <div className="bg-white/90 border border-amber-200/60 rounded-2xl p-6 flex flex-col items-center justify-center text-center min-h-[300px]">
+        <div className="w-14 h-14 rounded-full bg-amber-100 border border-amber-200/60 flex items-center justify-center mb-4">
+          <Icon name="info" className="w-6 h-6 text-amber-500" />
         </div>
-        <p className="text-sm text-ink-400">
+        <p className="font-serif text-sm text-amber-700/70">
           Select a concert to view details
         </p>
       </div>
@@ -182,24 +182,24 @@ function DetailPanel({ concert, onClose, onEdit, onDelete }) {
       key={concert.id}
       initial={{ opacity: 0, x: 10 }}
       animate={{ opacity: 1, x: 0 }}
-      className="card p-5 space-y-4"
+      className="bg-white/90 border border-amber-200/60 rounded-2xl p-5 space-y-4"
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-2 pb-4 border-b border-ink-700/60">
+      <div className="flex items-start justify-between gap-2 pb-4 border-b border-amber-200/60">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
             <StatusBadge status={concert.status} />
           </div>
-          <h3 className="font-bold text-white text-base leading-tight">
+          <h3 className="font-serif font-bold text-amber-950 text-base leading-tight">
             {concert.name}
           </h3>
-          <p className="text-xs text-ink-400 mt-1">
+          <p className="font-serif text-xs text-amber-700/60 mt-1">
             {concert.artist || 'Artist not set'}
           </p>
         </div>
         <button
           onClick={onClose}
-          className="p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors shrink-0"
+          className="p-1.5 rounded-lg text-amber-500 hover:text-amber-900 hover:bg-amber-100 transition-colors shrink-0"
           aria-label="Close detail"
         >
           <Icon name="close" className="w-4 h-4" />
@@ -208,7 +208,7 @@ function DetailPanel({ concert, onClose, onEdit, onDelete }) {
 
       {/* Poster preview */}
       {concert.poster && (
-        <div className="rounded-xl overflow-hidden border border-ink-700">
+        <div className="rounded-xl overflow-hidden border border-amber-200/60">
           <img src={concert.poster} alt={concert.name} className="w-full h-40 object-cover" />
         </div>
       )}
@@ -216,48 +216,48 @@ function DetailPanel({ concert, onClose, onEdit, onDelete }) {
       {/* Description */}
       {concert.description && (
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-ink-500 mb-1.5">Description</p>
-          <p className="text-xs text-ink-300 leading-relaxed line-clamp-4">
+          <p className="font-serif text-[10px] uppercase tracking-wider text-amber-600/60 mb-1.5">Description</p>
+          <p className="font-serif text-xs text-amber-800/80 leading-relaxed line-clamp-4">
             {concert.description}
           </p>
         </div>
       )}
 
       {/* Info Grid */}
-      <div className="space-y-2.5 pt-2 border-t border-ink-700/60">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-ink-400 flex items-center gap-1.5">
-            <Icon name="building" className="w-3.5 h-3.5" />
+      <div className="space-y-2.5 pt-2 border-t border-amber-200/60">
+        <div className="flex items-center justify-between font-serif text-xs">
+          <span className="text-amber-700/70 flex items-center gap-1.5">
+            <Icon name="building" className="w-3.5 h-3.5 text-amber-500" />
             Venue
           </span>
-          <span className="text-white font-medium truncate ml-2">
+          <span className="text-amber-950 font-medium truncate ml-2">
             {concert.venue_name || '-'}
           </span>
         </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-ink-400 flex items-center gap-1.5">
-            <Icon name="flame" className="w-3.5 h-3.5" />
+        <div className="flex items-center justify-between font-serif text-xs">
+          <span className="text-amber-700/70 flex items-center gap-1.5">
+            <Icon name="flame" className="w-3.5 h-3.5 text-amber-500" />
             Category
           </span>
-          <span className="text-white font-medium truncate ml-2">
+          <span className="text-amber-950 font-medium truncate ml-2">
             {concert.category_name || '-'}
           </span>
         </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-ink-400 flex items-center gap-1.5">
-            <Icon name="user" className="w-3.5 h-3.5" />
+        <div className="flex items-center justify-between font-serif text-xs">
+          <span className="text-amber-700/70 flex items-center gap-1.5">
+            <Icon name="user" className="w-3.5 h-3.5 text-amber-500" />
             Event Organizer
           </span>
-          <span className="text-white font-medium truncate ml-2">
+          <span className="text-amber-950 font-medium truncate ml-2">
             {concert.organizer_name || '-'}
           </span>
         </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-ink-400 flex items-center gap-1.5">
-            <Icon name="clock" className="w-3.5 h-3.5" />
+        <div className="flex items-center justify-between font-serif text-xs">
+          <span className="text-amber-700/70 flex items-center gap-1.5">
+            <Icon name="clock" className="w-3.5 h-3.5 text-amber-500" />
             Created
           </span>
-          <span className="text-white font-medium font-mono">
+          <span className="text-amber-950 font-medium font-mono">
             {concert.created_at
               ? new Date(concert.created_at).toLocaleDateString('en-US', {
                   day: 'numeric', month: 'short', year: 'numeric'
@@ -268,18 +268,18 @@ function DetailPanel({ concert, onClose, onEdit, onDelete }) {
       </div>
 
       {/* Price */}
-      <div className="pt-3 border-t border-ink-700/60 flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wider text-ink-500">Starting from</span>
-        <span className="text-base font-bold text-flame-400 font-mono tabular-nums">
+      <div className="pt-3 border-t border-amber-200/60 flex items-center justify-between">
+        <span className="font-serif text-[10px] uppercase tracking-wider text-amber-600/60">Starting from</span>
+        <span className="font-serif text-base font-bold text-amber-700 font-mono tabular-nums">
           {concert.min_price ? formatRupiah(concert.min_price) : 'Not set'}
         </span>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col gap-2 pt-3 border-t border-ink-700/60">
+      <div className="flex flex-col gap-2 pt-3 border-t border-amber-200/60">
         <Link
           to={`/admin/concerts/${concert.id}/manage`}
-          className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-flame-500 hover:bg-flame-600 text-white rounded-xl text-sm font-semibold transition-colors"
+          className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif rounded-xl text-sm font-semibold transition-colors"
         >
           <Icon name="calendar" className="w-4 h-4" />
           Manage Schedule & Tickets
@@ -287,14 +287,14 @@ function DetailPanel({ concert, onClose, onEdit, onDelete }) {
         <div className="flex gap-2">
           <button
             onClick={() => onEdit(concert)}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 bg-ink-700/60 hover:bg-ink-700 text-ink-200 rounded-lg text-xs font-medium transition-colors"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 bg-white hover:bg-amber-50 text-amber-800 border border-amber-200/60 rounded-lg font-serif text-xs font-medium transition-colors"
           >
             <Icon name="edit" className="w-3.5 h-3.5" />
             Edit
           </button>
           <button
             onClick={() => onDelete(concert)}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-medium transition-colors"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/60 rounded-lg font-serif text-xs font-medium transition-colors"
           >
             <Icon name="trash" className="w-3.5 h-3.5" />
             Delete
@@ -469,365 +469,367 @@ export default function Concerts() {
   }, [concerts, searchQuery, statusFilter, sortBy]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-[#f5ede4] px-4 py-6">
+      <div className="max-w-7xl mx-auto">
 
-      {/* ===== HEADER ===== */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-flame-500/10 border border-flame-500/20 flex items-center justify-center">
-            <Icon name="mic" className="w-5 h-5 text-flame-400" />
+        {/* ===== HEADER ===== */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-amber-100 border border-amber-200/60 flex items-center justify-center">
+              <Icon name="mic" className="w-5 h-5 text-amber-700" />
+            </div>
+            <div>
+              <h1 className="font-serif text-2xl text-amber-950">Manage Concerts</h1>
+              <p className="font-serif text-sm text-amber-700/60 mt-0.5">
+                {filteredConcerts.length} of {concerts.length} concerts
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Manage Concerts</h1>
-            <p className="text-sm text-ink-400 mt-0.5">
-              {filteredConcerts.length} of {concerts.length} concerts
-            </p>
+          <button
+            onClick={openCreate}
+            className="inline-flex items-center gap-2 self-start sm:self-auto px-5 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif text-sm rounded-xl transition-colors"
+          >
+            <Icon name="plus" className="w-4 h-4" />
+            Add Concert
+          </button>
+        </div>
+
+        {/* ===== SEARCH & FILTER ===== */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="relative flex-1">
+            <Icon name="search" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-500" />
+            <input
+              type="text"
+              placeholder="Search by name, artist, venue, or organizer..."
+              className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-2">
+            <select
+              className="sm:w-40 px-3.5 py-3 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 focus:outline-none focus:border-amber-500/60 transition-all"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">All Statuses</option>
+              {statusOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <select
+              className="sm:w-40 px-3.5 py-3 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 focus:outline-none focus:border-amber-500/60 transition-all"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="name">Name A-Z</option>
+              <option value="price">Lowest Price</option>
+            </select>
           </div>
         </div>
-        <button
-          onClick={openCreate}
-          className="btn-primary inline-flex items-center gap-2 self-start sm:self-auto"
-        >
-          <Icon name="plus" className="w-4 h-4" />
-          Add Concert
-        </button>
-      </div>
 
-      {/* ===== SEARCH & FILTER ===== */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative flex-1">
-          <Icon name="search" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-500" />
-          <input
-            type="text"
-            placeholder="Search by name, artist, venue, or organizer..."
-            className="w-full input-field pl-10 bg-ink-800/40"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2">
-          <select
-            className="input-field sm:w-40 bg-ink-800/40"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">All Statuses</option>
-            {statusOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          <select
-            className="input-field sm:w-40 bg-ink-800/40"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
-            <option value="name">Name A-Z</option>
-            <option value="price">Lowest Price</option>
-          </select>
-        </div>
-      </div>
+        {/* ===== FORM ===== */}
+        <AnimatePresence>
+          {showForm && (
+            <motion.div
+              ref={formRef}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden mb-6"
+            >
+              <form onSubmit={handleSubmit} className="relative bg-white border border-amber-200/60 rounded-2xl p-6 overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500 via-orange-400 to-transparent" />
 
-      {/* ===== FORM ===== (unchanged from before) */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            ref={formRef}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden mb-6"
-          >
-            <form onSubmit={handleSubmit} className="card p-6 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-flame-500 via-orange-500 to-transparent" />
-
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-white">
-                  {editingId ? 'Edit Concert' : 'New Concert'}
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="p-1 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors"
-                >
-                  <Icon name="close" className="w-5 h-5" />
-                </button>
-              </div>
-
-              {error && (
-                <div className="flex items-start gap-2 p-3 mb-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                  <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
-                  {error}
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-ink-200 mb-1.5">Concert Name *</label>
-                    <input
-                      required
-                      className="w-full input-field"
-                      placeholder="Example: Jazz Night Festival"
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-ink-200 mb-1.5">Artist Name</label>
-                    <input
-                      className="w-full input-field"
-                      placeholder="Example: Indra Lesmana"
-                      value={form.artist}
-                      onChange={(e) => setForm({ ...form, artist: e.target.value })}
-                    />
-                  </div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-serif font-semibold text-amber-950">
+                    {editingId ? 'Edit Concert' : 'New Concert'}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className="p-1 rounded-lg text-amber-500 hover:text-amber-900 hover:bg-amber-100 transition-colors"
+                  >
+                    <Icon name="close" className="w-5 h-5" />
+                  </button>
                 </div>
 
-                <div>
-                  <label className="block text-sm text-ink-200 mb-1.5">Description</label>
-                  <textarea
-                    className="w-full input-field"
-                    rows={4}
-                    placeholder="Describe the concert details..."
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  />
-                </div>
+                {error && (
+                  <div className="flex items-start gap-2 p-3 mb-4 rounded-lg bg-red-50 border border-red-200/60 text-red-700 font-serif text-sm">
+                    <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
+                    {error}
+                  </div>
+                )}
 
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-ink-200 mb-1.5">Venue</label>
-                    <select
-                      className="w-full input-field"
-                      value={form.venue_id}
-                      onChange={(e) => setForm({ ...form, venue_id: e.target.value })}
-                    >
-                      <option value="">Select Venue</option>
-                      {venues.map((v) => (
-                        <option key={v.id} value={v.id}>{v.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-ink-200 mb-1.5">Category</label>
-                    <select
-                      className="w-full input-field"
-                      value={form.category_id}
-                      onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-ink-200 mb-1.5">Status</label>
-                    <select
-                      className="w-full input-field"
-                      value={form.status}
-                      onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    >
-                      {statusOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-ink-200 mb-1.5">Concert Poster</label>
-                    <div className="flex items-center gap-3">
-                      {posterPreview && (
-                        <div className="relative group">
-                          <img
-                            src={posterPreview}
-                            alt="Poster preview"
-                            className="w-16 h-16 rounded-lg object-cover border border-ink-700"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPoster(null);
-                              setPosterPreview('');
-                            }}
-                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Icon name="close" className="w-3 h-3" />
-                          </button>
-                        </div>
-                      )}
-                      <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-ink-700 hover:bg-ink-600 text-sm text-ink-200 transition-colors">
-                        <Icon name="image" className="w-4 h-4" />
-                        {posterPreview ? 'Change File' : 'Choose File'}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleFileChange}
-                        />
-                      </label>
+                <div className="space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-serif text-sm text-amber-900 mb-1.5">Concert Name *</label>
+                      <input
+                        required
+                        className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                        placeholder="Example: Jazz Night Festival"
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-serif text-sm text-amber-900 mb-1.5">Artist Name</label>
+                      <input
+                        className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                        placeholder="Example: Indra Lesmana"
+                        value={form.artist}
+                        onChange={(e) => setForm({ ...form, artist: e.target.value })}
+                      />
                     </div>
                   </div>
+
+                  <div>
+                    <label className="block font-serif text-sm text-amber-900 mb-1.5">Description</label>
+                    <textarea
+                      className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                      rows={4}
+                      placeholder="Describe the concert details..."
+                      value={form.description}
+                      onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-serif text-sm text-amber-900 mb-1.5">Venue</label>
+                      <select
+                        className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 focus:outline-none focus:border-amber-500/60 transition-all"
+                        value={form.venue_id}
+                        onChange={(e) => setForm({ ...form, venue_id: e.target.value })}
+                      >
+                        <option value="">Select Venue</option>
+                        {venues.map((v) => (
+                          <option key={v.id} value={v.id}>{v.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-serif text-sm text-amber-900 mb-1.5">Category</label>
+                      <select
+                        className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 focus:outline-none focus:border-amber-500/60 transition-all"
+                        value={form.category_id}
+                        onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+                      >
+                        <option value="">Select Category</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-serif text-sm text-amber-900 mb-1.5">Status</label>
+                      <select
+                        className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 focus:outline-none focus:border-amber-500/60 transition-all"
+                        value={form.status}
+                        onChange={(e) => setForm({ ...form, status: e.target.value })}
+                      >
+                        {statusOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-serif text-sm text-amber-900 mb-1.5">Concert Poster</label>
+                      <div className="flex items-center gap-3">
+                        {posterPreview && (
+                          <div className="relative group">
+                            <img
+                              src={posterPreview}
+                              alt="Poster preview"
+                              className="w-16 h-16 rounded-lg object-cover border border-amber-200/60"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPoster(null);
+                                setPosterPreview('');
+                              }}
+                              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Icon name="close" className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                        <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white hover:bg-amber-50 border border-amber-200/60 font-serif text-sm text-amber-800 transition-colors">
+                          <Icon name="image" className="w-4 h-4" />
+                          {posterPreview ? 'Change File' : 'Choose File'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleFileChange}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-800 hover:bg-amber-700 disabled:opacity-50 text-amber-50 font-serif text-sm rounded-xl transition-colors"
+                    >
+                      {saving ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Saving...
+                        </>
+                      ) : (
+                        'Save'
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowForm(false)}
+                      className="px-4 py-2.5 bg-white hover:bg-amber-50 border border-amber-200/60 text-amber-900 font-serif text-sm rounded-xl transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ===== MAIN CONTENT: GRID + DETAIL PANEL ===== */}
+        {loading ? (
+          <Loading />
+        ) : filteredConcerts.length === 0 ? (
+          concerts.length === 0 ? (
+            <EmptyState text="No concerts yet. Add your first concert!" />
+          ) : (
+            <div className="text-center py-16">
+              <p className="font-serif text-amber-800/70 mb-2">No concerts match the filter.</p>
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setStatusFilter('');
+                }}
+                className="font-serif text-sm text-amber-700 hover:text-amber-900 underline"
+              >
+                Reset filter
+              </button>
+            </div>
+          )
+        ) : (
+          <div className="grid lg:grid-cols-3 gap-6 items-start">
+
+            {/* ===== LEFT (2/3): GRID CARDS ===== */}
+            <div className="lg:col-span-2">
+              <div className="grid sm:grid-cols-2 gap-4">
+                {filteredConcerts.map((concert, index) => (
+                  <ConcertCard
+                    key={concert.id}
+                    concert={concert}
+                    index={index}
+                    isSelected={selectedConcert?.id === concert.id}
+                    onClick={() =>
+                      setSelectedConcert(
+                        selectedConcert?.id === concert.id ? null : concert
+                      )
+                    }
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* ===== RIGHT (1/3): DETAIL PANEL ===== */}
+            <div className="lg:col-span-1 lg:sticky lg:top-6">
+              <DetailPanel
+                concert={selectedConcert}
+                onClose={() => setSelectedConcert(null)}
+                onEdit={openEdit}
+                onDelete={(c) => setDeleteTarget(c)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ===== DELETE MODAL ===== */}
+        <AnimatePresence>
+          {deleteTarget && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-amber-950/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setDeleteTarget(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white border border-amber-200/60 rounded-2xl max-w-sm w-full p-6 relative overflow-hidden shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-500" />
+
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200/60 flex items-center justify-center shrink-0">
+                    <Icon name="trash" className="w-5 h-5 text-red-600" />
+                  </div>
+                  <h3 className="font-serif font-bold text-amber-950 text-lg">Delete Concert</h3>
                 </div>
 
-                <div className="flex gap-3 pt-2">
+                <p className="font-serif text-amber-800/70 text-sm mb-2">
+                  You are about to delete:
+                </p>
+                <p className="font-serif text-amber-950 font-semibold mb-4">
+                  {deleteTarget.name}
+                </p>
+
+                <p className="font-serif text-amber-700/60 text-xs mb-6">
+                  All schedules, ticket categories, and related data will be permanently deleted. This action cannot be undone.
+                </p>
+
+                <div className="flex gap-3">
                   <button
-                    type="submit"
-                    disabled={saving}
-                    className="btn-primary inline-flex items-center gap-2"
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-serif text-sm font-semibold transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
                   >
-                    {saving ? (
+                    {deleting ? (
                       <>
                         <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
-                        Saving...
+                        Deleting...
                       </>
                     ) : (
-                      'Save'
+                      'Delete'
                     )}
                   </button>
                   <button
-                    type="button"
-                    onClick={() => setShowForm(false)}
-                    className="btn-secondary"
+                    onClick={() => setDeleteTarget(null)}
+                    disabled={deleting}
+                    className="flex-1 py-2.5 bg-white hover:bg-amber-50 text-amber-900 border border-amber-200/60 rounded-xl font-serif text-sm font-semibold transition-colors"
                   >
                     Cancel
                   </button>
                 </div>
-              </div>
-            </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ===== MAIN CONTENT: GRID + DETAIL PANEL ===== */}
-      {loading ? (
-        <Loading />
-      ) : filteredConcerts.length === 0 ? (
-        concerts.length === 0 ? (
-          <EmptyState text="No concerts yet. Add your first concert!" />
-        ) : (
-          <div className="text-center py-16">
-            <p className="text-ink-300 mb-2">No concerts match the filter.</p>
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setStatusFilter('');
-              }}
-              className="text-sm text-flame-400 hover:text-flame-300"
-            >
-              Reset filter
-            </button>
-          </div>
-        )
-      ) : (
-        <div className="grid lg:grid-cols-3 gap-6 items-start">
-
-          {/* ===== LEFT (2/3): GRID CARDS ===== */}
-          <div className="lg:col-span-2">
-            <div className="grid sm:grid-cols-2 gap-4">
-              {filteredConcerts.map((concert, index) => (
-                <ConcertCard
-                  key={concert.id}
-                  concert={concert}
-                  index={index}
-                  isSelected={selectedConcert?.id === concert.id}
-                  onClick={() =>
-                    setSelectedConcert(
-                      selectedConcert?.id === concert.id ? null : concert
-                    )
-                  }
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* ===== RIGHT (1/3): DETAIL PANEL ===== */}
-          <div className="lg:col-span-1 lg:sticky lg:top-6">
-            <DetailPanel
-              concert={selectedConcert}
-              onClose={() => setSelectedConcert(null)}
-              onEdit={openEdit}
-              onDelete={(c) => setDeleteTarget(c)}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* ===== DELETE MODAL ===== (unchanged) */}
-      <AnimatePresence>
-        {deleteTarget && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setDeleteTarget(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-ink-800 border border-ink-700 rounded-2xl max-w-sm w-full p-6 relative overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-500" />
-
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
-                  <Icon name="trash" className="w-5 h-5 text-red-400" />
-                </div>
-                <h3 className="font-semibold text-white text-lg">Delete Concert</h3>
-              </div>
-
-              <p className="text-ink-300 text-sm mb-2">
-                You are about to delete:
-              </p>
-              <p className="text-white font-medium mb-4">
-                {deleteTarget.name}
-              </p>
-
-              <p className="text-ink-400 text-xs mb-6">
-                All schedules, ticket categories, and related data will be permanently deleted. This action cannot be undone.
-              </p>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
-                >
-                  {deleting ? (
-                    <>
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Deleting...
-                    </>
-                  ) : (
-                    'Delete'
-                  )}
-                </button>
-                <button
-                  onClick={() => setDeleteTarget(null)}
-                  disabled={deleting}
-                  className="flex-1 py-2.5 bg-ink-700 hover:bg-ink-600 text-white rounded-xl text-sm font-semibold transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

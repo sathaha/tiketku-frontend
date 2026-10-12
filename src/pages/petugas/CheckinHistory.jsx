@@ -129,23 +129,23 @@ export default function CheckinHistory() {
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="font-serif text-xl font-bold text-amber-950 tracking-wide">
-                {selectedConcert ? 'Riwayat Check-in' : 'Pilih Konser'}
+                {selectedConcert ? 'Check-in History' : 'Select a Concert'}
               </h1>
               <p className="font-serif text-xs text-amber-700/60 mt-0.5 truncate">
                 {selectedConcert
                   ? selectedConcert.name
-                  : 'Pilih konser untuk melihat riwayat check-in'}
+                  : 'Pick a concert to view its check-in history'}
               </p>
             </div>
           </div>
           <div className="h-px bg-amber-200/60 mt-4" />
         </div>
 
-        {/* ===== VIEW 1: DAFTAR KONSER ===== */}
+        {/* ===== VIEW 1: CONCERT LIST ===== */}
         {!selectedConcert && (
           <>
             {concerts.length === 0 ? (
-              <EmptyState text="Belum ada konser yang tersedia." />
+              <EmptyState text="No concerts available yet." />
             ) : (
               <motion.div
                 variants={reduceMotion ? undefined : listVariants}
@@ -205,7 +205,7 @@ export default function CheckinHistory() {
                           <span className="text-xs font-normal text-amber-700/60">/{total}</span>
                         </p>
                         <p className="text-[9px] font-serif uppercase tracking-wider text-amber-700/60 mt-1 mb-1.5">
-                          hadir
+                          attended
                         </p>
                         <div className="w-full h-1 rounded-full bg-amber-200/70 overflow-hidden">
                           <div
@@ -222,7 +222,7 @@ export default function CheckinHistory() {
           </>
         )}
 
-        {/* ===== VIEW 2: RIWAYAT PER KONSER ===== */}
+        {/* ===== VIEW 2: HISTORY PER CONCERT ===== */}
         {selectedConcert && (
           <>
             <div className="flex items-center gap-3 mb-4">
@@ -231,13 +231,13 @@ export default function CheckinHistory() {
                 className="flex items-center gap-1.5 px-3 py-2 text-xs font-serif text-amber-800 hover:bg-amber-50 border border-amber-200/60 rounded-md transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-500"
               >
                 <Icon name="chevronLeft" className="w-3.5 h-3.5" />
-                Kembali
+                Back
               </button>
               <div className="relative flex-1">
                 <Icon name="search" className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-amber-400" />
                 <input
                   className="w-full pl-9 pr-3 py-2 text-sm font-serif bg-white border border-amber-200/60 rounded-md placeholder:text-amber-400/60 focus:outline-none focus:border-amber-500 transition-colors"
-                  placeholder="Cari nama atau kode tiket..."
+                  placeholder="Search by name or ticket code..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -246,7 +246,7 @@ export default function CheckinHistory() {
 
             {!historyLoading && history.length > 0 && (
               <p className="font-serif text-[11px] text-amber-700/60 mb-3">
-                {filteredHistory.length} dari {history.length} tiket ditemukan
+                {filteredHistory.length} of {history.length} tickets found
               </p>
             )}
 
@@ -256,8 +256,8 @@ export default function CheckinHistory() {
               <EmptyState
                 text={
                   search
-                    ? 'Tidak ada tiket yang cocok.'
-                    : 'Belum ada tiket yang di-check-in untuk konser ini.'
+                    ? 'No matching tickets.'
+                    : 'No tickets have been checked in for this concert yet.'
                 }
               />
             ) : (
@@ -324,7 +324,7 @@ export default function CheckinHistory() {
         )}
       </div>
 
-      {/* ===== MODAL DETAIL TIKET — dibentuk seperti struk tiket ===== */}
+      {/* ===== TICKET DETAIL MODAL — styled like a receipt ===== */}
       <AnimatePresence>
         {detailTicket && (
           <motion.div
@@ -343,7 +343,7 @@ export default function CheckinHistory() {
               onClick={(e) => e.stopPropagation()}
               role="dialog"
               aria-modal="true"
-              aria-label="Detail check-in tiket"
+              aria-label="Ticket check-in details"
             >
               <div className="flex items-start justify-between p-4 flex-shrink-0 bg-amber-800 text-amber-50">
                 <div className="min-w-0">
@@ -356,7 +356,7 @@ export default function CheckinHistory() {
                 </div>
                 <button
                   onClick={() => setDetailTicket(null)}
-                  aria-label="Tutup detail"
+                  aria-label="Close details"
                   className="p-1.5 -mr-1.5 -mt-1.5 text-amber-100 hover:text-white hover:bg-amber-700/60 rounded-md transition-colors"
                 >
                   <Icon name="close" className="w-4 h-4" />
@@ -370,10 +370,10 @@ export default function CheckinHistory() {
                   </div>
                   <div>
                     <p className="text-[10px] font-serif uppercase tracking-wider text-emerald-700/80">
-                      Waktu Check-in
+                      Check-in Time
                     </p>
                     <p className="font-serif text-sm font-semibold text-emerald-900">
-                      {new Date(detailTicket.checked_in_at).toLocaleString('id-ID', {
+                      {new Date(detailTicket.checked_in_at).toLocaleString('en-US', {
                         day: '2-digit',
                         month: 'short',
                         year: 'numeric',
@@ -401,21 +401,21 @@ export default function CheckinHistory() {
                 <div className="flex items-start gap-3">
                   <Icon name="phone" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-serif uppercase tracking-wider text-amber-700/60">No. HP</p>
+                    <p className="text-[10px] font-serif uppercase tracking-wider text-amber-700/60">Phone</p>
                     <p className="font-serif text-sm text-amber-950">{detailTicket.customer_phone || '-'}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Icon name="ticket" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-serif uppercase tracking-wider text-amber-700/60">Kategori</p>
+                    <p className="text-[10px] font-serif uppercase tracking-wider text-amber-700/60">Category</p>
                     <p className="font-serif text-sm text-amber-950">{detailTicket.ticket_category_name}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Icon name="calendar" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-serif uppercase tracking-wider text-amber-700/60">Jadwal Konser</p>
+                    <p className="text-[10px] font-serif uppercase tracking-wider text-amber-700/60">Concert Schedule</p>
                     <p className="font-serif text-sm text-amber-950">
                       {detailTicket.event_date
                         ? `${formatDate(detailTicket.event_date)}${detailTicket.start_time ? ' · ' + detailTicket.start_time.slice(0, 5) : ''}`
@@ -440,7 +440,7 @@ export default function CheckinHistory() {
                     <span className="font-mono text-amber-950">{detailTicket.order_code}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs font-serif">
-                    <span className="text-amber-700/60">Di-scan oleh</span>
+                    <span className="text-amber-700/60">Scanned by</span>
                     <span className="text-amber-950">{detailTicket.petugas_name || '-'}</span>
                   </div>
                 </div>
@@ -451,7 +451,7 @@ export default function CheckinHistory() {
                   onClick={() => setDetailTicket(null)}
                   className="w-full px-4 py-2.5 text-sm font-serif font-medium text-amber-50 bg-amber-800 hover:bg-amber-900 rounded-md transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
                 >
-                  Tutup
+                  Close
                 </button>
               </div>
             </motion.div>

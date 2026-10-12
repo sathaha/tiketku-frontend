@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import api from '../../api/axios';
-import { Loading, EmptyState } from '../../components/Ui';
 
 function Icon({ name, className = 'w-4 h-4' }) {
   const paths = {
@@ -21,54 +20,44 @@ function Icon({ name, className = 'w-4 h-4' }) {
     info: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
   };
   return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d={paths[name]} />
     </svg>
   );
 }
 
+function Spinner({ className = 'h-4 w-4' }) {
+  return (
+    <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+    </svg>
+  );
+}
+
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60';
+
+/* Notches are cut out of the ticket with a mask, so they work on any background. */
+const notch = `radial-gradient(circle 9px at calc(100% - var(--stub)) 0, #0000 97%, #000) top / 100% 51% no-repeat, radial-gradient(circle 9px at calc(100% - var(--stub)) 100%, #0000 97%, #000) bottom / 100% 51% no-repeat`;
+const ticketCss = `
+  .ticket-notch { -webkit-mask: ${notch}; mask: ${notch}; }
+  @media (min-width: 640px) {
+    .ticket-notch-sm { -webkit-mask: ${notch}; mask: ${notch}; }
+  }
+`;
+
 const emptyForm = { name: '', address: '', city: '', capacity: '', latitude: '', longitude: '' };
 
 const venueColors = [
-  { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', bar: 'bg-blue-500' },
-  { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', bar: 'bg-emerald-500' },
-  { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400', bar: 'bg-purple-500' },
-  { bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400', bar: 'bg-amber-500' },
-  { bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', bar: 'bg-rose-500' },
-  { bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', text: 'text-cyan-400', bar: 'bg-cyan-500' },
+  { bg: 'bg-blue-100', border: 'border-blue-200/60', text: 'text-blue-700', bar: 'bg-blue-500' },
+  { bg: 'bg-emerald-100', border: 'border-emerald-200/60', text: 'text-emerald-700', bar: 'bg-emerald-500' },
+  { bg: 'bg-purple-100', border: 'border-purple-200/60', text: 'text-purple-700', bar: 'bg-purple-500' },
+  { bg: 'bg-amber-100', border: 'border-amber-200/60', text: 'text-amber-700', bar: 'bg-amber-500' },
+  { bg: 'bg-rose-100', border: 'border-rose-200/60', text: 'text-rose-700', bar: 'bg-rose-500' },
+  { bg: 'bg-cyan-100', border: 'border-cyan-200/60', text: 'text-cyan-700', bar: 'bg-cyan-500' },
 ];
 
 const MAX_CAPACITY_FOR_BAR = 100000;
-
-// ===== INPUT with icon prefix + helper text =====
-function FormInput({ label, required, icon, value, onChange, placeholder, type = 'text', helper, autoFocus }) {
-  return (
-    <div>
-      <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-        {label} {required && <span className="text-flame-400">*</span>}
-      </label>
-      <div className="relative group">
-        {icon && (
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
-            <Icon name={icon} className="w-3.5 h-3.5 text-ink-400 transition-colors group-focus-within:text-flame-400" />
-          </div>
-        )}
-        <input
-          type={type}
-          required={required}
-          autoFocus={autoFocus}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          className={`w-full ${icon ? 'pl-14' : 'pl-4'} pr-4 py-3 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all`}
-        />
-      </div>
-      {helper && (
-        <p className="text-[11px] text-ink-500 mt-1.5">{helper}</p>
-      )}
-    </div>
-  );
-}
 
 // ===== VENUE FORM MODAL =====
 function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmit, onClose }) {
@@ -80,6 +69,20 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
       return () => clearTimeout(timer);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, onClose]);
 
   const [showMapPickerLocal, setShowMapPickerLocal] = useState(false);
   const [mapSearch, setMapSearch] = useState('');
@@ -96,7 +99,6 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
       setMapResults(data);
     } catch (err) {
       console.error('Failed to search location:', err);
-      alert('Failed to search location. Please try again.');
     } finally {
       setSearchingLocation(false);
     }
@@ -118,285 +120,260 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
     <>
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-            onClick={onClose}
-          >
+          <>
             <motion.div
-              initial={{ y: 40, opacity: 0, scale: 0.98 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 40, opacity: 0, scale: 0.98 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-ink-900 border border-ink-700 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl shadow-black/50"
+              key="overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              onClick={onClose}
+              className="fixed inset-0 bg-amber-950/50 z-[60]"
+              aria-hidden="true"
+            />
+            <motion.div
+              key="drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="venue-form-title"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              className="fixed inset-y-0 right-0 z-[70] w-full max-w-md"
             >
-              {/* ===== HEADER ===== */}
-              <div className="relative px-6 py-5 border-b border-ink-700/60 shrink-0">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-flame-500 via-orange-500 to-transparent" />
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-flame-500/10 border border-flame-500/20 flex items-center justify-center">
-                      <Icon name={editingId ? 'edit' : 'plus'} className="w-5 h-5 text-flame-400" />
-                    </div>
+              <div className="bg-white !rounded-none !border-y-0 !border-r-0 h-full flex flex-col border-l border-amber-200/60 shadow-2xl">
+                <form id="venue-form" onSubmit={onSubmit} className="flex flex-col h-full min-h-0">
+                  <div className="flex items-start justify-between gap-3 p-5 border-b border-amber-200/60">
                     <div>
-                      <h2 className="text-lg font-bold text-white leading-tight">
-                        {editingId ? 'Edit Venue' : 'Add New Venue'}
+                      <h2 id="venue-form-title" className="font-serif font-semibold text-amber-950">
+                        {editingId ? 'Edit venue' : 'Add new venue'}
                       </h2>
-                      <p className="text-xs text-ink-400 mt-0.5">
+                      <p className="font-serif text-xs text-amber-700/70 mt-0.5">
                         {editingId ? 'Update the venue details' : 'Fill in the venue details below'}
                       </p>
                     </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors shrink-0"
-                    aria-label="Close"
-                  >
-                    <Icon name="close" className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* ===== BODY (scrollable) ===== */}
-              <form id="venue-form" onSubmit={onSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-start gap-3 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
-                  >
-                    <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
-                    <span>{error}</span>
-                  </motion.div>
-                )}
-
-                {/* ===== SECTION: Basic Info ===== */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Icon name="sparkle" className="w-3.5 h-3.5 text-flame-400" />
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink-500 font-semibold">
-                      Basic Info
-                    </span>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      aria-label="Close form"
+                      className={`p-1.5 rounded-lg text-amber-500 hover:text-amber-900 hover:bg-amber-100 transition-colors ${focusRing}`}
+                    >
+                      <Icon name="close" className="w-5 h-5" />
+                    </button>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                    {error && (
+                      <div
+                        role="alert"
+                        className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200/60 text-red-700 font-serif text-sm"
+                      >
+                        <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
+                        {error}
+                      </div>
+                    )}
+
+                    {/* Basic Info */}
                     <div>
-                      <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-                        Venue Name <span className="text-flame-400">*</span>
-                      </label>
-                      <div className="relative group">
-                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
-                          <Icon name="building" className="w-3.5 h-3.5 text-ink-400 transition-colors group-focus-within:text-flame-400" />
+                      <div className="flex items-center gap-2 mb-3">
+                        <Icon name="sparkle" className="w-3.5 h-3.5 text-amber-600" />
+                        <span className="font-serif text-[10px] uppercase tracking-[0.2em] text-amber-700/70 font-semibold">
+                          Basic Info
+                        </span>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label htmlFor="venue-name" className="block font-serif text-sm text-amber-900 mb-1.5">
+                            Venue name <span className="text-amber-600">*</span>
+                          </label>
+                          <input
+                            id="venue-name"
+                            ref={nameRef}
+                            required
+                            value={form.name}
+                            onChange={(e) => setForm({ ...form, name: e.target.value })}
+                            placeholder="Example: Gelora Bung Karno"
+                            className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                          />
                         </div>
-                        <input
-                          ref={nameRef}
-                          required
-                          value={form.name}
-                          onChange={(e) => setForm({ ...form, name: e.target.value })}
-                          placeholder="Example: Gelora Bung Karno"
-                          className="w-full pl-14 pr-4 py-3 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
-                        />
+
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="venue-city" className="block font-serif text-sm text-amber-900 mb-1.5">
+                              City
+                            </label>
+                            <input
+                              id="venue-city"
+                              value={form.city}
+                              onChange={(e) => setForm({ ...form, city: e.target.value })}
+                              placeholder="Jakarta"
+                              className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                            />
+                          </div>
+
+                          <div>
+                            <label htmlFor="venue-capacity" className="block font-serif text-sm text-amber-900 mb-1.5">
+                              Capacity
+                            </label>
+                            <input
+                              id="venue-capacity"
+                              type="number"
+                              min="1"
+                              value={form.capacity}
+                              onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                              placeholder="5000"
+                              className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                            />
+                            {form.capacity && Number(form.capacity) > 0 && (
+                              <p className="font-serif text-xs text-amber-700/70 mt-1.5">
+                                ≈ {Number(form.capacity).toLocaleString('en-US')} people
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-                          City
-                        </label>
-                        <div className="relative group">
-                          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
-                            <Icon name="pin" className="w-3.5 h-3.5 text-ink-400 transition-colors group-focus-within:text-flame-400" />
-                          </div>
-                          <input
-                            value={form.city}
-                            onChange={(e) => setForm({ ...form, city: e.target.value })}
-                            placeholder="Jakarta"
-                            className="w-full pl-14 pr-4 py-3 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
-                          />
-                        </div>
+                    {/* Location */}
+                    <div className="pt-5 border-t border-amber-200/60">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Icon name="map" className="w-3.5 h-3.5 text-amber-600" />
+                        <span className="font-serif text-[10px] uppercase tracking-[0.2em] text-amber-700/70 font-semibold">
+                          Location & Address
+                        </span>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-                          Capacity
+                        <label htmlFor="venue-address" className="block font-serif text-sm text-amber-900 mb-1.5">
+                          Address
                         </label>
-                        <div className="relative group">
-                          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
-                            <Icon name="users" className="w-3.5 h-3.5 text-ink-400 transition-colors group-focus-within:text-flame-400" />
-                          </div>
+                        <div className="flex gap-2">
                           <input
-                            type="number"
-                            min="1"
-                            value={form.capacity}
-                            onChange={(e) => setForm({ ...form, capacity: e.target.value })}
-                            placeholder="5000"
-                            className="w-full pl-14 pr-4 py-3 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
+                            id="venue-address"
+                            value={form.address}
+                            onChange={(e) => setForm({ ...form, address: e.target.value })}
+                            placeholder="Type manually or pick on the map"
+                            className="flex-1 px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
                           />
+                          <button
+                            type="button"
+                            onClick={() => setShowMapPickerLocal(true)}
+                            className={`inline-flex items-center gap-2 px-4 py-2.5 bg-amber-100 hover:bg-amber-200/60 border border-amber-200/60 rounded-xl font-serif text-xs font-medium text-amber-800 transition-colors whitespace-nowrap shrink-0 ${focusRing}`}
+                          >
+                            <Icon name="pin" className="w-4 h-4" />
+                            Pick on map
+                          </button>
                         </div>
-                        {form.capacity && Number(form.capacity) > 0 && (
-                          <p className="text-[11px] text-ink-500 mt-1.5">
-                            ≈ {Number(form.capacity).toLocaleString('en-US')} people
+
+                        {form.latitude && form.longitude && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="mt-3 relative rounded-xl overflow-hidden border border-amber-200/60"
+                          >
+                            <iframe
+                              title="Venue location preview"
+                              src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(form.longitude) - 0.005}%2C${Number(form.latitude) - 0.005}%2C${Number(form.longitude) + 0.005}%2C${Number(form.latitude) + 0.005}&layer=mapnik&marker=${form.latitude}%2C${form.longitude}`}
+                              className="w-full h-40"
+                            />
+                            <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                              <span className="px-2 py-1 bg-white/90 backdrop-blur-sm border border-emerald-200/60 rounded-md font-serif text-[10px] text-emerald-700 flex items-center gap-1">
+                                <Icon name="check" className="w-3 h-3" />
+                                Location selected
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setForm((prev) => ({ ...prev, latitude: '', longitude: '', address: '' }))}
+                                className={`p-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors ${focusRing}`}
+                                title="Remove location"
+                              >
+                                <Icon name="close" className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {!form.latitude && !form.longitude && (
+                          <p className="font-serif text-xs text-amber-700/70 mt-1.5 flex items-center gap-1">
+                            <Icon name="info" className="w-3 h-3" />
+                            Pick a location on the map to show a map on the event page
                           </p>
                         )}
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* ===== SECTION: Location ===== */}
-                <div className="pt-5 border-t border-ink-700/60">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Icon name="map" className="w-3.5 h-3.5 text-flame-400" />
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink-500 font-semibold">
-                      Location & Address
-                    </span>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-                      Address
-                    </label>
-                    <div className="flex gap-2">
-                      <div className="relative group flex-1">
-                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
-                          <Icon name="map" className="w-3.5 h-3.5 text-ink-400 transition-colors group-focus-within:text-flame-400" />
-                        </div>
-                        <input
-                          value={form.address}
-                          onChange={(e) => setForm({ ...form, address: e.target.value })}
-                          placeholder="Type manually or pick on the map"
-                          className="w-full pl-14 pr-4 py-3 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
-                        />
-                      </div>
+                  <div className="p-4 border-t border-amber-200/60 space-y-3">
+                    <div className="flex gap-3">
+                      <button
+                        type="submit"
+                        disabled={saving}
+                        className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-800 hover:bg-amber-700 disabled:opacity-50 text-amber-50 font-serif text-sm rounded-xl transition-colors ${focusRing}`}
+                      >
+                        {saving ? (
+                          <>
+                            <Spinner />
+                            Saving...
+                          </>
+                        ) : editingId ? (
+                          'Save changes'
+                        ) : (
+                          'Add venue'
+                        )}
+                      </button>
                       <button
                         type="button"
-                        onClick={() => setShowMapPickerLocal(true)}
-                        className="inline-flex items-center gap-2 px-4 py-3 bg-flame-500/10 hover:bg-flame-500/20 border border-flame-500/30 rounded-xl text-xs font-medium text-flame-400 transition-colors whitespace-nowrap shrink-0"
+                        onClick={onClose}
+                        className={`px-4 py-2.5 bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-900 font-serif text-sm rounded-xl transition-colors ${focusRing}`}
                       >
-                        <Icon name="pin" className="w-4 h-4" />
-                        Pick on Map
+                        Cancel
                       </button>
                     </div>
-
-                    {form.latitude && form.longitude && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="mt-3 relative rounded-xl overflow-hidden border border-ink-700"
-                      >
-                        <iframe
-                          title="Venue location preview"
-                          src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(form.longitude) - 0.005}%2C${Number(form.latitude) - 0.005}%2C${Number(form.longitude) + 0.005}%2C${Number(form.latitude) + 0.005}&layer=mapnik&marker=${form.latitude}%2C${form.longitude}`}
-                          className="w-full h-40"
-                        />
-                        <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                          <span className="px-2 py-1 bg-ink-950/80 backdrop-blur-sm border border-ink-700 rounded-md text-[10px] text-emerald-400 flex items-center gap-1">
-                            <Icon name="check" className="w-3 h-3" />
-                            Location selected
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setForm((prev) => ({ ...prev, latitude: '', longitude: '', address: '' }))}
-                            className="p-1.5 bg-red-500/90 text-white rounded-md hover:bg-red-600 transition-colors"
-                            title="Remove location"
-                          >
-                            <Icon name="close" className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {!form.latitude && !form.longitude && (
-                      <p className="text-[11px] text-ink-500 mt-1.5 flex items-center gap-1">
-                        <Icon name="info" className="w-3 h-3" />
-                        Pick a location on the map to show a map on the event page
-                      </p>
-                    )}
                   </div>
-                </div>
-              </form>
-
-              {/* ===== FOOTER (sticky) ===== */}
-              <div className="px-6 py-4 bg-ink-900/80 backdrop-blur-md border-t border-ink-700/60 flex items-center justify-between gap-3 shrink-0">
-                <p className="text-[11px] text-ink-500 hidden sm:block">
-                  <span className="text-flame-400">*</span> Required
-                </p>
-                <div className="flex gap-2 ml-auto">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-5 py-2.5 rounded-xl text-sm font-medium text-ink-300 hover:text-white hover:bg-ink-700 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    form="venue-form"
-                    disabled={saving}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-flame-500 hover:bg-flame-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-flame-500/30"
-                  >
-                    {saving ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="check" className="w-4 h-4" />
-                        {editingId ? 'Save Changes' : 'Add Venue'}
-                      </>
-                    )}
-                  </button>
-                </div>
+                </form>
               </div>
             </motion.div>
-          </motion.div>
+          </>
         )}
       </AnimatePresence>
 
-      {/* ===== MAP PICKER MODAL (nested) ===== */}
+      {/* Map Picker Modal */}
       <AnimatePresence>
         {showMapPickerLocal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-amber-950/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4"
             onClick={() => setShowMapPickerLocal(false)}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-ink-900 border border-ink-700 rounded-2xl max-w-2xl w-full max-h-[80vh] flex flex-col overflow-hidden"
+              className="bg-white border border-amber-200/60 rounded-2xl max-w-2xl w-full max-h-[80vh] flex flex-col overflow-hidden shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-4 border-b border-ink-700 flex items-center justify-between shrink-0">
-                <h3 className="font-semibold text-white">Pick Venue Location</h3>
+              <div className="p-4 border-b border-amber-200/60 flex items-center justify-between shrink-0">
+                <h3 className="font-serif font-semibold text-amber-950">Pick venue location</h3>
                 <button
                   onClick={() => setShowMapPickerLocal(false)}
-                  className="p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors"
+                  aria-label="Close map picker"
+                  className={`p-1.5 rounded-lg text-amber-500 hover:text-amber-900 hover:bg-amber-100 transition-colors ${focusRing}`}
                 >
                   <Icon name="close" className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="p-4 border-b border-ink-700 shrink-0">
+              <div className="p-4 border-b border-amber-200/60 shrink-0">
                 <div className="flex gap-2">
                   <div className="relative flex-1">
-                    <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
+                    <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500" />
                     <input
                       type="text"
-                      className="w-full pl-9 pr-4 py-2.5 bg-ink-900/50 border border-ink-700 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
                       placeholder="Search address or place name..."
                       value={mapSearch}
                       onChange={(e) => setMapSearch(e.target.value)}
@@ -411,7 +388,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                   <button
                     onClick={searchLocation}
                     disabled={searchingLocation}
-                    className="px-4 py-2.5 bg-flame-500 hover:bg-flame-600 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors whitespace-nowrap"
+                    className={`px-4 py-2.5 bg-amber-800 hover:bg-amber-700 disabled:opacity-50 text-amber-50 font-serif text-sm rounded-xl transition-colors whitespace-nowrap ${focusRing}`}
                   >
                     {searchingLocation ? 'Searching...' : 'Search'}
                   </button>
@@ -425,12 +402,12 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                       <button
                         key={index}
                         onClick={() => selectLocation(result)}
-                        className="w-full text-left p-3 rounded-xl bg-ink-800/50 hover:bg-ink-700 border border-transparent hover:border-flame-500/30 transition-all"
+                        className={`w-full text-left p-3 rounded-xl bg-amber-50/50 hover:bg-amber-100/60 border border-amber-200/60 hover:border-amber-300 transition-all ${focusRing}`}
                       >
-                        <p className="text-sm text-white font-medium">
+                        <p className="font-serif text-sm text-amber-950 font-medium">
                           {result.display_name.split(',')[0]}
                         </p>
-                        <p className="text-xs text-ink-400 mt-0.5 line-clamp-2">
+                        <p className="font-serif text-xs text-amber-700/70 mt-0.5 line-clamp-2">
                           {result.display_name}
                         </p>
                       </button>
@@ -438,9 +415,11 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <Icon name="pin" className="w-12 h-12 text-ink-600 mx-auto mb-3" />
-                    <p className="text-sm text-ink-300">Search for a venue location above</p>
-                    <p className="text-xs text-ink-500 mt-1">
+                    <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 border border-amber-200/60 flex items-center justify-center mb-3">
+                      <Icon name="pin" className="w-6 h-6 text-amber-600" />
+                    </div>
+                    <p className="font-serif text-sm text-amber-950">Search for a venue location above</p>
+                    <p className="font-serif text-xs text-amber-700/70 mt-1">
                       Use the place name or full address
                     </p>
                   </div>
@@ -454,6 +433,27 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
   );
 }
 
+function SkeletonVenues() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse" aria-hidden="true">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="bg-white border border-amber-200/60 rounded-2xl p-5 space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 rounded-full bg-amber-100" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 w-32 bg-amber-100 rounded" />
+              <div className="h-3 w-20 bg-amber-100 rounded" />
+            </div>
+          </div>
+          <div className="h-3 w-full bg-amber-100 rounded" />
+          <div className="h-1.5 w-full bg-amber-100 rounded-full" />
+          <div className="h-8 w-full bg-amber-100 rounded-lg" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Venues() {
   const [venues, setVenues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -462,9 +462,9 @@ export default function Venues() {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-  const [successMsg, setSuccessMsg] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('name');
@@ -473,6 +473,16 @@ export default function Venues() {
     fetchVenues();
   }, []);
 
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3200);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  function notify(type, message) {
+    setToast({ type, message, id: Date.now() });
+  }
+
   async function fetchVenues() {
     setLoading(true);
     try {
@@ -480,6 +490,7 @@ export default function Venues() {
       setVenues(res.data);
     } catch (err) {
       console.error('Failed to fetch venues:', err);
+      notify('error', 'Failed to load venues.');
     } finally {
       setLoading(false);
     }
@@ -533,14 +544,13 @@ export default function Venues() {
 
       if (editingId) {
         await api.put(`/venues/${editingId}`, payload);
-        setSuccessMsg(`Venue "${form.name}" updated successfully`);
+        notify('success', `Venue "${form.name}" updated`);
       } else {
         await api.post('/venues', payload);
-        setSuccessMsg(`Venue "${form.name}" added successfully`);
+        notify('success', `Venue "${form.name}" added`);
       }
       setShowForm(false);
       fetchVenues();
-      setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save venue.');
     } finally {
@@ -553,12 +563,11 @@ export default function Venues() {
     setDeleting(true);
     try {
       await api.delete(`/venues/${deleteTarget.id}`);
-      setSuccessMsg(`Venue "${deleteTarget.name}" deleted successfully`);
+      notify('success', `Venue "${deleteTarget.name}" deleted`);
       setDeleteTarget(null);
       fetchVenues();
-      setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete venue.');
+      notify('error', err.response?.data?.message || 'Failed to delete venue.');
       setDeleteTarget(null);
     } finally {
       setDeleting(false);
@@ -602,252 +611,303 @@ export default function Venues() {
     return { total, withMap, totalCapacity };
   }, [venues]);
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+  const isFiltering = !!searchQuery.trim() || sortBy !== 'name';
 
-      {/* HEADER */}
-      <div className="relative mb-6">
-        <div className="absolute -top-6 -left-6 w-32 h-32 bg-flame-500/5 rounded-full blur-2xl pointer-events-none" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-flame-500/10 border border-flame-500/20 flex items-center justify-center">
-              <Icon name="building" className="w-5 h-5 text-flame-400" />
-            </div>
+  return (
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen bg-[#f5ede4]">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <style>{ticketCss}</style>
+
+          {/* Header */}
+          <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-white">Manage Venues</h1>
-              <p className="text-sm text-ink-400 mt-0.5">
-                {venues.length} venues registered
+              <h1 className="font-serif text-2xl font-bold text-amber-950">Manage venues</h1>
+              <p className="font-serif text-sm text-amber-700/70 mt-1">
+                {loading ? 'Loading venues...' : `${venues.length} venues registered`}
               </p>
             </div>
+            <button
+              onClick={openCreate}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif text-sm rounded-xl transition-colors self-start sm:self-auto ${focusRing}`}
+            >
+              <Icon name="plus" className="w-4 h-4" />
+              Add venue
+            </button>
+          </header>
+
+          {/* Stats */}
+          {!loading && venues.length > 0 && (
+            <div className="bg-white border border-amber-200/60 rounded-2xl grid grid-cols-3 divide-x divide-amber-200/60 mb-6">
+              <div className="p-4">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Icon name="building" className="w-3.5 h-3.5 text-amber-600" />
+                  <p className="font-serif text-xs text-amber-700/70">Total venues</p>
+                </div>
+                <p className="font-serif text-xl font-bold text-amber-950 font-mono tabular-nums leading-none">
+                  {stats.total}
+                </p>
+              </div>
+              <div className="p-4">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Icon name="map" className="w-3.5 h-3.5 text-emerald-600" />
+                  <p className="font-serif text-xs text-amber-700/70">With map</p>
+                </div>
+                <p className="font-serif text-xl font-bold text-emerald-700 font-mono tabular-nums leading-none">
+                  {stats.withMap}
+                </p>
+              </div>
+              <div className="p-4">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Icon name="users" className="w-3.5 h-3.5 text-purple-600" />
+                  <p className="font-serif text-xs text-amber-700/70">Total capacity</p>
+                </div>
+                <p className="font-serif text-xl font-bold text-purple-700 font-mono tabular-nums leading-none">
+                  {stats.totalCapacity.toLocaleString('en-US')}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Search & sort */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-5">
+            <div className="relative flex-1">
+              <Icon name="search" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-500" />
+              <input
+                type="text"
+                aria-label="Search venues"
+                placeholder="Search name, city, or address..."
+                className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <select
+              aria-label="Sort venues"
+              className={`px-4 py-3 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all sm:w-52 ${focusRing}`}
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="name">Name A-Z</option>
+              <option value="capacity-high">Largest capacity</option>
+              <option value="capacity-low">Smallest capacity</option>
+              <option value="city">City A-Z</option>
+            </select>
           </div>
-          <button
-            onClick={openCreate}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-flame-500 hover:bg-flame-600 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-flame-500/20 self-start sm:self-auto"
-          >
-            <Icon name="plus" className="w-4 h-4" />
-            Add Venue
-          </button>
-        </div>
-      </div>
 
-      {/* STATS */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        <div className="bg-ink-800/40 border border-ink-700 rounded-xl px-4 py-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Icon name="building" className="w-3.5 h-3.5 text-flame-400" />
-            <p className="text-xs text-ink-400">Total Venues</p>
-          </div>
-          <p className="text-lg font-semibold text-white font-mono tabular-nums">{stats.total}</p>
-        </div>
-        <div className="bg-ink-800/40 border border-ink-700 rounded-xl px-4 py-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Icon name="map" className="w-3.5 h-3.5 text-emerald-400" />
-            <p className="text-xs text-ink-400">With Map</p>
-          </div>
-          <p className="text-lg font-semibold text-emerald-400 font-mono tabular-nums">{stats.withMap}</p>
-        </div>
-        <div className="bg-ink-800/40 border border-ink-700 rounded-xl px-4 py-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Icon name="users" className="w-3.5 h-3.5 text-purple-400" />
-            <p className="text-xs text-ink-400">Total Capacity</p>
-          </div>
-          <p className="text-lg font-semibold text-purple-400 font-mono tabular-nums">
-            {stats.totalCapacity.toLocaleString('en-US')}
-          </p>
-        </div>
-      </div>
+          {/* Venues grid */}
+          {loading ? (
+            <SkeletonVenues />
+          ) : filteredVenues.length === 0 ? (
+            <div className="bg-white border border-amber-200/60 rounded-2xl p-12 text-center">
+              <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 border border-amber-200/60 flex items-center justify-center mb-4">
+                <Icon name="building" className="w-6 h-6 text-amber-600" />
+              </div>
+              {isFiltering ? (
+                <>
+                  <h3 className="font-serif font-semibold text-amber-950 mb-1">No venues match</h3>
+                  <p className="font-serif text-sm text-amber-700/70 mb-5">Change the keyword or reset the filter.</p>
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSortBy('name');
+                    }}
+                    className={`px-4 py-2 bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-900 font-serif text-sm rounded-xl transition-colors ${focusRing}`}
+                  >
+                    Reset filter
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-serif font-semibold text-amber-950 mb-1">No venues yet</h3>
+                  <p className="font-serif text-sm text-amber-700/70 mb-5">
+                    Add a venue so concerts can be linked to a location.
+                  </p>
+                  <button
+                    onClick={openCreate}
+                    className={`inline-flex items-center gap-2 px-4 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif text-sm rounded-xl transition-colors ${focusRing}`}
+                  >
+                    <Icon name="plus" className="w-4 h-4" />
+                    Add first venue
+                  </button>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredVenues.map((venue, index) => {
+                const color = venueColors[index % venueColors.length];
+                const capacity = Number(venue.capacity) || 0;
+                const capacityPercent = Math.min(100, (capacity / MAX_CAPACITY_FOR_BAR) * 100);
+                const hasMap = venue.latitude && venue.longitude;
 
-      {/* SEARCH & SORT */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-5">
-        <div className="relative flex-1">
-          <Icon name="search" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-500" />
-          <input
-            type="text"
-            placeholder="Search name, city, or address..."
-            className="w-full pl-10 pr-4 py-2.5 bg-ink-800/40 border border-ink-700 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/50 transition-colors"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <select
-          className="px-4 py-2.5 bg-ink-800/40 border border-ink-700 rounded-xl text-sm text-white focus:outline-none focus:border-flame-500/50 transition-colors sm:w-48"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="name">Name A-Z</option>
-          <option value="capacity-high">Largest Capacity</option>
-          <option value="capacity-low">Smallest Capacity</option>
-          <option value="city">City A-Z</option>
-        </select>
-      </div>
+                return (
+                  <motion.div
+                    key={venue.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03, duration: 0.2 }}
+                    className="bg-white border border-amber-200/60 rounded-2xl p-5 hover:border-amber-300 transition-colors flex flex-col"
+                  >
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className={`w-12 h-12 rounded-full ${color.bg} ${color.border} border flex items-center justify-center shrink-0`}>
+                        <Icon name="building" className={`w-5 h-5 ${color.text}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-serif font-semibold text-amber-950 text-sm leading-tight truncate">
+                          {venue.name}
+                        </h3>
+                        {venue.city && (
+                          <p className="font-serif text-xs text-amber-700/70 mt-0.5 flex items-center gap-1 truncate">
+                            <Icon name="pin" className="w-3 h-3 text-amber-500 flex-shrink-0" />
+                            <span className="truncate">{venue.city}</span>
+                          </p>
+                        )}
+                      </div>
+                      {hasMap && (
+                        <span className="font-serif text-[10px] text-emerald-700 bg-emerald-100 border border-emerald-200/60 px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0">
+                          <Icon name="map" className="w-3 h-3" />
+                          Map
+                        </span>
+                      )}
+                    </div>
 
-      {/* SUCCESS MESSAGE */}
-      <AnimatePresence>
-        {successMsg && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2 p-3 mb-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm"
-          >
-            <Icon name="check" className="w-4 h-4 shrink-0" />
-            {successMsg}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ===== FORM MODAL ===== */}
-      <VenueFormModal
-        open={showForm}
-        editingId={editingId}
-        form={form}
-        setForm={setForm}
-        error={error}
-        saving={saving}
-        onSubmit={handleSubmit}
-        onClose={closeForm}
-      />
-
-      {/* ===== VENUES GRID ===== */}
-      {loading ? (
-        <Loading />
-      ) : filteredVenues.length === 0 ? (
-        <EmptyState text="No venues found." />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredVenues.map((venue, index) => {
-            const color = venueColors[index % venueColors.length];
-            const capacity = Number(venue.capacity) || 0;
-            const capacityPercent = Math.min(100, (capacity / MAX_CAPACITY_FOR_BAR) * 100);
-            const hasMap = venue.latitude && venue.longitude;
-
-            return (
-              <motion.div
-                key={venue.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03 }}
-                whileHover={{ y: -3 }}
-                className="group card p-5 hover:border-flame-500/30 transition-all flex flex-col"
-              >
-                <div className="flex items-start gap-3 mb-4">
-                  <div className={`w-12 h-12 rounded-full ${color.bg} ${color.border} border flex items-center justify-center shrink-0`}>
-                    <Icon name="building" className={`w-5 h-5 ${color.text}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-white text-sm leading-tight truncate">
-                      {venue.name}
-                    </h3>
-                    {venue.city && (
-                      <p className="text-xs text-ink-400 mt-0.5 flex items-center gap-1 truncate">
-                        <Icon name="pin" className="w-3 h-3 text-ink-500 flex-shrink-0" />
-                        <span className="truncate">{venue.city}</span>
+                    {venue.address && (
+                      <p className="font-serif text-xs text-amber-700/70 mb-4 line-clamp-2 leading-relaxed">
+                        {venue.address}
                       </p>
                     )}
-                  </div>
-                  {hasMap && (
-                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0">
-                      <Icon name="map" className="w-3 h-3" />
-                      Map
-                    </span>
-                  )}
-                </div>
 
-                {venue.address && (
-                  <p className="text-xs text-ink-400 mb-4 line-clamp-2 leading-relaxed">
-                    {venue.address}
-                  </p>
-                )}
-
-                <div className="mb-4 flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-1.5 text-xs text-ink-400">
-                      <Icon name="users" className="w-3.5 h-3.5" />
-                      Capacity
+                    <div className="mb-4 flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-1.5 font-serif text-xs text-amber-700/70">
+                          <Icon name="users" className="w-3.5 h-3.5" />
+                          Capacity
+                        </div>
+                        <span className={`font-serif text-xs font-mono font-semibold ${capacity > 0 ? color.text : 'text-amber-700/60'}`}>
+                          {capacity > 0 ? `${capacity.toLocaleString('en-US')} people` : 'Not set'}
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${capacityPercent}%` }}
+                          transition={{ duration: 0.6, ease: 'easeOut' }}
+                          className={`h-full ${color.bar} rounded-full`}
+                        />
+                      </div>
                     </div>
-                    <span className={`text-xs font-mono font-semibold ${capacity > 0 ? color.text : 'text-ink-500'}`}>
-                      {capacity > 0 ? `${capacity.toLocaleString('en-US')} people` : 'Not set'}
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-full bg-ink-800 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${capacityPercent}%` }}
-                      transition={{ duration: 0.6, ease: 'easeOut' }}
-                      className={`h-full ${color.bar} rounded-full`}
-                    />
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-2 pt-3 border-t border-ink-700/60">
-                  <button
-                    onClick={() => openEdit(venue)}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-ink-700/50 hover:bg-ink-700 text-ink-200 rounded-lg text-xs font-medium transition-colors"
-                  >
-                    <Icon name="edit" className="w-3.5 h-3.5" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => setDeleteTarget(venue)}
-                    className="p-2 rounded-lg text-ink-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                    title="Delete"
-                  >
-                    <Icon name="trash" className="w-4 h-4" />
-                  </button>
-                </div>
+                    <div className="flex items-center gap-2 pt-3 border-t border-amber-200/60">
+                      <button
+                        onClick={() => openEdit(venue)}
+                        className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-100 hover:bg-amber-200/60 text-amber-900 rounded-lg font-serif text-xs font-medium transition-colors ${focusRing}`}
+                      >
+                        <Icon name="edit" className="w-3.5 h-3.5" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget(venue)}
+                        aria-label={`Delete ${venue.name}`}
+                        title="Delete venue"
+                        className={`p-2 rounded-lg text-amber-500 hover:text-red-600 hover:bg-red-50 transition-colors ${focusRing}`}
+                      >
+                        <Icon name="trash" className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Form modal */}
+          <VenueFormModal
+            open={showForm}
+            editingId={editingId}
+            form={form}
+            setForm={setForm}
+            error={error}
+            saving={saving}
+            onSubmit={handleSubmit}
+            onClose={closeForm}
+          />
+
+          {/* Delete modal */}
+          <AnimatePresence>
+            {deleteTarget && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-amber-950/50 backdrop-blur-sm z-[80] flex items-center justify-center p-4"
+                onClick={() => setDeleteTarget(null)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  className="bg-white border border-amber-200/60 rounded-2xl max-w-sm w-full p-6"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200/60 flex items-center justify-center">
+                      <Icon name="trash" className="w-5 h-5 text-red-600" />
+                    </div>
+                    <h3 className="font-serif font-semibold text-amber-950 text-lg">Delete venue</h3>
+                  </div>
+
+                  <p className="font-serif text-sm text-amber-800 mb-4">
+                    You are about to delete:{' '}
+                    <span className="font-mono font-semibold">{deleteTarget.name}</span>
+                  </p>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className={`flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-serif text-sm font-semibold transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2 ${focusRing}`}
+                    >
+                      {deleting && <Spinner className="h-3.5 w-3.5" />}
+                      {deleting ? 'Deleting...' : 'Delete'}
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(null)}
+                      className={`flex-1 py-2.5 bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-900 rounded-xl font-serif text-sm font-semibold transition-colors ${focusRing}`}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </motion.div>
               </motion.div>
-            );
-          })}
+            )}
+          </AnimatePresence>
+
+          {/* Toast */}
+          <div className="fixed bottom-6 inset-x-0 z-[90] flex justify-center px-4 pointer-events-none">
+            <AnimatePresence>
+              {toast && (
+                <motion.div
+                  key={toast.id}
+                  role="status"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 12 }}
+                  transition={{ duration: 0.18 }}
+                  className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-lg border font-serif text-sm font-medium ${
+                    toast.type === 'error'
+                      ? 'bg-red-50 border-red-200/60 text-red-700'
+                      : 'bg-emerald-50 border-emerald-200/60 text-emerald-700'
+                  }`}
+                >
+                  <Icon name={toast.type === 'error' ? 'alert' : 'check'} className="w-4 h-4" />
+                  {toast.message}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      )}
-
-      {/* DELETE MODAL */}
-      <AnimatePresence>
-        {deleteTarget && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setDeleteTarget(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-ink-800 border border-ink-700 rounded-2xl max-w-sm w-full p-6"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-                  <Icon name="trash" className="w-5 h-5 text-red-400" />
-                </div>
-                <h3 className="font-semibold text-white text-lg">Delete Venue</h3>
-              </div>
-
-              <p className="text-ink-300 text-sm mb-4">
-                You are about to delete: <span className="text-white font-medium">{deleteTarget.name}</span>
-              </p>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
-                >
-                  {deleting ? 'Deleting...' : 'Delete'}
-                </button>
-                <button
-                  onClick={() => setDeleteTarget(null)}
-                  className="flex-1 py-2.5 bg-ink-700 hover:bg-ink-600 text-white rounded-xl text-sm font-semibold transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      </div>
+    </MotionConfig>
   );
 }

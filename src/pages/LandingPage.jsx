@@ -43,7 +43,7 @@ const fmtDate = (d, month = 'long') => {
   if (!d) return null;
   const dt = new Date(d);
   if (Number.isNaN(dt.getTime())) return null;
-  return dt.toLocaleDateString('id-ID', { day: 'numeric', month, year: 'numeric' });
+  return dt.toLocaleDateString('en-US', { day: 'numeric', month, year: 'numeric' });
 };
 
 const rupiah = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
@@ -66,7 +66,7 @@ function ScrollProgress() {
   );
 }
 
-// Tepi bergerigi ala tiket. `flip` untuk dipasang di bawah section gelap.
+// Perforated ticket edge. `flip` for placing at the bottom of a dark section.
 function Perforation({ flip = false }) {
   const mask = 'radial-gradient(circle at 10px 0, transparent 7px, #000 7.5px)';
   return (
@@ -149,7 +149,7 @@ function SectionHead({ eyebrow, children, aside, dark = false }) {
   );
 }
 
-// Modal dipakai bersama (kunci scroll, Esc, klik backdrop)
+// Shared modal (locks scroll, Esc key, backdrop click)
 function Modal({ onClose, label, className = 'max-w-md', children }) {
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -184,7 +184,7 @@ function Modal({ onClose, label, className = 'max-w-md', children }) {
       >
         <button
           onClick={onClose}
-          aria-label="Tutup"
+          aria-label="Close"
           className="absolute top-3 right-3 z-20 w-9 h-9 rounded-full bg-ink-950/80 text-amber-100 flex items-center justify-center hover:bg-ink-950 transition-colors"
         >
           <Icon name="close" className="w-4 h-4" />
@@ -261,7 +261,7 @@ function HeroTicket() {
               ))}
             </div>
             <p className="font-serif text-[9px] tracking-[0.35em] text-amber-600/70 uppercase mt-3">
-              Scan di pintu masuk
+              Scan at the entrance
             </p>
           </div>
         </div>
@@ -297,17 +297,17 @@ function ConcertModal({ item, onClose }) {
         {item.artist && <p className="font-serif text-sm text-amber-700/80 mt-2 italic">{item.artist}</p>}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-5 mt-8 pt-6 border-t border-dashed border-amber-300/60">
-          {item.city && <Field label="Kota" value={item.city} />}
+          {item.city && <Field label="City" value={item.city} />}
           {item.venue && <Field label="Venue" value={item.venue} />}
-          {date && <Field label="Tanggal" value={date} />}
-          {item.time && <Field label="Waktu" value={item.time} />}
-          {item.min_price && <Field label="Mulai dari" value={rupiah(item.min_price)} bold />}
+          {date && <Field label="Date" value={date} />}
+          {item.time && <Field label="Time" value={item.time} />}
+          {item.min_price && <Field label="Starting from" value={rupiah(item.min_price)} bold />}
           {item.gate && <Field label="Gate" value={item.gate} />}
         </div>
 
         {item.description && (
           <div className="mt-8">
-            <p className="font-serif text-[10px] tracking-[0.3em] text-amber-600/70 uppercase mb-3">Tentang Event</p>
+            <p className="font-serif text-[10px] tracking-[0.3em] text-amber-600/70 uppercase mb-3">About the Event</p>
             <p className="font-serif text-sm text-amber-900/80 leading-relaxed whitespace-pre-line">{item.description}</p>
           </div>
         )}
@@ -317,14 +317,14 @@ function ConcertModal({ item, onClose }) {
             to={`/concerts/${item.id}`}
             className="group inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-amber-700 hover:bg-amber-600 text-amber-50 font-serif text-xs tracking-[0.2em] uppercase rounded-full transition-colors shadow-lg shadow-amber-900/30"
           >
-            Beli Tiket
+            Buy Tickets
             <Icon name="arrow" className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <button
             onClick={onClose}
             className="inline-flex items-center justify-center px-7 py-3.5 font-serif text-xs tracking-[0.2em] uppercase text-amber-800 hover:text-amber-600 border border-amber-700/30 hover:border-amber-700/60 rounded-full transition-colors"
           >
-            Tutup
+            Close
           </button>
         </div>
       </div>
@@ -344,7 +344,7 @@ function HorizontalGallery({ items = [] }) {
     offset: ['start start', 'end end'],
   });
 
-  // Jarak geser diukur dari lebar track sebenarnya
+  // Measure scroll distance from the actual track width
   useLayoutEffect(() => {
     const el = trackRef.current;
     if (!el) return;
@@ -379,14 +379,14 @@ function HorizontalGallery({ items = [] }) {
           <div>
             <span className="font-serif text-[10px] tracking-[0.4em] text-amber-600/80 uppercase">Featured Events</span>
             <h2 className="font-serif text-3xl md:text-5xl text-amber-950 mt-2 leading-tight">
-              Pilihan <span className="italic text-amber-600">Minggu Ini</span>
+              This Week's <span className="italic text-amber-600">Picks</span>
             </h2>
           </div>
           <Link
             to="/concerts"
             className="hidden sm:inline-flex items-center gap-2 font-serif text-xs tracking-[0.2em] uppercase text-amber-800 hover:text-amber-600 transition-colors"
           >
-            Semua konser <Icon name="arrow" className="w-4 h-4" />
+            All concerts <Icon name="arrow" className="w-4 h-4" />
           </Link>
         </div>
 
@@ -452,7 +452,7 @@ function HorizontalGallery({ items = [] }) {
           </div>
           <div className="flex justify-between mt-3">
             <span className="font-serif text-[10px] tracking-[0.3em] text-amber-600/70 uppercase">
-              Scroll untuk menjelajah
+              Scroll to explore
             </span>
             <span className="font-serif text-[10px] tracking-[0.3em] text-amber-600/70 uppercase">
               {items.length} events
@@ -480,7 +480,7 @@ function PromoTicket({ promo, featured = false, onClick, index = 0 }) {
   const label = discountLabel(promo.discount_type, promo.discount_value);
   const used = promo.used || 0;
   const quota = promo.quota || 0;
-  const sisa = Math.max(0, quota - used);
+  const remaining = Math.max(0, quota - used);
   const pct = quota > 0 ? Math.min(Math.round((used / quota) * 100), 100) : 0;
   const until = fmtDate(promo.valid_until, 'short');
 
@@ -506,26 +506,26 @@ function PromoTicket({ promo, featured = false, onClick, index = 0 }) {
           <div>
             <span className="inline-flex items-center gap-2 font-serif text-[9px] tracking-[0.35em] text-emerald-400 uppercase">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Promo Aktif
+              Active Promo
             </span>
             <h3
               className={`font-serif text-white leading-[1.08] mt-4 ${
                 featured ? 'text-3xl md:text-5xl' : 'text-2xl'
               }`}
             >
-              {promo.description || 'Promo spesial untukmu'}
+              {promo.description || 'Special promo just for you'}
             </h3>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-4 text-amber-200/60 font-serif text-xs">
               {until && (
                 <span className="flex items-center gap-1.5">
                   <Icon name="calendar" className="w-3.5 h-3.5" />
-                  s/d {until}
+                  until {until}
                 </span>
               )}
-              {sisa > 0 && sisa <= 50 && (
+              {remaining > 0 && remaining <= 50 && (
                 <span className="flex items-center gap-1.5 text-amber-300">
                   <Icon name="zap" className="w-3.5 h-3.5" />
-                  Sisa {sisa}
+                  {remaining} left
                 </span>
               )}
             </div>
@@ -536,7 +536,7 @@ function PromoTicket({ promo, featured = false, onClick, index = 0 }) {
               {promo.code}
             </span>
             <span className="inline-flex items-center gap-2 font-serif text-[10px] tracking-[0.3em] text-amber-300/70 uppercase group-hover:text-amber-300 transition-colors">
-              Detail
+              Details
               <Icon name="arrow" className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
             </span>
           </div>
@@ -552,7 +552,7 @@ function PromoTicket({ promo, featured = false, onClick, index = 0 }) {
           <span className="absolute w-6 h-6 rounded-full bg-[#f5ede4] -top-3 -left-3" />
 
           <p className="font-serif text-[10px] tracking-[0.4em] text-amber-400/80 uppercase">
-            {promo.discount_type === 'percentage' ? 'Diskon' : 'Potongan'}
+            {promo.discount_type === 'percentage' ? 'Discount' : 'Off'}
           </p>
           <p
             className={`font-serif text-amber-400 leading-none mt-2 tabular-nums ${
@@ -568,7 +568,7 @@ function PromoTicket({ promo, featured = false, onClick, index = 0 }) {
             />
           </div>
           <p className="font-serif text-[10px] tracking-[0.2em] text-amber-300/50 uppercase mt-2">
-            {used} / {quota} terpakai
+            {used} / {quota} used
           </p>
         </div>
       </button>
@@ -586,12 +586,12 @@ function PromoModal({ promo, onClose }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      /* clipboard tidak tersedia */
+      /* clipboard not available */
     }
   };
 
   return (
-    <Modal onClose={onClose} label="Detail promo" className="max-w-md">
+    <Modal onClose={onClose} label="Promo details" className="max-w-md">
       <div className="relative bg-ink-950 px-7 pt-10 pb-10 text-center">
         <div
           className="absolute inset-0 opacity-[0.07]"
@@ -601,10 +601,10 @@ function PromoModal({ promo, onClose }) {
           }}
         />
         <div className="relative">
-          <p className="font-serif text-[10px] tracking-[0.4em] text-amber-400/80 uppercase">Promo Spesial</p>
+          <p className="font-serif text-[10px] tracking-[0.4em] text-amber-400/80 uppercase">Special Promo</p>
           <p className="font-serif text-6xl text-amber-400 mt-3 leading-none tabular-nums">{label}</p>
           <p className="font-serif text-xs text-amber-200/60 mt-3">
-            {promo.discount_type === 'percentage' ? 'diskon' : 'potongan harga'}
+            {promo.discount_type === 'percentage' ? 'discount' : 'off'}
           </p>
         </div>
       </div>
@@ -612,19 +612,19 @@ function PromoModal({ promo, onClose }) {
 
       <div className="px-7 pt-7 pb-7">
         <div className="rounded-xl border border-dashed border-amber-300/70 p-4 text-center">
-          <p className="font-serif text-[9px] tracking-[0.3em] text-amber-600/70 uppercase mb-1.5">Kode Promo</p>
+          <p className="font-serif text-[9px] tracking-[0.3em] text-amber-600/70 uppercase mb-1.5">Promo Code</p>
           <div className="flex items-center justify-center gap-3">
             <span className="font-mono font-bold text-2xl text-amber-900 tracking-wider">{promo.code}</span>
             <button
               onClick={handleCopy}
-              aria-label="Salin kode"
+              aria-label="Copy code"
               className="p-2 rounded-lg text-amber-700 hover:bg-amber-100 transition-colors"
             >
               <Icon name={copied ? 'check' : 'copy'} className="w-4 h-4" />
             </button>
           </div>
           <p role="status" className="h-4 font-serif text-[10px] tracking-[0.2em] text-emerald-600 uppercase mt-2">
-            {copied ? 'Kode tersalin' : ''}
+            {copied ? 'Code copied' : ''}
           </p>
         </div>
 
@@ -633,10 +633,10 @@ function PromoModal({ promo, onClose }) {
         )}
 
         <div className="grid grid-cols-2 gap-4 mt-7 pt-6 border-t border-dashed border-amber-300/60">
-          <Field label="Berlaku dari" value={fmtDate(promo.valid_from) || '-'} />
-          <Field label="Berlaku sampai" value={fmtDate(promo.valid_until) || '-'} />
-          <Field label="Kuota" value={`${promo.used || 0} / ${promo.quota}`} />
-          <Field label="Sisa" value={`${Math.max(0, (promo.quota || 0) - (promo.used || 0))} kupon`} bold />
+          <Field label="Valid from" value={fmtDate(promo.valid_from) || '-'} />
+          <Field label="Valid until" value={fmtDate(promo.valid_until) || '-'} />
+          <Field label="Quota" value={`${promo.used || 0} / ${promo.quota}`} />
+          <Field label="Remaining" value={`${Math.max(0, (promo.quota || 0) - (promo.used || 0))} coupons`} bold />
         </div>
 
         <Link
@@ -644,7 +644,7 @@ function PromoModal({ promo, onClose }) {
           onClick={onClose}
           className="group mt-7 w-full inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-amber-700 hover:bg-amber-600 text-amber-50 font-serif text-xs tracking-[0.2em] uppercase rounded-full transition-colors shadow-lg shadow-amber-900/30"
         >
-          Pakai di Konser
+          Use on Concerts
           <Icon name="arrow" className="w-4 h-4 transition-transform group-hover:translate-x-1" />
         </Link>
       </div>
@@ -678,14 +678,14 @@ function PromoSection() {
     <section className="py-24 px-4 relative z-10">
       <div className="max-w-6xl mx-auto">
         <SectionHead
-          eyebrow="Penawaran Spesial"
+          eyebrow="Special Offers"
           aside={
             <p className="hidden md:block font-serif text-sm text-amber-700/70 max-w-xs text-right leading-relaxed">
-              Salin kodenya, pakai saat checkout.
+              Copy the code, use it at checkout.
             </p>
           }
         >
-          Promo <span className="italic text-amber-600">Aktif</span>
+          Active <span className="italic text-amber-600">Promos</span>
         </SectionHead>
 
         {loading ? (
@@ -698,8 +698,8 @@ function PromoSection() {
           </div>
         ) : !featured ? (
           <div className="py-14 text-center border-y border-dashed border-amber-900/25">
-            <h3 className="font-serif text-xl text-amber-950 mb-1">Belum ada promo aktif</h3>
-            <p className="font-serif text-sm text-amber-700/60">Pantau terus, promo baru akan segera hadir.</p>
+            <h3 className="font-serif text-xl text-amber-950 mb-1">No active promos yet</h3>
+            <p className="font-serif text-sm text-amber-700/60">Stay tuned, new promos are coming soon.</p>
           </div>
         ) : (
           <>
@@ -723,11 +723,11 @@ function PromoSection() {
 }
 
 // ===================================================================
-// TESTIMONIALS (section gelap, tanpa efek 3D)
+// TESTIMONIALS (dark section, no 3D effect)
 // ===================================================================
 function Stars({ n, main }) {
   return (
-    <div className="flex gap-1" aria-label={`Rating ${n} dari 5`}>
+    <div className="flex gap-1" aria-label={`Rating ${n} out of 5`}>
       {Array.from({ length: 5 }).map((_, i) => (
         <Icon
           key={i}
@@ -774,7 +774,7 @@ function Testimonial({ t, main = false, index = 0 }) {
             )}
             <div className="min-w-0 flex-1">
               <p className={`font-serif text-[9px] tracking-[0.3em] uppercase ${main ? 'text-amber-600/70' : 'text-amber-400/60'}`}>
-                Menonton
+                Watched
               </p>
               <p className={`font-serif text-sm truncate transition-colors ${main ? 'text-amber-950 group-hover/c:text-amber-700' : 'text-white group-hover/c:text-amber-400'}`}>
                 {t.concert.name}
@@ -817,8 +817,8 @@ function Testimonials() {
         setTestimonials(
           (res.data || []).map((t, idx) => ({
             id: t.id ?? idx,
-            name: t.name || 'Anonim',
-            role: t.role || 'Penonton',
+            name: t.name || 'Anonymous',
+            role: t.role || 'Attendee',
             text: t.text || '',
             rating: Math.min(5, Math.max(1, Number(t.rating) || 5)),
             initials: t.initials || getInitials(t.name || ''),
@@ -850,8 +850,8 @@ function Testimonials() {
           }}
         />
         <div className="relative max-w-6xl mx-auto">
-          <SectionHead eyebrow="Kata Mereka" dark>
-            Cerita dari <span className="italic text-amber-400">Penonton</span>
+          <SectionHead eyebrow="Their Words" dark>
+            Stories from <span className="italic text-amber-400">Fans</span>
           </SectionHead>
 
           {loading ? (
@@ -864,7 +864,7 @@ function Testimonials() {
             </div>
           ) : !main ? (
             <p className="font-serif text-sm text-amber-200/50 italic">
-              {error ? 'Belum ada testimoni saat ini.' : 'Jadilah yang pertama memberi testimoni!'}
+              {error ? 'No testimonials yet.' : 'Be the first to leave a testimonial!'}
             </p>
           ) : (
             <>
@@ -925,11 +925,11 @@ function NewsletterForm() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        throw new Error(data?.message || 'Gagal berlangganan.');
+        throw new Error(data?.message || 'Failed to subscribe.');
       }
 
       setStatus('success');
-      setMessage(data?.message || 'Cek inbox kamu untuk konfirmasi.');
+      setMessage(data?.message || 'Check your inbox to confirm.');
       setEmail('');
 
       setTimeout(() => {
@@ -938,7 +938,7 @@ function NewsletterForm() {
       }, 4000);
     } catch (err) {
       setStatus('error');
-      setMessage(err.message || 'Gagal berlangganan. Coba lagi.');
+      setMessage(err.message || 'Failed to subscribe. Please try again.');
       setTimeout(() => {
         setStatus('idle');
         setMessage('');
@@ -967,7 +967,7 @@ function NewsletterForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={isDone || isLoading}
-          placeholder="email@kamu.com"
+          placeholder="email@you.com"
           className={`flex-1 px-5 py-3.5 bg-white/5 border rounded-full text-white placeholder-amber-200/40 font-serif text-sm focus:outline-none transition-colors disabled:opacity-50 ${
             isError
               ? 'border-red-500/50 focus:border-red-400'
@@ -986,12 +986,12 @@ function NewsletterForm() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Memproses
+              Processing
             </>
           ) : isDone ? (
             <>
               <Icon name="check" className="w-4 h-4" />
-              Terkirim
+              Sent
             </>
           ) : (
             <>
@@ -1011,8 +1011,8 @@ function NewsletterForm() {
       >
         {message ||
           (isDone
-            ? 'Cek inbox kamu untuk konfirmasi.'
-            : 'Info konser, promo, dan presale. Tanpa spam.')}
+            ? 'Check your inbox to confirm.'
+            : 'Concert info, promos, and presale. No spam.')}
       </p>
     </form>
   );
@@ -1033,7 +1033,7 @@ function Footer({ user }) {
               </span>
             </Link>
             <p className="font-serif text-2xl md:text-3xl text-white leading-snug mt-6 max-w-sm">
-              Jangan lewatkan <span className="italic text-amber-400">event berikutnya.</span>
+              Don't miss <span className="italic text-amber-400">the next event.</span>
             </p>
           </div>
           <div className="md:justify-self-end w-full flex md:justify-end">
@@ -1043,10 +1043,10 @@ function Footer({ user }) {
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-5 pt-8">
           <nav className="flex items-center gap-8 font-serif text-xs tracking-[0.2em] uppercase text-amber-300/60">
-            <Link to="/concerts" className="hover:text-amber-400 transition-colors">Konser</Link>
-            {!user && <Link to="/register" className="hover:text-amber-400 transition-colors">Daftar</Link>}
+            <Link to="/concerts" className="hover:text-amber-400 transition-colors">Concerts</Link>
+            {!user && <Link to="/register" className="hover:text-amber-400 transition-colors">Register</Link>}
           </nav>
-          <p className="font-serif text-xs text-amber-300/40">© 2026 Tiketku. Semua hak dilindungi.</p>
+          <p className="font-serif text-xs text-amber-300/40">© 2026 Tiketku. All rights reserved.</p>
         </div>
       </div>
     </footer>
@@ -1074,23 +1074,23 @@ export default function LandingPage() {
   }, []);
 
   const features = [
-    { icon: 'ticket', title: 'E-Ticket Instan', desc: 'Tiket langsung terbit setelah pembayaran, QR code siap discan di venue.' },
-    { icon: 'scan', title: 'Scan & Go', desc: 'Cukup tunjukkan QR code, petugas scan, dan kamu masuk.' },
-    { icon: 'shield', title: 'Pembayaran Aman', desc: 'Ditenagai Xendit dengan berbagai metode pembayaran.' },
-    { icon: 'zap', title: 'Cepat & Mudah', desc: 'Beli tiket dalam hitungan detik, tanpa antri.' },
+    { icon: 'ticket', title: 'Instant E-Ticket', desc: 'Tickets are issued right after payment, QR code ready to scan at the venue.' },
+    { icon: 'scan', title: 'Scan & Go', desc: 'Just show your QR code, staff scans it, and you are in.' },
+    { icon: 'shield', title: 'Secure Payment', desc: 'Powered by Xendit with a wide range of payment methods.' },
+    { icon: 'zap', title: 'Fast & Easy', desc: 'Buy tickets in seconds, no queueing.' },
   ];
 
   const steps = [
-    { number: '01', title: 'Pilih Konser', desc: 'Cari dan pilih konser favoritmu' },
-    { number: '02', title: 'Beli Tiket', desc: 'Pilih kategori tiket dan bayar' },
-    { number: '03', title: 'Dapatkan E-Ticket', desc: 'QR code langsung terbit' },
-    { number: '04', title: 'Scan & Masuk', desc: 'Tunjukkan QR di pintu masuk' },
+    { number: '01', title: 'Pick a Concert', desc: 'Search and choose your favorite concert' },
+    { number: '02', title: 'Buy Tickets', desc: 'Select a ticket category and pay' },
+    { number: '03', title: 'Get Your E-Ticket', desc: 'QR code is issued instantly' },
+    { number: '04', title: 'Scan & Enter', desc: 'Show your QR at the entrance' },
   ];
 
   const stats = [
-    { value: '100+', label: 'Konser' },
-    { value: '50K+', label: 'Tiket Terjual' },
-    { value: '10K+', label: 'Pengguna' },
+    { value: '100+', label: 'Concerts' },
+    { value: '50K+', label: 'Tickets Sold' },
+    { value: '10K+', label: 'Users' },
     { value: '4.9', label: 'Rating' },
   ];
 
@@ -1098,7 +1098,7 @@ export default function LandingPage() {
 
   return (
     <MotionConfig reducedMotion="user">
-      {/* overflow-x-clip (bukan hidden) supaya sticky di gallery tetap jalan */}
+      {/* overflow-x-clip (not hidden) so the sticky in the gallery keeps working */}
       <div className="min-h-screen bg-[#f5ede4] relative overflow-x-clip">
         <ScrollProgress />
 
@@ -1125,13 +1125,13 @@ export default function LandingPage() {
                 className="flex items-center gap-3 mb-7 font-serif text-[11px] tracking-[0.35em] text-amber-400 uppercase"
               >
                 <span className="w-8 h-px bg-amber-400" />
-                Tiket konser digital
+                Digital concert tickets
               </motion.p>
 
               <h1 className="font-serif text-5xl sm:text-6xl xl:text-8xl text-white leading-[0.95] mb-7">
-                <RevealWords text="Rasakan" delay={0.3} />
+                <RevealWords text="Feel the" delay={0.3} />
                 <br />
-                <RevealWords text="Energi Panggung" className="text-amber-400 italic" delay={0.45} />
+                <RevealWords text="Stage Energy" className="text-amber-400 italic" delay={0.45} />
               </h1>
 
               <motion.p
@@ -1140,8 +1140,8 @@ export default function LandingPage() {
                 transition={{ delay: 0.9, duration: 0.6 }}
                 className="text-amber-200/60 text-base md:text-lg font-serif max-w-md mb-9 leading-relaxed"
               >
-                Dari konser intimate sampai festival raksasa, semua tiket ada di satu gerbang.
-                E-ticket langsung terbit, tinggal scan di pintu masuk.
+                From intimate concerts to massive festivals, all tickets are at one gate.
+                E-tickets are issued instantly, just scan at the entrance.
               </motion.p>
 
               <motion.div
@@ -1154,7 +1154,7 @@ export default function LandingPage() {
                   to={ctaTo}
                   className="group inline-flex items-center justify-center gap-3 px-7 py-4 bg-amber-700 hover:bg-amber-600 text-amber-50 font-serif text-sm tracking-[0.15em] uppercase rounded-full shadow-lg shadow-amber-900/40 transition-colors"
                 >
-                  {user ? 'Jelajahi Event' : 'Daftar Gratis'}
+                  {user ? 'Explore Events' : 'Register Free'}
                   <Icon name="arrow" className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link
@@ -1162,7 +1162,7 @@ export default function LandingPage() {
                   className="group inline-flex items-center gap-2 font-serif text-sm tracking-[0.15em] uppercase text-amber-100 hover:text-amber-400 transition-colors"
                 >
                   <span className="border-b border-amber-400/40 group-hover:border-amber-400 pb-0.5 transition-colors">
-                    Lihat Konser
+                    Browse Concerts
                   </span>
                 </Link>
               </motion.div>
@@ -1210,13 +1210,13 @@ export default function LandingPage() {
             <div className="lg:col-span-4 lg:sticky lg:top-28 self-start">
               <ScrollReveal>
                 <span className="font-serif text-[10px] tracking-[0.4em] text-amber-600/80 uppercase">
-                  Kenapa TiketKu?
+                  Why TiketKu?
                 </span>
                 <h2 className="font-serif text-4xl md:text-5xl text-amber-950 mt-3 leading-[1.05]">
-                  Fitur <span className="italic text-amber-600">Unggulan</span>
+                  Standout <span className="italic text-amber-600">Features</span>
                 </h2>
                 <p className="font-serif text-sm text-amber-800/70 mt-5 leading-relaxed max-w-xs">
-                  Dari bayar sampai masuk venue, semuanya dibuat supaya kamu tinggal fokus menikmati konser.
+                  From payment to venue entry, everything is built so you can just focus on enjoying the concert.
                 </p>
               </ScrollReveal>
             </div>
@@ -1255,8 +1255,8 @@ export default function LandingPage() {
         {/* ===== HOW IT WORKS ===== */}
         <section className="pb-24 px-4 relative z-10">
           <div className="max-w-6xl mx-auto">
-            <SectionHead eyebrow="Cara Kerja">
-              4 Langkah <span className="italic text-amber-600">Mudah</span>
+            <SectionHead eyebrow="How It Works">
+              4 Easy <span className="italic text-amber-600">Steps</span>
             </SectionHead>
 
             <ol className="grid md:grid-cols-4 gap-x-8 gap-y-10">
@@ -1280,7 +1280,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ===== TESTIMONI ===== */}
+        {/* ===== TESTIMONIALS ===== */}
         <Testimonials />
 
         {/* ===== CTA ===== */}
@@ -1301,12 +1301,12 @@ export default function LandingPage() {
                 <div className="p-10 md:p-14">
                   <span className="font-serif text-[10px] tracking-[0.4em] text-amber-400/80 uppercase">Admit one</span>
                   <h2 className="font-serif text-4xl md:text-6xl text-white mt-4 leading-[1.02]">
-                    Siap Nonton
+                    Ready for
                     <br />
-                    <span className="italic text-amber-400">Konser?</span>
+                    <span className="italic text-amber-400">a Concert?</span>
                   </h2>
                   <p className="font-serif text-amber-200/60 mt-5 max-w-sm leading-relaxed">
-                    Daftar sekarang dan dapatkan akses ke konser-konser terbaik di kotamu.
+                    Register now and get access to the best concerts in your city.
                   </p>
                 </div>
 
@@ -1315,7 +1315,7 @@ export default function LandingPage() {
                     to={ctaTo}
                     className="group inline-flex items-center gap-3 px-8 py-4 bg-amber-700 hover:bg-amber-600 text-amber-50 font-serif text-sm tracking-[0.2em] uppercase rounded-full shadow-lg shadow-amber-900/40 transition-colors"
                   >
-                    {user ? 'Jelajahi Sekarang' : 'Daftar Gratis'}
+                    {user ? 'Explore Now' : 'Register Free'}
                     <Icon name="arrow" className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </div>

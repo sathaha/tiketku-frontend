@@ -56,12 +56,12 @@ function formatDuration(start, end) {
 }
 
 const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-flame-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900';
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50';
 
-const btnPrimary = `inline-flex items-center gap-2 px-4 py-2 bg-flame-500 hover:bg-flame-600 disabled:opacity-50 text-white text-sm font-medium rounded-md transition-colors ${focusRing}`;
+const btnPrimary = `inline-flex items-center gap-2 px-4 py-2 bg-amber-800 hover:bg-amber-700 disabled:opacity-50 text-amber-50 font-serif text-sm rounded-xl transition-colors ${focusRing}`;
 
 const inputCls =
-  'w-full px-3.5 py-2.5 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-lg text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-colors [color-scheme:dark]';
+  'w-full px-3.5 py-2.5 bg-white border border-amber-200/60 hover:border-amber-300 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-colors';
 
 function useEscape(active, handler) {
   useEffect(() => {
@@ -99,7 +99,7 @@ function Modal({ open, onClose, children }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm sm:p-4"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-amber-950/50 backdrop-blur-sm sm:p-4"
           onClick={onClose}
         >
           <motion.div
@@ -110,7 +110,7 @@ function Modal({ open, onClose, children }) {
             exit={{ y: 32, opacity: 0 }}
             transition={{ type: 'spring', damping: 30, stiffness: 320 }}
             onClick={(e) => e.stopPropagation()}
-            className="flex flex-col w-full max-w-md max-h-[92vh] bg-ink-900 border border-ink-700 rounded-t-2xl sm:rounded-2xl shadow-2xl shadow-black/50 overflow-hidden"
+            className="flex flex-col w-full max-w-md max-h-[92vh] bg-white border border-amber-200/60 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden"
           >
             {children}
           </motion.div>
@@ -125,14 +125,14 @@ function FormModal({ open, title, subtitle, onClose, onSubmit, saving, submitLab
     <Modal open={open} onClose={onClose}>
       <div className="flex items-start justify-between gap-4 px-5 pt-5 pb-4">
         <div>
-          <h3 className="font-semibold text-white">{title}</h3>
-          {subtitle && <p className="text-xs text-ink-400 mt-1">{subtitle}</p>}
+          <h3 className="font-serif font-semibold text-amber-950">{title}</h3>
+          {subtitle && <p className="font-serif text-xs text-amber-700/60 mt-1">{subtitle}</p>}
         </div>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className={`-mr-1.5 -mt-1 p-1.5 rounded-md text-ink-400 hover:text-white hover:bg-ink-700 transition-colors ${focusRing}`}
+          className={`-mr-1.5 -mt-1 p-1.5 rounded-md text-amber-500 hover:text-amber-900 hover:bg-amber-100 transition-colors ${focusRing}`}
         >
           <Icon name="close" />
         </button>
@@ -141,7 +141,7 @@ function FormModal({ open, title, subtitle, onClose, onSubmit, saving, submitLab
       <form onSubmit={onSubmit} className="flex flex-col min-h-0">
         <div className="px-5 pb-5 space-y-4 overflow-y-auto">
           {error && (
-            <div role="alert" className="flex items-start gap-2.5 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div role="alert" className="flex items-start gap-2.5 p-3 rounded-lg bg-red-50 border border-red-200/60 text-red-700 text-sm font-serif">
               <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -149,11 +149,11 @@ function FormModal({ open, title, subtitle, onClose, onSubmit, saving, submitLab
           {children}
         </div>
 
-        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-ink-700/60">
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-amber-200/60">
           <button
             type="button"
             onClick={onClose}
-            className={`px-4 py-2 text-sm text-ink-400 hover:text-white rounded-md transition-colors ${focusRing}`}
+            className={`px-4 py-2 font-serif text-sm text-amber-800 hover:bg-amber-50 rounded-md transition-colors ${focusRing}`}
           >
             Cancel
           </button>
@@ -179,10 +179,10 @@ function FormModal({ open, title, subtitle, onClose, onSubmit, saving, submitLab
 function Field({ label, required, optional, children }) {
   return (
     <label className="block">
-      <span className="block text-sm font-medium text-ink-200 mb-1.5">
+      <span className="block font-serif text-sm font-medium text-amber-900 mb-1.5">
         {label}
-        {required && <span className="text-flame-400"> *</span>}
-        {optional && <span className="text-ink-500 font-normal"> (optional)</span>}
+        {required && <span className="text-amber-600"> *</span>}
+        {optional && <span className="text-amber-600/60 font-normal"> (optional)</span>}
       </span>
       {children}
     </label>
@@ -198,15 +198,15 @@ function ConfirmDialog({ state, deleting, onCancel, onConfirm }) {
   return (
     <Modal open={!!state} onClose={deleting ? () => {} : onCancel}>
       <div className="px-5 pt-5 pb-4">
-        <h3 className="font-semibold text-white">{s?.title}</h3>
-        <p className="text-sm text-ink-300 mt-2 leading-relaxed">{s?.message}</p>
+        <h3 className="font-serif font-semibold text-amber-950">{s?.title}</h3>
+        <p className="font-serif text-sm text-amber-800/70 mt-2 leading-relaxed">{s?.message}</p>
       </div>
-      <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-ink-700/60">
+      <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-amber-200/60">
         <button
           type="button"
           onClick={onCancel}
           disabled={deleting}
-          className={`px-4 py-2 text-sm text-ink-400 hover:text-white rounded-md transition-colors disabled:opacity-50 ${focusRing}`}
+          className={`px-4 py-2 font-serif text-sm text-amber-800 hover:bg-amber-50 rounded-md transition-colors disabled:opacity-50 ${focusRing}`}
         >
           Cancel
         </button>
@@ -214,7 +214,7 @@ function ConfirmDialog({ state, deleting, onCancel, onConfirm }) {
           type="button"
           onClick={onConfirm}
           disabled={deleting}
-          className={`inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-sm font-medium rounded-md transition-colors ${focusRing}`}
+          className={`inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-serif text-sm rounded-xl transition-colors ${focusRing}`}
         >
           {deleting ? (
             <>
@@ -264,17 +264,17 @@ function ScheduleRow({ schedule, onDelete }) {
       <div
         className={`w-14 shrink-0 rounded-lg py-2 text-center border ${
           isToday
-            ? 'bg-flame-500 border-flame-500 text-white'
+            ? 'bg-amber-700 border-amber-700 text-amber-50'
             : isPast
-            ? 'bg-ink-800/50 border-ink-700/60 text-ink-500'
-            : 'bg-ink-800 border-ink-700 text-white'
+            ? 'bg-amber-50 border-amber-200/60 text-amber-600/50'
+            : 'bg-white border-amber-200/60 text-amber-950'
         }`}
       >
-        <div className={`text-xs ${isToday ? 'text-white/80' : isPast ? 'text-ink-500' : 'text-flame-400'}`}>
+        <div className={`font-serif text-xs ${isToday ? 'text-amber-50/80' : isPast ? 'text-amber-600/50' : 'text-amber-600'}`}>
           {monthName}
         </div>
-        <div className="text-2xl font-bold leading-tight tabular-nums">{date.getDate()}</div>
-        <div className={`text-[10px] leading-none pb-0.5 tabular-nums ${isToday ? 'text-white/70' : 'text-ink-500'}`}>
+        <div className="font-serif text-2xl font-bold leading-tight tabular-nums">{date.getDate()}</div>
+        <div className={`font-serif text-[10px] leading-none pb-0.5 tabular-nums ${isToday ? 'text-amber-50/70' : 'text-amber-600/50'}`}>
           {date.getFullYear()}
         </div>
       </div>
@@ -282,24 +282,24 @@ function ScheduleRow({ schedule, onDelete }) {
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2.5">
-          <span className={`font-semibold ${isPast ? 'text-ink-400' : 'text-white'}`}>{dayName}</span>
+          <span className={`font-serif font-semibold ${isPast ? 'text-amber-700/50' : 'text-amber-950'}`}>{dayName}</span>
           <span
-            className={`inline-flex items-center gap-1.5 text-xs ${
-              isToday ? 'text-flame-400 font-medium' : isPast ? 'text-ink-500' : 'text-ink-400'
+            className={`inline-flex items-center gap-1.5 font-serif text-xs ${
+              isToday ? 'text-amber-700 font-medium' : isPast ? 'text-amber-600/50' : 'text-amber-700/60'
             }`}
           >
-            {isToday && <span className="w-1.5 h-1.5 rounded-full bg-flame-400 animate-pulse" />}
+            {isToday && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
             {relative}
           </span>
         </div>
 
-        <div className={`mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm ${isPast ? 'text-ink-500' : 'text-ink-200'}`}>
+        <div className={`mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-serif text-sm ${isPast ? 'text-amber-700/50' : 'text-amber-900'}`}>
           <span className="inline-flex items-center gap-1.5 tabular-nums">
-            <Icon name="clock" className="w-3.5 h-3.5 text-ink-500" />
+            <Icon name="clock" className="w-3.5 h-3.5 text-amber-500" />
             {schedule.start_time?.slice(0, 5)}
             {schedule.end_time ? ` – ${schedule.end_time.slice(0, 5)}` : ' – until finished'}
           </span>
-          {duration && <span className="text-xs text-ink-500">{duration}</span>}
+          {duration && <span className="text-xs text-amber-600/60">{duration}</span>}
         </div>
       </div>
 
@@ -308,7 +308,7 @@ function ScheduleRow({ schedule, onDelete }) {
         onClick={() => onDelete(schedule)}
         aria-label={`Delete schedule for ${dayName}`}
         title="Delete schedule"
-        className={`shrink-0 p-2 rounded-md text-ink-500 hover:text-red-400 hover:bg-red-500/10 transition-all sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 ${focusRing}`}
+        className={`shrink-0 p-2 rounded-md text-amber-500 hover:text-red-600 hover:bg-red-50 transition-all sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 ${focusRing}`}
       >
         <Icon name="trash" />
       </button>
@@ -350,10 +350,10 @@ function TicketCard({ ticket, onDelete }) {
   }
 
   const colorMap = {
-    emerald: { text: 'text-emerald-400', bg: 'bg-emerald-500' },
-    yellow: { text: 'text-yellow-400', bg: 'bg-yellow-500' },
-    orange: { text: 'text-orange-400', bg: 'bg-orange-500' },
-    red: { text: 'text-red-400', bg: 'bg-red-500' },
+    emerald: { text: 'text-emerald-700', bg: 'bg-emerald-500' },
+    yellow: { text: 'text-yellow-700', bg: 'bg-yellow-500' },
+    orange: { text: 'text-orange-700', bg: 'bg-orange-500' },
+    red: { text: 'text-red-700', bg: 'bg-red-500' },
   };
   const color = colorMap[statusColor];
 
@@ -364,14 +364,14 @@ function TicketCard({ ticket, onDelete }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       style={notchMask}
-      className="group flex bg-ink-800/40 border border-ink-700/60 hover:border-flame-500/30 rounded-xl transition-colors"
+      className="group flex bg-white/90 border border-amber-200/60 hover:border-amber-300 rounded-xl transition-colors"
     >
       {/* Main section */}
       <div className="flex-1 min-w-0 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h4 className="font-semibold text-white truncate">{ticket.name}</h4>
-            <p className={`mt-0.5 inline-flex items-center gap-1.5 text-xs ${color.text}`}>
+            <h4 className="font-serif font-semibold text-amber-950 truncate">{ticket.name}</h4>
+            <p className={`mt-0.5 inline-flex items-center gap-1.5 font-serif text-xs ${color.text}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${color.bg}`} />
               {statusLabel}
             </p>
@@ -381,16 +381,16 @@ function TicketCard({ ticket, onDelete }) {
             onClick={() => onDelete(ticket)}
             aria-label={`Delete category ${ticket.name}`}
             title="Delete category"
-            className={`-mr-1 -mt-1 shrink-0 p-1.5 rounded-md text-ink-500 hover:text-red-400 hover:bg-red-500/10 transition-all sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 ${focusRing}`}
+            className={`-mr-1 -mt-1 shrink-0 p-1.5 rounded-md text-amber-500 hover:text-red-600 hover:bg-red-50 transition-all sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 ${focusRing}`}
           >
             <Icon name="trash" className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <p className="mt-3 text-lg font-semibold text-flame-400 tabular-nums">{formatRupiah(price)}</p>
+        <p className="mt-3 font-serif text-lg font-semibold text-amber-800 tabular-nums">{formatRupiah(price)}</p>
 
         <div className="mt-3">
-          <div className="h-1.5 bg-ink-900/70 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-amber-100 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${soldPct}%` }}
@@ -398,9 +398,9 @@ function TicketCard({ ticket, onDelete }) {
               className={`h-full rounded-full ${color.bg}`}
             />
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-xs text-ink-400 tabular-nums">
+          <div className="mt-1.5 flex items-center justify-between font-serif text-xs text-amber-700/60 tabular-nums">
             <span>
-              Sold <span className="text-white font-medium">{sold}</span> of {quota}
+              Sold <span className="text-amber-950 font-semibold">{sold}</span> of {quota}
             </span>
             {sold > 0 && <span>{formatRupiah(sold * price)}</span>}
           </div>
@@ -410,13 +410,13 @@ function TicketCard({ ticket, onDelete }) {
       {/* Ticket stub */}
       <div
         style={{ width: STUB_WIDTH }}
-        className="shrink-0 flex flex-col items-center justify-center text-center border-l border-dashed border-ink-600 px-2"
+        className="shrink-0 flex flex-col items-center justify-center text-center border-l border-dashed border-amber-300/70 px-2"
       >
-        <span className="text-xs text-ink-500">Left</span>
-        <span className={`text-3xl font-bold leading-none my-1 tabular-nums ${remaining > 0 ? 'text-white' : 'text-red-400'}`}>
+        <span className="font-serif text-xs text-amber-700/60">Left</span>
+        <span className={`font-serif text-3xl font-bold leading-none my-1 tabular-nums ${remaining > 0 ? 'text-amber-950' : 'text-red-600'}`}>
           {remaining}
         </span>
-        <span className="text-xs text-ink-500">tickets</span>
+        <span className="font-serif text-xs text-amber-700/60">tickets</span>
       </div>
     </motion.div>
   );
@@ -428,23 +428,23 @@ function TicketCard({ ticket, onDelete }) {
 
 function Stat({ icon, label, hint, children }) {
   return (
-    <div className="bg-ink-900 p-4 sm:p-5">
-      <div className="flex items-center gap-1.5 text-xs text-ink-400">
-        <Icon name={icon} className="w-3.5 h-3.5" />
+    <div className="bg-white p-4 sm:p-5">
+      <div className="flex items-center gap-1.5 font-serif text-xs text-amber-700/70">
+        <Icon name={icon} className="w-3.5 h-3.5 text-amber-500" />
         {label}
       </div>
       <div className="mt-2">{children}</div>
-      {hint && <div className="mt-1 text-xs text-ink-500">{hint}</div>}
+      {hint && <div className="mt-1 font-serif text-xs text-amber-600/60">{hint}</div>}
     </div>
   );
 }
 
 function EmptyState({ icon, title, hint, actionLabel, onAction }) {
   return (
-    <div className="text-center py-14 px-4 border border-dashed border-ink-700 rounded-xl">
-      <Icon name={icon} className="w-7 h-7 text-ink-500 mx-auto mb-3" />
-      <p className="text-sm font-medium text-ink-200">{title}</p>
-      <p className="text-xs text-ink-500 mt-1 mb-5">{hint}</p>
+    <div className="text-center py-14 px-4 border border-dashed border-amber-300/70 rounded-xl bg-white/50">
+      <Icon name={icon} className="w-7 h-7 text-amber-500 mx-auto mb-3" />
+      <p className="font-serif text-sm font-medium text-amber-900">{title}</p>
+      <p className="font-serif text-xs text-amber-700/60 mt-1 mb-5">{hint}</p>
       <button type="button" onClick={onAction} className={btnPrimary}>
         <Icon name="plus" />
         {actionLabel}
@@ -457,8 +457,8 @@ function SectionHeader({ title, subtitle, onAdd }) {
   return (
     <div className="flex items-end justify-between gap-4 mb-4">
       <div>
-        <h2 className="font-semibold text-white">{title}</h2>
-        <p className="text-xs text-ink-400 mt-0.5">{subtitle}</p>
+        <h2 className="font-serif font-semibold text-amber-950">{title}</h2>
+        <p className="font-serif text-xs text-amber-700/60 mt-0.5">{subtitle}</p>
       </div>
       <button type="button" onClick={onAdd} className={btnPrimary}>
         <Icon name="plus" />
@@ -608,13 +608,18 @@ export default function ConcertManage() {
   if (loading) return <Loading />;
   if (!concert)
     return (
-      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <Icon name="ticket" className="w-10 h-10 text-ink-500 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">Concert not found</h2>
-        <p className="text-ink-300 mb-6">The concert you are looking for may have been deleted.</p>
-        <Link to={backTo} className="btn-primary inline-block">
-          Go Back
-        </Link>
+      <div className="min-h-screen bg-[#f5ede4] flex items-center justify-center px-4 py-16">
+        <div className="text-center max-w-sm">
+          <Icon name="ticket" className="w-10 h-10 text-amber-500 mx-auto mb-4" />
+          <h2 className="font-serif text-xl font-bold text-amber-950 mb-2">Concert not found</h2>
+          <p className="font-serif text-amber-700/60 mb-6">The concert you are looking for may have been deleted.</p>
+          <Link
+            to={backTo}
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif text-sm rounded-xl transition-colors"
+          >
+            Go Back
+          </Link>
+        </div>
       </div>
     );
 
@@ -648,355 +653,357 @@ export default function ConcertManage() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
-        {/* ===== Back link ===== */}
-        <Link
-          to={backTo}
-          className={`group inline-flex items-center gap-2 text-sm text-ink-300 hover:text-flame-400 transition-colors mb-5 rounded-md ${focusRing}`}
-        >
-          <Icon name="back" className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          Manage Concerts
-        </Link>
+      <div className="min-h-screen bg-[#f5ede4]">
+        <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
+          {/* ===== Back link ===== */}
+          <Link
+            to={backTo}
+            className={`group inline-flex items-center gap-2 font-serif text-sm text-amber-700/60 hover:text-amber-800 transition-colors mb-5 rounded-md ${focusRing}`}
+          >
+            <Icon name="back" className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            Manage Concerts
+          </Link>
 
-        {/* ===== Concert header ===== */}
-        <header className="relative overflow-hidden bg-ink-900 border border-ink-700 rounded-xl mb-4">
-          {concert.poster && (
-            <div className="absolute inset-0" aria-hidden="true">
-              <img src={concert.poster} alt="" className="w-full h-full object-cover opacity-30 blur-2xl scale-125" />
-              <div className="absolute inset-0 bg-ink-900/70" />
-            </div>
-          )}
+          {/* ===== Concert header ===== */}
+          <header className="relative overflow-hidden bg-white border border-amber-200/60 rounded-2xl mb-4">
+            {concert.poster && (
+              <div className="absolute inset-0" aria-hidden="true">
+                <img src={concert.poster} alt="" className="w-full h-full object-cover opacity-20 blur-2xl scale-125" />
+                <div className="absolute inset-0 bg-white/80" />
+              </div>
+            )}
 
-          <div className="relative flex items-start gap-4 sm:gap-6 p-4 sm:p-6">
-            <div className="w-24 sm:w-32 aspect-[3/4] shrink-0 rounded-lg overflow-hidden bg-ink-800 border border-ink-700 shadow-xl shadow-black/40">
-              {concert.poster ? (
-                <img src={concert.poster} alt={concert.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Icon name="music" className="w-8 h-8 text-ink-500" />
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 min-w-0 self-stretch flex flex-col">
-              {(concert.approval_status || concert.status) && (
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2 text-xs font-medium">
-                  {concert.approval_status && (
-                    <span className="inline-flex items-center gap-1.5 text-flame-400 capitalize">
-                      <span className="w-1.5 h-1.5 rounded-full bg-flame-400" />
-                      {String(concert.approval_status).replace(/_/g, ' ')}
-                    </span>
-                  )}
-                  {concert.status && (
-                    <span className="inline-flex items-center gap-1.5 text-emerald-400 capitalize">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                      {concert.status}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              <h1 className="font-bold text-white text-2xl sm:text-3xl leading-tight tracking-tight">
-                {concert.name}
-              </h1>
-              <p className="text-ink-300 mt-1 truncate">{concert.artist || 'Artist not provided'}</p>
-
-              <div className="mt-auto pt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm text-ink-300">
-                {concert.venue_name && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Icon name="pin" className="w-4 h-4 text-ink-500" />
-                    {concert.venue_name}
-                  </span>
-                )}
-                {concert.category_name && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Icon name="music" className="w-4 h-4 text-ink-500" />
-                    {concert.category_name}
-                  </span>
+            <div className="relative flex items-start gap-4 sm:gap-6 p-4 sm:p-6">
+              <div className="w-24 sm:w-32 aspect-[3/4] shrink-0 rounded-xl overflow-hidden bg-amber-100 border border-amber-200/60 shadow-lg">
+                {concert.poster ? (
+                  <img src={concert.poster} alt={concert.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Icon name="music" className="w-8 h-8 text-amber-400" />
+                  </div>
                 )}
               </div>
+
+              <div className="flex-1 min-w-0 self-stretch flex flex-col">
+                {(concert.approval_status || concert.status) && (
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2 font-serif text-xs">
+                    {concert.approval_status && (
+                      <span className="inline-flex items-center gap-1.5 text-amber-700 capitalize">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                        {String(concert.approval_status).replace(/_/g, ' ')}
+                      </span>
+                    )}
+                    {concert.status && (
+                      <span className="inline-flex items-center gap-1.5 text-emerald-700 capitalize">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        {concert.status}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <h1 className="font-serif font-bold text-amber-950 text-2xl sm:text-3xl leading-tight tracking-tight">
+                  {concert.name}
+                </h1>
+                <p className="font-serif text-amber-700/70 mt-1 truncate">{concert.artist || 'Artist not provided'}</p>
+
+                <div className="mt-auto pt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 font-serif text-sm text-amber-800/70">
+                  {concert.venue_name && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Icon name="pin" className="w-4 h-4 text-amber-500" />
+                      {concert.venue_name}
+                    </span>
+                  )}
+                  {concert.category_name && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Icon name="music" className="w-4 h-4 text-amber-500" />
+                      {concert.category_name}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
+          </header>
+
+          {/* ===== Summary ===== */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-amber-200/60 border border-amber-200/60 rounded-2xl overflow-hidden mb-6">
+            <Stat icon="calendar" label="Schedules" hint="performance dates">
+              <p className="font-serif text-2xl font-bold text-amber-950 tabular-nums leading-none">{totalSchedules}</p>
+            </Stat>
+
+            <Stat icon="ticket" label="Starting price" hint={`${totalCategories} ticket categories`}>
+              <p className="font-serif text-lg sm:text-xl font-bold text-amber-700 tabular-nums leading-none">
+                {minPrice !== null ? formatRupiah(minPrice) : '—'}
+              </p>
+            </Stat>
+
+            <Stat icon="users" label="Tickets sold">
+              <p className="font-serif text-2xl font-bold text-emerald-700 tabular-nums leading-none">
+                {totalSold}
+                <span className="text-sm font-normal text-amber-600/60"> / {totalQuota}</span>
+              </p>
+              <div className="mt-2.5 h-1 bg-amber-100 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${soldPct}%` }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className="h-full bg-emerald-500 rounded-full"
+                />
+              </div>
+            </Stat>
+
+            <Stat icon="ticket" label="Revenue" hint={totalSold > 0 ? `from ${totalSold} tickets` : 'no sales yet'}>
+              <p className="font-serif text-lg sm:text-xl font-bold text-amber-700 tabular-nums leading-none break-words">
+                {formatRupiah(totalRevenue)}
+              </p>
+            </Stat>
           </div>
-        </header>
 
-        {/* ===== Summary ===== */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-ink-700/60 border border-ink-700/60 rounded-xl overflow-hidden mb-6">
-          <Stat icon="calendar" label="Schedules" hint="performance dates">
-            <p className="text-2xl font-bold text-white tabular-nums leading-none">{totalSchedules}</p>
-          </Stat>
-
-          <Stat icon="ticket" label="Starting price" hint={`${totalCategories} ticket categories`}>
-            <p className="text-lg sm:text-xl font-bold text-flame-400 tabular-nums leading-none">
-              {minPrice !== null ? formatRupiah(minPrice) : '—'}
-            </p>
-          </Stat>
-
-          <Stat icon="users" label="Tickets sold">
-            <p className="text-2xl font-bold text-emerald-400 tabular-nums leading-none">
-              {totalSold}
-              <span className="text-sm font-normal text-ink-500"> / {totalQuota}</span>
-            </p>
-            <div className="mt-2.5 h-1 bg-ink-800 rounded-full overflow-hidden">
+          {/* ===== Error (delete failed, etc) ===== */}
+          <AnimatePresence>
+            {error && (
               <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${soldPct}%` }}
-                transition={{ duration: 0.6, ease: 'easeOut' }}
-                className="h-full bg-emerald-500 rounded-full"
-              />
-            </div>
-          </Stat>
-
-          <Stat icon="ticket" label="Revenue" hint={totalSold > 0 ? `from ${totalSold} tickets` : 'no sales yet'}>
-            <p className="text-lg sm:text-xl font-bold text-flame-400 tabular-nums leading-none break-words">
-              {formatRupiah(totalRevenue)}
-            </p>
-          </Stat>
-        </div>
-
-        {/* ===== Error (delete failed, etc) ===== */}
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              role="alert"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="flex items-start gap-3 p-3.5 mb-5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
-                <div className="flex-1">{error}</div>
-                <button
-                  type="button"
-                  onClick={() => setError('')}
-                  aria-label="Dismiss message"
-                  className="text-red-400/70 hover:text-red-400"
-                >
-                  <Icon name="close" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ===== Tabs ===== */}
-        <div role="tablist" className="flex items-center gap-7 border-b border-ink-700/60 mb-6">
-          {tabs.map((t) => {
-            const active = activeTab === t.key;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setActiveTab(t.key)}
-                className={`relative inline-flex items-center gap-2 py-3 text-sm font-medium transition-colors ${
-                  active ? 'text-white' : 'text-ink-400 hover:text-ink-200'
-                }`}
+                role="alert"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
               >
-                <Icon name={t.icon} />
-                {t.label}
-                <span className={`text-xs tabular-nums ${active ? 'text-flame-400' : 'text-ink-500'}`}>{t.count}</span>
-                {active && (
-                  <motion.span
-                    layoutId="manage-tab-underline"
-                    className="absolute -bottom-px inset-x-0 h-0.5 bg-flame-500"
-                    transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+                <div className="flex items-start gap-3 p-3.5 mb-5 rounded-xl bg-red-50 border border-red-200/60 text-red-700 font-serif text-sm">
+                  <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="flex-1">{error}</div>
+                  <button
+                    type="button"
+                    onClick={() => setError('')}
+                    aria-label="Dismiss message"
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Icon name="close" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ===== Tabs ===== */}
+          <div role="tablist" className="flex items-center gap-7 border-b border-amber-200/60 mb-6">
+            {tabs.map((t) => {
+              const active = activeTab === t.key;
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setActiveTab(t.key)}
+                  className={`relative inline-flex items-center gap-2 py-3 font-serif text-sm transition-colors ${
+                    active ? 'text-amber-950 font-semibold' : 'text-amber-700/60 hover:text-amber-900'
+                  }`}
+                >
+                  <Icon name={t.icon} />
+                  {t.label}
+                  <span className={`text-xs tabular-nums ${active ? 'text-amber-600' : 'text-amber-500/60'}`}>{t.count}</span>
+                  {active && (
+                    <motion.span
+                      layoutId="manage-tab-underline"
+                      className="absolute -bottom-px inset-x-0 h-0.5 bg-amber-700 rounded-full"
+                      transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ===== Tab content ===== */}
+          <AnimatePresence mode="wait" initial={false}>
+            {activeTab === 'schedule' && (
+              <motion.div
+                key="schedule"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <SectionHeader
+                  title="Concert schedule"
+                  subtitle={totalSchedules > 0 ? `${totalSchedules} dates, sorted from the nearest` : 'No schedule yet'}
+                  onAdd={() => setShowScheduleModal(true)}
+                />
+
+                {totalSchedules === 0 ? (
+                  <EmptyState
+                    icon="calendar"
+                    title="No schedule yet"
+                    hint="Add the first performance date and time."
+                    actionLabel="Add schedule"
+                    onAction={() => setShowScheduleModal(true)}
                   />
+                ) : (
+                  <div className="divide-y divide-amber-200/40 border border-amber-200/60 rounded-2xl bg-white/80 overflow-hidden">
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      {schedules.map((s) => (
+                        <ScheduleRow key={s.id} schedule={s} onDelete={requestDeleteSchedule} />
+                      ))}
+                    </AnimatePresence>
+                  </div>
                 )}
-              </button>
-            );
-          })}
-        </div>
+              </motion.div>
+            )}
 
-        {/* ===== Tab content ===== */}
-        <AnimatePresence mode="wait" initial={false}>
-          {activeTab === 'schedule' && (
-            <motion.div
-              key="schedule"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <SectionHeader
-                title="Concert schedule"
-                subtitle={totalSchedules > 0 ? `${totalSchedules} dates, sorted from the nearest` : 'No schedule yet'}
-                onAdd={() => setShowScheduleModal(true)}
-              />
-
-              {totalSchedules === 0 ? (
-                <EmptyState
-                  icon="calendar"
-                  title="No schedule yet"
-                  hint="Add the first performance date and time."
-                  actionLabel="Add schedule"
-                  onAction={() => setShowScheduleModal(true)}
+            {activeTab === 'ticket' && (
+              <motion.div
+                key="ticket"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <SectionHeader
+                  title="Ticket categories"
+                  subtitle={totalCategories > 0 ? `${totalCategories} categories, ${totalQuota} tickets total` : 'No categories yet'}
+                  onAdd={() => setShowTicketModal(true)}
                 />
-              ) : (
-                <div className="divide-y divide-ink-700/60 border border-ink-700/60 rounded-xl bg-ink-800/30 overflow-hidden">
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    {schedules.map((s) => (
-                      <ScheduleRow key={s.id} schedule={s} onDelete={requestDeleteSchedule} />
-                    ))}
-                  </AnimatePresence>
-                </div>
-              )}
-            </motion.div>
-          )}
 
-          {activeTab === 'ticket' && (
-            <motion.div
-              key="ticket"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <SectionHeader
-                title="Ticket categories"
-                subtitle={totalCategories > 0 ? `${totalCategories} categories, ${totalQuota} tickets total` : 'No categories yet'}
-                onAdd={() => setShowTicketModal(true)}
-              />
+                {totalCategories === 0 ? (
+                  <EmptyState
+                    icon="ticket"
+                    title="No ticket categories yet"
+                    hint="Start with categories like VIP or Regular."
+                    actionLabel="Add category"
+                    onAction={() => setShowTicketModal(true)}
+                  />
+                ) : (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      {categories.map((t) => (
+                        <TicketCard key={t.id} ticket={t} onDelete={requestDeleteTicket} />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-              {totalCategories === 0 ? (
-                <EmptyState
-                  icon="ticket"
-                  title="No ticket categories yet"
-                  hint="Start with categories like VIP or Regular."
-                  actionLabel="Add category"
-                  onAction={() => setShowTicketModal(true)}
-                />
-              ) : (
-                <div className="grid gap-3 md:grid-cols-2">
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    {categories.map((t) => (
-                      <TicketCard key={t.id} ticket={t} onDelete={requestDeleteTicket} />
-                    ))}
-                  </AnimatePresence>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ===== Modal: add schedule ===== */}
-        <FormModal
-          open={showScheduleModal}
-          title="Add schedule"
-          subtitle="The new schedule is immediately visible to buyers."
-          onClose={closeScheduleModal}
-          onSubmit={addSchedule}
-          saving={addingSchedule}
-          submitLabel="Add schedule"
-          error={modalError}
-        >
-          <Field label="Date" required>
-            <input
-              required
-              autoFocus
-              type="date"
-              value={scheduleForm.event_date}
-              onChange={(e) => setScheduleForm({ ...scheduleForm, event_date: e.target.value })}
-              className={inputCls}
-            />
-          </Field>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Start time" required>
+          {/* ===== Modal: add schedule ===== */}
+          <FormModal
+            open={showScheduleModal}
+            title="Add schedule"
+            subtitle="The new schedule is immediately visible to buyers."
+            onClose={closeScheduleModal}
+            onSubmit={addSchedule}
+            saving={addingSchedule}
+            submitLabel="Add schedule"
+            error={modalError}
+          >
+            <Field label="Date" required>
               <input
                 required
-                type="time"
-                value={scheduleForm.start_time}
-                onChange={(e) => setScheduleForm({ ...scheduleForm, start_time: e.target.value })}
+                autoFocus
+                type="date"
+                value={scheduleForm.event_date}
+                onChange={(e) => setScheduleForm({ ...scheduleForm, event_date: e.target.value })}
                 className={inputCls}
               />
             </Field>
-            <Field label="End time" optional>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Start time" required>
+                <input
+                  required
+                  type="time"
+                  value={scheduleForm.start_time}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, start_time: e.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="End time" optional>
+                <input
+                  type="time"
+                  value={scheduleForm.end_time}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, end_time: e.target.value })}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+
+            <p className="flex items-center gap-1.5 font-serif text-xs text-amber-600/60">
+              <Icon name="info" className="w-3.5 h-3.5 shrink-0" />
+              The end time can be left empty and filled in later.
+            </p>
+          </FormModal>
+
+          {/* ===== Modal: add ticket category ===== */}
+          <FormModal
+            open={showTicketModal}
+            title="Add ticket category"
+            subtitle="Set the price and the number of tickets to sell."
+            onClose={closeTicketModal}
+            onSubmit={addTicketCategory}
+            saving={addingTicket}
+            submitLabel="Add category"
+            error={modalError}
+          >
+            <Field label="Category name" required>
               <input
-                type="time"
-                value={scheduleForm.end_time}
-                onChange={(e) => setScheduleForm({ ...scheduleForm, end_time: e.target.value })}
+                required
+                autoFocus
+                value={ticketForm.name}
+                onChange={(e) => setTicketForm({ ...ticketForm, name: e.target.value })}
+                placeholder="Example: VIP, Regular, Early Bird"
                 className={inputCls}
               />
             </Field>
-          </div>
 
-          <p className="flex items-center gap-1.5 text-xs text-ink-500">
-            <Icon name="info" className="w-3.5 h-3.5 shrink-0" />
-            The end time can be left empty and filled in later.
-          </p>
-        </FormModal>
-
-        {/* ===== Modal: add ticket category ===== */}
-        <FormModal
-          open={showTicketModal}
-          title="Add ticket category"
-          subtitle="Set the price and the number of tickets to sell."
-          onClose={closeTicketModal}
-          onSubmit={addTicketCategory}
-          saving={addingTicket}
-          submitLabel="Add category"
-          error={modalError}
-        >
-          <Field label="Category name" required>
-            <input
-              required
-              autoFocus
-              value={ticketForm.name}
-              onChange={(e) => setTicketForm({ ...ticketForm, name: e.target.value })}
-              placeholder="Example: VIP, Regular, Early Bird"
-              className={inputCls}
-            />
-          </Field>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Price" required>
-              <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-ink-500 pointer-events-none">Rp</span>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Price" required>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-serif text-sm text-amber-500 pointer-events-none">Rp</span>
+                  <input
+                    required
+                    type="number"
+                    min="0"
+                    inputMode="numeric"
+                    value={ticketForm.price}
+                    onChange={(e) => setTicketForm({ ...ticketForm, price: e.target.value })}
+                    placeholder="500000"
+                    className={`${inputCls} pl-10 tabular-nums`}
+                  />
+                </div>
+              </Field>
+              <Field label="Quota" required>
                 <input
                   required
                   type="number"
-                  min="0"
+                  min="1"
                   inputMode="numeric"
-                  value={ticketForm.price}
-                  onChange={(e) => setTicketForm({ ...ticketForm, price: e.target.value })}
-                  placeholder="500000"
-                  className={`${inputCls} pl-10 tabular-nums`}
+                  value={ticketForm.quota}
+                  onChange={(e) => setTicketForm({ ...ticketForm, quota: e.target.value })}
+                  placeholder="100"
+                  className={`${inputCls} tabular-nums`}
                 />
-              </div>
-            </Field>
-            <Field label="Quota" required>
-              <input
-                required
-                type="number"
-                min="1"
-                inputMode="numeric"
-                value={ticketForm.quota}
-                onChange={(e) => setTicketForm({ ...ticketForm, quota: e.target.value })}
-                placeholder="100"
-                className={`${inputCls} tabular-nums`}
-              />
-            </Field>
-          </div>
-
-          {ticketForm.price && ticketForm.quota && (
-            <div className="flex items-center justify-between px-3.5 py-3 rounded-lg bg-flame-500/5 border border-flame-500/20">
-              <span className="text-sm text-ink-300">Potential revenue</span>
-              <span className="text-sm font-semibold text-flame-400 tabular-nums">
-                {formatRupiah(Number(ticketForm.price) * Number(ticketForm.quota))}
-              </span>
+              </Field>
             </div>
-          )}
-        </FormModal>
 
-        {/* ===== Delete confirmation ===== */}
-        <ConfirmDialog
-          state={confirmState}
-          deleting={deleting}
-          onCancel={() => setConfirmState(null)}
-          onConfirm={runDelete}
-        />
+            {ticketForm.price && ticketForm.quota && (
+              <div className="flex items-center justify-between px-3.5 py-3 rounded-lg bg-amber-50 border border-amber-200/60">
+                <span className="font-serif text-sm text-amber-800">Potential revenue</span>
+                <span className="font-serif text-sm font-semibold text-amber-800 tabular-nums">
+                  {formatRupiah(Number(ticketForm.price) * Number(ticketForm.quota))}
+                </span>
+              </div>
+            )}
+          </FormModal>
+
+          {/* ===== Delete confirmation ===== */}
+          <ConfirmDialog
+            state={confirmState}
+            deleting={deleting}
+            onCancel={() => setConfirmState(null)}
+            onConfirm={runDelete}
+          />
+        </div>
       </div>
     </MotionConfig>
   );

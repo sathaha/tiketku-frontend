@@ -1,853 +1,511 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, MotionConfig } from 'framer-motion';
 import api from '../../api/axios';
-import { Loading, EmptyState } from '../../components/Ui';
+import { StatusBadge, formatRupiah, formatDate } from '../../components/Ui';
 
 function Icon({ name, className = 'w-4 h-4' }) {
   const paths = {
-    plus: 'M12 4v16m8-8H4',
-    close: 'M6 18L18 6M6 6l12 12',
-    edit: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
-    trash: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16',
-    pin: 'M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1118 0z M12 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z',
-    users: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
-    building: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
-    alert: 'M12 9v2m0 4h.01M5.071 19h13.858a2 2 0 001.732-3L13.732 4a2 2 0 00-3.464 0L3.34 16a2 2 0 001.732 3z',
-    search: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
-    check: 'M5 13l4 4L19 7',
-    calendar: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
-    map: 'M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4zM8 2v16M16 6v16',
-    sparkle: 'M12 3l1.9 5.8a2 2 0 001.3 1.3L21 12l-5.8 1.9a2 2 0 00-1.3 1.3L12 21l-1.9-5.8a2 2 0 00-1.3-1.3L3 12l5.8-1.9a2 2 0 001.3-1.3L12 3z',
-    info: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    calendar: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z',
+    plus: 'M12 5v14M5 12h14',
+    arrow: 'M13 7l5 5-5 5M6 12h12',
+    chevron: 'M9 5l7 7-7 7',
+    refresh: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
+    orders: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
+    wallet: 'M21 12V7H5a2 2 0 010-4h14v4M3 5v14a2 2 0 002 2h16v-5M18 12a2 2 0 000 4h4v-4h-4z',
+    copy: 'M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z',
+    music: 'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3',
+    users: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
+    ticket: 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z',
+    clipboard: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
   };
   return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d={paths[name]} />
     </svg>
   );
 }
 
-const emptyForm = { name: '', address: '', city: '', capacity: '', latitude: '', longitude: '' };
-
-const venueColors = [
-  { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', bar: 'bg-blue-500' },
-  { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', bar: 'bg-emerald-500' },
-  { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400', bar: 'bg-purple-500' },
-  { bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400', bar: 'bg-amber-500' },
-  { bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', bar: 'bg-rose-500' },
-  { bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', text: 'text-cyan-400', bar: 'bg-cyan-500' },
-];
-
-const MAX_CAPACITY_FOR_BAR = 100000;
-
-// ===== INPUT with icon prefix + helper text =====
-function FormInput({ label, required, icon, value, onChange, placeholder, type = 'text', helper, autoFocus }) {
-  return (
-    <div>
-      <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-        {label} {required && <span className="text-flame-400">*</span>}
-      </label>
-      <div className="relative group">
-        {icon && (
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
-            <Icon name={icon} className="w-3.5 h-3.5 text-ink-400 transition-colors group-focus-within:text-flame-400" />
-          </div>
-        )}
-        <input
-          type={type}
-          required={required}
-          autoFocus={autoFocus}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          className={`w-full ${icon ? 'pl-14' : 'pl-4'} pr-4 py-3 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all`}
-        />
-      </div>
-      {helper && (
-        <p className="text-[11px] text-ink-500 mt-1.5">{helper}</p>
-      )}
-    </div>
-  );
-}
-
-// ===== VENUE FORM MODAL =====
-function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmit, onClose }) {
-  const nameRef = useRef(null);
+/* Counts up once when data arrives, and eases from the previous value on refresh. */
+function useCountUp(target, duration = 900) {
+  const [value, setValue] = useState(0);
+  const latest = useRef(0);
 
   useEffect(() => {
-    if (open) {
-      const timer = setTimeout(() => nameRef.current?.focus(), 100);
-      return () => clearTimeout(timer);
-    }
-  }, [open]);
-
-  const [showMapPickerLocal, setShowMapPickerLocal] = useState(false);
-  const [mapSearch, setMapSearch] = useState('');
-  const [mapResults, setMapResults] = useState([]);
-  const [searchingLocation, setSearchingLocation] = useState(false);
-
-  async function searchLocation() {
-    if (!mapSearch.trim()) return;
-    setSearchingLocation(true);
-    try {
-      const query = encodeURIComponent(mapSearch);
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=5`);
-      const data = await res.json();
-      setMapResults(data);
-    } catch (err) {
-      console.error('Failed to search location:', err);
-      alert('Failed to search location. Please try again.');
-    } finally {
-      setSearchingLocation(false);
-    }
-  }
-
-  function selectLocation(location) {
-    setForm((prev) => ({
-      ...prev,
-      latitude: location.lat,
-      longitude: location.lon,
-      address: location.display_name.split(',').slice(0, 3).join(','),
-    }));
-    setMapResults([]);
-    setMapSearch('');
-    setShowMapPickerLocal(false);
-  }
-
-  return (
-    <>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-            onClick={onClose}
-          >
-            <motion.div
-              initial={{ y: 40, opacity: 0, scale: 0.98 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 40, opacity: 0, scale: 0.98 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-ink-900 border border-ink-700 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl shadow-black/50"
-            >
-              {/* ===== HEADER ===== */}
-              <div className="relative px-6 py-5 border-b border-ink-700/60 shrink-0">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-flame-500 via-orange-500 to-transparent" />
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-flame-500/10 border border-flame-500/20 flex items-center justify-center">
-                      <Icon name={editingId ? 'edit' : 'plus'} className="w-5 h-5 text-flame-400" />
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-bold text-white leading-tight">
-                        {editingId ? 'Edit Venue' : 'Add New Venue'}
-                      </h2>
-                      <p className="text-xs text-ink-400 mt-0.5">
-                        {editingId ? 'Update the venue details' : 'Fill in the venue details below'}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors shrink-0"
-                    aria-label="Close"
-                  >
-                    <Icon name="close" className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* ===== BODY (scrollable) ===== */}
-              <form id="venue-form" onSubmit={onSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-start gap-3 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
-                  >
-                    <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
-                    <span>{error}</span>
-                  </motion.div>
-                )}
-
-                {/* ===== SECTION: Basic Info ===== */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Icon name="sparkle" className="w-3.5 h-3.5 text-flame-400" />
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink-500 font-semibold">
-                      Basic Info
-                    </span>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-                        Venue Name <span className="text-flame-400">*</span>
-                      </label>
-                      <div className="relative group">
-                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
-                          <Icon name="building" className="w-3.5 h-3.5 text-ink-400 transition-colors group-focus-within:text-flame-400" />
-                        </div>
-                        <input
-                          ref={nameRef}
-                          required
-                          value={form.name}
-                          onChange={(e) => setForm({ ...form, name: e.target.value })}
-                          placeholder="Example: Gelora Bung Karno"
-                          className="w-full pl-14 pr-4 py-3 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-                          City
-                        </label>
-                        <div className="relative group">
-                          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
-                            <Icon name="pin" className="w-3.5 h-3.5 text-ink-400 transition-colors group-focus-within:text-flame-400" />
-                          </div>
-                          <input
-                            value={form.city}
-                            onChange={(e) => setForm({ ...form, city: e.target.value })}
-                            placeholder="Jakarta"
-                            className="w-full pl-14 pr-4 py-3 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-                          Capacity
-                        </label>
-                        <div className="relative group">
-                          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
-                            <Icon name="users" className="w-3.5 h-3.5 text-ink-400 transition-colors group-focus-within:text-flame-400" />
-                          </div>
-                          <input
-                            type="number"
-                            min="1"
-                            value={form.capacity}
-                            onChange={(e) => setForm({ ...form, capacity: e.target.value })}
-                            placeholder="5000"
-                            className="w-full pl-14 pr-4 py-3 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
-                          />
-                        </div>
-                        {form.capacity && Number(form.capacity) > 0 && (
-                          <p className="text-[11px] text-ink-500 mt-1.5">
-                            ≈ {Number(form.capacity).toLocaleString('en-US')} people
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* ===== SECTION: Location ===== */}
-                <div className="pt-5 border-t border-ink-700/60">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Icon name="map" className="w-3.5 h-3.5 text-flame-400" />
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink-500 font-semibold">
-                      Location & Address
-                    </span>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-                      Address
-                    </label>
-                    <div className="flex gap-2">
-                      <div className="relative group flex-1">
-                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
-                          <Icon name="map" className="w-3.5 h-3.5 text-ink-400 transition-colors group-focus-within:text-flame-400" />
-                        </div>
-                        <input
-                          value={form.address}
-                          onChange={(e) => setForm({ ...form, address: e.target.value })}
-                          placeholder="Type manually or pick on the map"
-                          className="w-full pl-14 pr-4 py-3 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowMapPickerLocal(true)}
-                        className="inline-flex items-center gap-2 px-4 py-3 bg-flame-500/10 hover:bg-flame-500/20 border border-flame-500/30 rounded-xl text-xs font-medium text-flame-400 transition-colors whitespace-nowrap shrink-0"
-                      >
-                        <Icon name="pin" className="w-4 h-4" />
-                        Pick on Map
-                      </button>
-                    </div>
-
-                    {form.latitude && form.longitude && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="mt-3 relative rounded-xl overflow-hidden border border-ink-700"
-                      >
-                        <iframe
-                          title="Venue location preview"
-                          src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(form.longitude) - 0.005}%2C${Number(form.latitude) - 0.005}%2C${Number(form.longitude) + 0.005}%2C${Number(form.latitude) + 0.005}&layer=mapnik&marker=${form.latitude}%2C${form.longitude}`}
-                          className="w-full h-40"
-                        />
-                        <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                          <span className="px-2 py-1 bg-ink-950/80 backdrop-blur-sm border border-ink-700 rounded-md text-[10px] text-emerald-400 flex items-center gap-1">
-                            <Icon name="check" className="w-3 h-3" />
-                            Location selected
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setForm((prev) => ({ ...prev, latitude: '', longitude: '', address: '' }))}
-                            className="p-1.5 bg-red-500/90 text-white rounded-md hover:bg-red-600 transition-colors"
-                            title="Remove location"
-                          >
-                            <Icon name="close" className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {!form.latitude && !form.longitude && (
-                      <p className="text-[11px] text-ink-500 mt-1.5 flex items-center gap-1">
-                        <Icon name="info" className="w-3 h-3" />
-                        Pick a location on the map to show a map on the event page
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </form>
-
-              {/* ===== FOOTER (sticky) ===== */}
-              <div className="px-6 py-4 bg-ink-900/80 backdrop-blur-md border-t border-ink-700/60 flex items-center justify-between gap-3 shrink-0">
-                <p className="text-[11px] text-ink-500 hidden sm:block">
-                  <span className="text-flame-400">*</span> Required
-                </p>
-                <div className="flex gap-2 ml-auto">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-5 py-2.5 rounded-xl text-sm font-medium text-ink-300 hover:text-white hover:bg-ink-700 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    form="venue-form"
-                    disabled={saving}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-flame-500 hover:bg-flame-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-flame-500/30"
-                  >
-                    {saving ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="check" className="w-4 h-4" />
-                        {editingId ? 'Save Changes' : 'Add Venue'}
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ===== MAP PICKER MODAL (nested) ===== */}
-      <AnimatePresence>
-        {showMapPickerLocal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-            onClick={() => setShowMapPickerLocal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-ink-900 border border-ink-700 rounded-2xl max-w-2xl w-full max-h-[80vh] flex flex-col overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-4 border-b border-ink-700 flex items-center justify-between shrink-0">
-                <h3 className="font-semibold text-white">Pick Venue Location</h3>
-                <button
-                  onClick={() => setShowMapPickerLocal(false)}
-                  className="p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors"
-                >
-                  <Icon name="close" className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="p-4 border-b border-ink-700 shrink-0">
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
-                    <input
-                      type="text"
-                      className="w-full pl-9 pr-4 py-2.5 bg-ink-900/50 border border-ink-700 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
-                      placeholder="Search address or place name..."
-                      value={mapSearch}
-                      onChange={(e) => setMapSearch(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          searchLocation();
-                        }
-                      }}
-                    />
-                  </div>
-                  <button
-                    onClick={searchLocation}
-                    disabled={searchingLocation}
-                    className="px-4 py-2.5 bg-flame-500 hover:bg-flame-600 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors whitespace-nowrap"
-                  >
-                    {searchingLocation ? 'Searching...' : 'Search'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-4">
-                {mapResults.length > 0 ? (
-                  <div className="space-y-2">
-                    {mapResults.map((result, index) => (
-                      <button
-                        key={index}
-                        onClick={() => selectLocation(result)}
-                        className="w-full text-left p-3 rounded-xl bg-ink-800/50 hover:bg-ink-700 border border-transparent hover:border-flame-500/30 transition-all"
-                      >
-                        <p className="text-sm text-white font-medium">
-                          {result.display_name.split(',')[0]}
-                        </p>
-                        <p className="text-xs text-ink-400 mt-0.5 line-clamp-2">
-                          {result.display_name}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Icon name="pin" className="w-12 h-12 text-ink-600 mx-auto mb-3" />
-                    <p className="text-sm text-ink-300">Search for a venue location above</p>
-                    <p className="text-xs text-ink-500 mt-1">
-                      Use the place name or full address
-                    </p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
-
-export default function Venues() {
-  const [venues, setVenues] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState(emptyForm);
-  const [editingId, setEditingId] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [successMsg, setSuccessMsg] = useState('');
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('name');
-
-  useEffect(() => {
-    fetchVenues();
-  }, []);
-
-  async function fetchVenues() {
-    setLoading(true);
-    try {
-      const res = await api.get('/venues');
-      setVenues(res.data);
-    } catch (err) {
-      console.error('Failed to fetch venues:', err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function openCreate() {
-    setForm(emptyForm);
-    setEditingId(null);
-    setError('');
-    setShowForm(true);
-  }
-
-  function openEdit(v) {
-    setForm({
-      name: v.name,
-      address: v.address || '',
-      city: v.city || '',
-      capacity: v.capacity || '',
-      latitude: v.latitude || '',
-      longitude: v.longitude || '',
-    });
-    setEditingId(v.id);
-    setError('');
-    setShowForm(true);
-  }
-
-  function closeForm() {
-    setShowForm(false);
-    setError('');
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError('');
-
-    if (form.capacity && Number(form.capacity) <= 0) {
-      setError('Capacity must be greater than 0.');
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      latest.current = target;
+      setValue(target);
       return;
     }
+    const from = latest.current;
+    const start = performance.now();
+    let raf;
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      latest.current = Math.round(from + (target - from) * eased);
+      setValue(latest.current);
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
 
-    setSaving(true);
-    try {
-      const payload = {
-        name: form.name,
-        address: form.address,
-        city: form.city,
-        capacity: form.capacity,
-        latitude: form.latitude || null,
-        longitude: form.longitude || null,
-      };
+  return value;
+}
 
-      if (editingId) {
-        await api.put(`/venues/${editingId}`, payload);
-        setSuccessMsg(`Venue "${form.name}" updated successfully`);
-      } else {
-        await api.post('/venues', payload);
-        setSuccessMsg(`Venue "${form.name}" added successfully`);
-      }
-      setShowForm(false);
-      fetchVenues();
-      setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save venue.');
-    } finally {
-      setSaving(false);
-    }
-  }
+const focusRing =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60';
 
-  async function handleDelete() {
-    if (!deleteTarget) return;
-    setDeleting(true);
-    try {
-      await api.delete(`/venues/${deleteTarget.id}`);
-      setSuccessMsg(`Venue "${deleteTarget.name}" deleted successfully`);
-      setDeleteTarget(null);
-      fetchVenues();
-      setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete venue.');
-      setDeleteTarget(null);
-    } finally {
-      setDeleting(false);
-    }
-  }
+// Gradien avatar untuk customer (bergantian berdasarkan nama)
+const AVATAR_GRADIENTS = [
+  'from-amber-400 to-amber-600',
+  'from-emerald-400 to-emerald-600',
+  'from-blue-400 to-blue-600',
+  'from-rose-400 to-rose-600',
+  'from-purple-400 to-purple-600',
+  'from-cyan-400 to-cyan-600',
+];
 
-  const filteredVenues = useMemo(() => {
-    let result = [...venues];
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (v) =>
-          v.name?.toLowerCase().includes(q) ||
-          v.city?.toLowerCase().includes(q) ||
-          v.address?.toLowerCase().includes(q)
-      );
-    }
-    switch (sortBy) {
-      case 'name':
-        result.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-        break;
-      case 'capacity-high':
-        result.sort((a, b) => Number(b.capacity || 0) - Number(a.capacity || 0));
-        break;
-      case 'capacity-low':
-        result.sort((a, b) => Number(a.capacity || 0) - Number(b.capacity || 0));
-        break;
-      case 'city':
-        result.sort((a, b) => (a.city || '').localeCompare(b.city || ''));
-        break;
-      default:
-        break;
-    }
-    return result;
-  }, [venues, searchQuery, sortBy]);
+function avatarGradient(name = '') {
+  const code = name.charCodeAt(0) || 0;
+  return AVATAR_GRADIENTS[code % AVATAR_GRADIENTS.length];
+}
 
-  const stats = useMemo(() => {
-    const total = venues.length;
-    const withMap = venues.filter((v) => v.latitude && v.longitude).length;
-    const totalCapacity = venues.reduce((sum, v) => sum + (Number(v.capacity) || 0), 0);
-    return { total, withMap, totalCapacity };
-  }, [venues]);
+function SkeletonLoader() {
+  return (
+    <div className="animate-pulse grid grid-cols-1 lg:grid-cols-3 gap-4" aria-hidden="true">
+      <div className="lg:col-span-2 space-y-4">
+        <div className="bg-white border border-amber-200/60 rounded-2xl grid grid-cols-1 sm:grid-cols-3">
+          <div className="p-6 sm:col-span-2 space-y-4">
+            <div className="h-3 w-24 bg-amber-100 rounded" />
+            <div className="h-10 w-64 bg-amber-100 rounded" />
+            <div className="h-1.5 w-full bg-amber-100 rounded-full mt-6" />
+          </div>
+          <div className="p-6 space-y-4 border-t border-dashed border-amber-200/60 sm:border-t-0 sm:border-l">
+            <div className="h-3 w-24 bg-amber-100 rounded" />
+            <div className="h-6 w-32 bg-amber-100 rounded" />
+          </div>
+        </div>
+
+        <div className="bg-white border border-amber-200/60 rounded-2xl grid grid-cols-2 sm:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="p-4 flex items-center gap-3">
+              <div className="w-9 h-9 bg-amber-100 rounded-lg" />
+              <div className="space-y-2">
+                <div className="h-4 w-10 bg-amber-100 rounded" />
+                <div className="h-3 w-16 bg-amber-100 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-white border border-amber-200/60 rounded-2xl p-5">
+          <div className="h-4 w-40 bg-amber-100 rounded mb-5" />
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between py-3 border-t border-amber-200/60">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-100" />
+                <div className="space-y-2">
+                  <div className="h-3 w-40 bg-amber-100 rounded" />
+                  <div className="h-3 w-28 bg-amber-100 rounded" />
+                </div>
+              </div>
+              <div className="h-3 w-20 bg-amber-100 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="bg-white border border-amber-200/60 rounded-2xl p-5 space-y-4">
+          <div className="h-4 w-32 bg-amber-100 rounded" />
+          <div className="h-10 w-full bg-amber-100 rounded-lg" />
+          <div className="h-10 w-full bg-amber-100 rounded-lg" />
+        </div>
+        <div className="bg-white border border-amber-200/60 rounded-2xl p-5 space-y-4">
+          <div className="h-4 w-28 bg-amber-100 rounded" />
+          <div className="h-3 w-full bg-amber-100 rounded" />
+          <div className="h-3 w-3/4 bg-amber-100 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const statBorders = [
+  '',
+  'border-l',
+  'border-t sm:border-t-0 sm:border-l',
+  'border-l border-t sm:border-t-0',
+];
+
+function StatCell({ icon, tint, label, value, link, index }) {
+  const content = (
+    <div className={`p-4 flex items-center gap-3 border-amber-200/60 ${statBorders[index]} ${link ? 'hover:bg-amber-50 transition-colors' : ''}`}>
+      <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${tint}`}>
+        <Icon name={icon} className="w-[18px] h-[18px]" />
+      </span>
+      <div className="min-w-0">
+        <p className="font-serif text-xl font-bold text-amber-950 font-mono tabular-nums leading-none">{value}</p>
+        <p className="font-serif text-xs text-amber-700/70 mt-1.5 truncate">{label}</p>
+      </div>
+    </div>
+  );
+  return link ? (
+    <Link to={link} className={`block ${focusRing}`}>
+      {content}
+    </Link>
+  ) : (
+    content
+  );
+}
+
+function AttentionRow({ to, icon, tint, title, sub, badge }) {
+  return (
+    <Link
+      to={to}
+      className={`flex items-center gap-3 p-3 -mx-1 rounded-lg hover:bg-amber-50 transition-colors group ${focusRing}`}
+    >
+      <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${tint}`}>
+        <Icon name={icon} className="w-[18px] h-[18px]" />
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className="font-serif text-sm font-medium text-amber-950">{title}</p>
+        <p className="font-serif text-xs text-amber-700/60 truncate">{sub}</p>
+      </div>
+      {badge ? (
+        <span className="min-w-5 h-5 px-1.5 bg-amber-100 text-amber-800 border border-amber-200/60 text-xs font-mono rounded-full flex items-center justify-center">
+          {badge}
+        </span>
+      ) : null}
+      <Icon name="chevron" className="w-4 h-4 text-amber-500 group-hover:text-amber-800 transition-colors" />
+    </Link>
+  );
+}
+
+/**
+ * Recent transactions row — dibuat lebih hidup dengan:
+ * - avatar gradien per customer
+ * - order code jadi chip kecil
+ * - status badge di kanan, total di atas
+ */
+function RecentOrderRow({ order, copiedCode, onCopy }) {
+  const gradient = avatarGradient(order.customer_name || '');
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <li className="group relative px-5 py-4 hover:bg-amber-50/60 transition-colors">
+      <div className="flex items-center gap-4">
+        {/* Avatar gradien */}
+        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 shadow-sm`}>
+          <span className="font-serif text-sm font-bold text-white">
+            {order.customer_name?.charAt(0)?.toUpperCase() || '?'}
+          </span>
+        </div>
 
-      {/* HEADER */}
-      <div className="relative mb-6">
-        <div className="absolute -top-6 -left-6 w-32 h-32 bg-flame-500/5 rounded-full blur-2xl pointer-events-none" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-flame-500/10 border border-flame-500/20 flex items-center justify-center">
-              <Icon name="building" className="w-5 h-5 text-flame-400" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Manage Venues</h1>
-              <p className="text-sm text-ink-400 mt-0.5">
-                {venues.length} venues registered
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={openCreate}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-flame-500 hover:bg-flame-600 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-flame-500/20 self-start sm:self-auto"
-          >
-            <Icon name="plus" className="w-4 h-4" />
-            Add Venue
-          </button>
-        </div>
-      </div>
-
-      {/* STATS */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        <div className="bg-ink-800/40 border border-ink-700 rounded-xl px-4 py-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Icon name="building" className="w-3.5 h-3.5 text-flame-400" />
-            <p className="text-xs text-ink-400">Total Venues</p>
-          </div>
-          <p className="text-lg font-semibold text-white font-mono tabular-nums">{stats.total}</p>
-        </div>
-        <div className="bg-ink-800/40 border border-ink-700 rounded-xl px-4 py-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Icon name="map" className="w-3.5 h-3.5 text-emerald-400" />
-            <p className="text-xs text-ink-400">With Map</p>
-          </div>
-          <p className="text-lg font-semibold text-emerald-400 font-mono tabular-nums">{stats.withMap}</p>
-        </div>
-        <div className="bg-ink-800/40 border border-ink-700 rounded-xl px-4 py-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Icon name="users" className="w-3.5 h-3.5 text-purple-400" />
-            <p className="text-xs text-ink-400">Total Capacity</p>
-          </div>
-          <p className="text-lg font-semibold text-purple-400 font-mono tabular-nums">
-            {stats.totalCapacity.toLocaleString('en-US')}
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <p className="font-serif font-semibold text-amber-950 text-sm truncate">
+            {order.concert_name}
           </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+            <span className="font-serif text-xs text-amber-700/70 truncate">
+              {order.customer_name}
+            </span>
+
+            {/* Order code chip */}
+            <button
+              onClick={() => onCopy(order.order_code)}
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 hover:bg-amber-100 border border-amber-200/60 rounded-md font-mono text-[10px] text-amber-800 transition-colors ${focusRing}`}
+              title="Copy order code"
+            >
+              {copiedCode === order.order_code ? 'Copied!' : order.order_code}
+              <Icon name="copy" className="w-3 h-3 opacity-70" />
+            </button>
+
+            {/* Date */}
+            <span className="font-serif text-[11px] text-amber-600/60 flex items-center gap-1">
+              <Icon name="calendar" className="w-3 h-3" />
+              {formatDate(order.created_at)}
+            </span>
+          </div>
+        </div>
+
+        {/* Total + status */}
+        <div className="text-right shrink-0 flex flex-col items-end gap-1.5">
+          <p className="font-serif font-bold text-amber-800 font-mono tabular-nums text-sm">
+            {formatRupiah(order.total_price)}
+          </p>
+          <StatusBadge status={order.status} />
         </div>
       </div>
+    </li>
+  );
+}
 
-      {/* SEARCH & SORT */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-5">
-        <div className="relative flex-1">
-          <Icon name="search" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-500" />
-          <input
-            type="text"
-            placeholder="Search name, city, or address..."
-            className="w-full pl-10 pr-4 py-2.5 bg-ink-800/40 border border-ink-700 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/50 transition-colors"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <select
-          className="px-4 py-2.5 bg-ink-800/40 border border-ink-700 rounded-xl text-sm text-white focus:outline-none focus:border-flame-500/50 transition-colors sm:w-48"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="name">Name A-Z</option>
-          <option value="capacity-high">Largest Capacity</option>
-          <option value="capacity-low">Smallest Capacity</option>
-          <option value="city">City A-Z</option>
-        </select>
-      </div>
+export default function Dashboard() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [copiedCode, setCopiedCode] = useState(null);
 
-      {/* SUCCESS MESSAGE */}
-      <AnimatePresence>
-        {successMsg && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2 p-3 mb-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm"
-          >
-            <Icon name="check" className="w-4 h-4 shrink-0" />
-            {successMsg}
-          </motion.div>
-        )}
-      </AnimatePresence>
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
-      {/* ===== FORM MODAL ===== */}
-      <VenueFormModal
-        open={showForm}
-        editingId={editingId}
-        form={form}
-        setForm={setForm}
-        error={error}
-        saving={saving}
-        onSubmit={handleSubmit}
-        onClose={closeForm}
-      />
+  async function fetchStats(isManual = false) {
+    if (isManual) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
 
-      {/* ===== VENUES GRID ===== */}
-      {loading ? (
-        <Loading />
-      ) : filteredVenues.length === 0 ? (
-        <EmptyState text="No venues found." />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredVenues.map((venue, index) => {
-            const color = venueColors[index % venueColors.length];
-            const capacity = Number(venue.capacity) || 0;
-            const capacityPercent = Math.min(100, (capacity / MAX_CAPACITY_FOR_BAR) * 100);
-            const hasMap = venue.latitude && venue.longitude;
+    try {
+      const res = await api.get('/reports/dashboard');
+      setStats(res.data);
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error('Failed to fetch dashboard stats:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }
 
-            return (
-              <motion.div
-                key={venue.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03 }}
-                whileHover={{ y: -3 }}
-                className="group card p-5 hover:border-flame-500/30 transition-all flex flex-col"
+  function copyOrderCode(code) {
+    navigator.clipboard?.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode((c) => (c === code ? null : c)), 1200);
+  }
+
+  const totalRevenue = stats?.total_revenue || 0;
+  const pendingPayout = stats?.pending_payout || 0;
+  const pendingApproval = stats?.pending_approval || 0;
+  const animatedRevenue = useCountUp(totalRevenue);
+
+  const payoutShare = totalRevenue
+    ? Math.min(100, Math.round((pendingPayout / totalRevenue) * 100))
+    : 0;
+
+  const summary = !stats
+    ? ''
+    : pendingApproval > 0
+      ? `${pendingApproval} concert${pendingApproval > 1 ? 's' : ''} waiting for your approval`
+      : 'No concerts waiting for approval';
+
+  const timeLabel = lastUpdated
+    ? lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    : '';
+
+  return (
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen bg-[#f5ede4]">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <style>{`
+            @media (min-width: 640px) {
+              .ticket-cut {
+                -webkit-mask:
+                  radial-gradient(circle 9px at 66.6667% 0, #0000 97%, #000) top / 100% 51% no-repeat,
+                  radial-gradient(circle 9px at 66.6667% 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
+                mask:
+                  radial-gradient(circle 9px at 66.6667% 0, #0000 97%, #000) top / 100% 51% no-repeat,
+                  radial-gradient(circle 9px at 66.6667% 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
+              }
+            }
+          `}</style>
+
+          {/* Header */}
+          <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+            <div>
+              <h1 className="font-serif text-2xl font-bold text-amber-950">Admin dashboard</h1>
+              {summary && <p className="font-serif text-sm text-amber-700/70 mt-1">{summary}</p>}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {lastUpdated && !loading && (
+                <span className="font-serif text-xs text-amber-700/60 mr-1">Updated {timeLabel}</span>
+              )}
+              <button
+                onClick={() => fetchStats(true)}
+                disabled={refreshing || loading}
+                aria-label="Refresh data"
+                title="Refresh data"
+                className={`p-2 hover:bg-amber-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 ${focusRing}`}
               >
-                <div className="flex items-start gap-3 mb-4">
-                  <div className={`w-12 h-12 rounded-full ${color.bg} ${color.border} border flex items-center justify-center shrink-0`}>
-                    <Icon name="building" className={`w-5 h-5 ${color.text}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-white text-sm leading-tight truncate">
-                      {venue.name}
-                    </h3>
-                    {venue.city && (
-                      <p className="text-xs text-ink-400 mt-0.5 flex items-center gap-1 truncate">
-                        <Icon name="pin" className="w-3 h-3 text-ink-500 flex-shrink-0" />
-                        <span className="truncate">{venue.city}</span>
+                <Icon name="refresh" className={`w-5 h-5 text-amber-700 ${refreshing ? 'animate-spin' : ''}`} />
+              </button>
+              <Link
+                to="/admin/concerts"
+                className={`flex items-center gap-2 px-3.5 py-2 bg-amber-800 hover:bg-amber-700 active:scale-[0.98] text-amber-50 rounded-lg font-serif text-sm font-medium transition-all ${focusRing}`}
+              >
+                <Icon name="plus" className="w-4 h-4" />
+                Create concert
+              </Link>
+            </div>
+          </header>
+
+          {loading ? (
+            <SkeletonLoader />
+          ) : !stats ? (
+            <div className="max-w-md mx-auto py-16 text-center">
+              <h2 className="font-serif text-xl font-bold text-amber-950 mb-2">Couldn't load the dashboard</h2>
+              <p className="font-serif text-amber-700/70 mb-6">Check your connection, then try again.</p>
+              <button
+                onClick={() => fetchStats()}
+                className={`px-4 py-2 bg-amber-800 hover:bg-amber-700 text-amber-50 rounded-lg font-serif text-sm font-medium transition-colors ${focusRing}`}
+              >
+                Try again
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+              {/* Main column */}
+              <div className="lg:col-span-2 space-y-4 min-w-0">
+                {/* Revenue, shaped like a ticket with a payout stub */}
+                <div className="ticket-cut bg-white border border-amber-200/60 rounded-2xl relative grid grid-cols-1 sm:grid-cols-3">
+                  <div className="p-6 sm:col-span-2">
+                    <p className="font-serif text-sm text-amber-700/70">Total revenue</p>
+                    <p className="mt-2 font-serif text-4xl font-bold text-amber-950 font-mono tabular-nums tracking-tight">
+                      {formatRupiah(animatedRevenue)}
+                    </p>
+
+                    <div className="mt-6">
+                      <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${payoutShare}%` }}
+                          transition={{ duration: 0.8, ease: 'easeOut' }}
+                          className="h-full bg-orange-400 rounded-full"
+                        />
+                      </div>
+                      <p className="flex items-center gap-2 mt-3 font-serif text-xs text-amber-700/70">
+                        <Icon name="wallet" className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                        {payoutShare}% of revenue is still owed to event organizers
                       </p>
-                    )}
+                    </div>
                   </div>
-                  {hasMap && (
-                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0">
-                      <Icon name="map" className="w-3 h-3" />
-                      Map
+
+                  <Link
+                    to="/admin/payouts"
+                    className={`group flex flex-col justify-between gap-6 p-6 border-t border-dashed border-amber-200/60 sm:border-t-0 sm:border-l hover:bg-orange-50 transition-colors ${focusRing}`}
+                  >
+                    <div>
+                      <p className="font-serif text-sm text-amber-700/70">Pending EO payout</p>
+                      <p className="mt-2 font-serif text-2xl font-bold text-orange-600 font-mono tabular-nums">
+                        {formatRupiah(pendingPayout)}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 font-serif text-xs font-medium text-amber-800">
+                      {pendingPayout > 0 ? 'Process payout' : 'View payouts'}
+                      <Icon name="arrow" className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </span>
-                  )}
+                  </Link>
                 </div>
 
-                {venue.address && (
-                  <p className="text-xs text-ink-400 mb-4 line-clamp-2 leading-relaxed">
-                    {venue.address}
-                  </p>
-                )}
+                {/* Numbers at a glance */}
+                <div className="bg-white border border-amber-200/60 rounded-2xl grid grid-cols-2 sm:grid-cols-4 overflow-hidden">
+                  <StatCell index={0} icon="music" tint="bg-amber-100 text-amber-700" label="Concerts" value={stats.total_concerts || 0} />
+                  <StatCell index={1} icon="users" tint="bg-blue-100 text-blue-700" label="Customers" value={stats.total_users || 0} />
+                  <StatCell index={2} icon="ticket" tint="bg-emerald-100 text-emerald-700" label="Tickets sold" value={stats.tickets_sold || 0} />
+                  <StatCell
+                    index={3}
+                    icon="clipboard"
+                    tint="bg-amber-100 text-amber-700"
+                    label="Pending approval"
+                    value={pendingApproval}
+                    link="/admin/approvals"
+                  />
+                </div>
 
-                <div className="mb-4 flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-1.5 text-xs text-ink-400">
-                      <Icon name="users" className="w-3.5 h-3.5" />
-                      Capacity
+                {/* Recent transactions */}
+                <section className="bg-white border border-amber-200/60 rounded-2xl overflow-hidden">
+                  <div className="flex items-center justify-between p-5 border-b border-amber-200/60">
+                    <div>
+                      <h2 className="font-serif font-semibold text-amber-950">Recent transactions</h2>
+                      <p className="font-serif text-xs text-amber-700/60 mt-0.5">
+                        Latest {stats.recentOrders?.length || 0} orders
+                      </p>
                     </div>
-                    <span className={`text-xs font-mono font-semibold ${capacity > 0 ? color.text : 'text-ink-500'}`}>
-                      {capacity > 0 ? `${capacity.toLocaleString('en-US')} people` : 'Not set'}
-                    </span>
+                    <Link
+                      to="/admin/orders"
+                      className={`font-serif text-sm text-amber-700 hover:text-amber-900 font-medium inline-flex items-center gap-1 group rounded ${focusRing}`}
+                    >
+                      View all
+                      <Icon name="arrow" className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
                   </div>
-                  <div className="h-1.5 w-full bg-ink-800 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${capacityPercent}%` }}
-                      transition={{ duration: 0.6, ease: 'easeOut' }}
-                      className={`h-full ${color.bar} rounded-full`}
+
+                  {!stats.recentOrders || stats.recentOrders.length === 0 ? (
+                    <div className="p-12 text-center">
+                      <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 border border-amber-200/60 flex items-center justify-center mb-4">
+                        <Icon name="orders" className="w-6 h-6 text-amber-600" />
+                      </div>
+                      <h3 className="font-serif font-semibold text-amber-950 mb-1">No transactions yet</h3>
+                      <p className="font-serif text-sm text-amber-700/60">Orders show up here as soon as the first ticket is sold.</p>
+                    </div>
+                  ) : (
+                    <ul className="divide-y divide-amber-200/60">
+                      {stats.recentOrders.map((order) => (
+                        <RecentOrderRow
+                          key={order.id}
+                          order={order}
+                          copiedCode={copiedCode}
+                          onCopy={copyOrderCode}
+                        />
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              </div>
+
+              {/* Side rail */}
+              <aside className="space-y-4 min-w-0">
+                <section className="bg-white border border-amber-200/60 rounded-2xl p-5">
+                  <h2 className="font-serif font-semibold text-amber-950 mb-3">Needs attention</h2>
+                  <div className="space-y-1">
+                    <AttentionRow
+                      to="/admin/approvals"
+                      icon="clipboard"
+                      tint="bg-amber-100 text-amber-700"
+                      title="Approve concerts"
+                      sub={pendingApproval > 0 ? 'Review events submitted by EO' : 'Nothing to review'}
+                      badge={pendingApproval > 0 ? pendingApproval : null}
+                    />
+                    <AttentionRow
+                      to="/admin/payouts"
+                      icon="wallet"
+                      tint="bg-orange-100 text-orange-700"
+                      title="Pay out EO"
+                      sub={pendingPayout > 0 ? `${formatRupiah(pendingPayout)} waiting` : 'Nothing pending'}
                     />
                   </div>
-                </div>
+                </section>
 
-                <div className="flex items-center gap-2 pt-3 border-t border-ink-700/60">
-                  <button
-                    onClick={() => openEdit(venue)}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-ink-700/50 hover:bg-ink-700 text-ink-200 rounded-lg text-xs font-medium transition-colors"
-                  >
-                    <Icon name="edit" className="w-3.5 h-3.5" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => setDeleteTarget(venue)}
-                    className="p-2 rounded-lg text-ink-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                    title="Delete"
-                  >
-                    <Icon name="trash" className="w-4 h-4" />
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
+                <section className="bg-white border border-amber-200/60 rounded-2xl p-5">
+                  <h2 className="font-serif font-semibold text-amber-950 mb-1">Platform status</h2>
+                  <div className="divide-y divide-amber-200/60">
+                    <div className="flex items-center justify-between py-3">
+                      <div className="flex items-center gap-2.5">
+                        <span className="relative flex h-2.5 w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 motion-reduce:animate-none" />
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                        </span>
+                        <span className="font-serif text-sm text-amber-950">Xendit payments</span>
+                      </div>
+                      <span className="font-serif text-xs text-emerald-700">Operational</span>
+                    </div>
+                    <div className="flex items-center justify-between py-3">
+                      <span className="font-serif text-sm text-amber-800/70">Dashboard data</span>
+                      <span className="font-serif text-sm text-amber-950 font-mono tabular-nums">{timeLabel}</span>
+                    </div>
+                  </div>
+                </section>
+              </aside>
+            </div>
+          )}
         </div>
-      )}
-
-      {/* DELETE MODAL */}
-      <AnimatePresence>
-        {deleteTarget && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setDeleteTarget(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-ink-800 border border-ink-700 rounded-2xl max-w-sm w-full p-6"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-                  <Icon name="trash" className="w-5 h-5 text-red-400" />
-                </div>
-                <h3 className="font-semibold text-white text-lg">Delete Venue</h3>
-              </div>
-
-              <p className="text-ink-300 text-sm mb-4">
-                You are about to delete: <span className="text-white font-medium">{deleteTarget.name}</span>
-              </p>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
-                >
-                  {deleting ? 'Deleting...' : 'Delete'}
-                </button>
-                <button
-                  onClick={() => setDeleteTarget(null)}
-                  className="flex-1 py-2.5 bg-ink-700 hover:bg-ink-600 text-white rounded-xl text-sm font-semibold transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      </div>
+    </MotionConfig>
   );
 }

@@ -26,12 +26,12 @@ function Icon({ name, className = 'w-4 h-4' }) {
 
 // Color gradients for category icons (index-based)
 const categoryColors = [
-  { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', gradient: 'from-blue-500 to-blue-600' },
-  { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', gradient: 'from-emerald-500 to-emerald-600' },
-  { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400', gradient: 'from-purple-500 to-purple-600' },
-  { bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400', gradient: 'from-amber-500 to-amber-600' },
-  { bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', gradient: 'from-rose-500 to-rose-600' },
-  { bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', text: 'text-cyan-400', gradient: 'from-cyan-500 to-cyan-600' },
+  { bg: 'bg-blue-100', border: 'border-blue-200/60', text: 'text-blue-700' },
+  { bg: 'bg-emerald-100', border: 'border-emerald-200/60', text: 'text-emerald-700' },
+  { bg: 'bg-purple-100', border: 'border-purple-200/60', text: 'text-purple-700' },
+  { bg: 'bg-amber-100', border: 'border-amber-200/60', text: 'text-amber-700' },
+  { bg: 'bg-rose-100', border: 'border-rose-200/60', text: 'text-rose-700' },
+  { bg: 'bg-cyan-100', border: 'border-cyan-200/60', text: 'text-cyan-700' },
 ];
 
 export default function Categories() {
@@ -129,261 +129,263 @@ export default function Categories() {
   }, [categories]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-[#f5ede4] px-4 py-6">
+      <div className="max-w-7xl mx-auto">
 
-      {/* ===== HEADER ===== */}
-      <div className="relative mb-6">
-        <div className="absolute -top-6 -left-6 w-32 h-32 bg-flame-500/5 rounded-full blur-2xl pointer-events-none" />
-        <div className="relative flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-flame-500/10 border border-flame-500/20 flex items-center justify-center">
-              <Icon name="tag" className="w-5 h-5 text-flame-400" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Manage Categories</h1>
-              <p className="text-sm text-ink-400 mt-0.5">
-                {categories.length} categories registered
-              </p>
+        {/* ===== HEADER ===== */}
+        <div className="relative mb-6">
+          <div className="absolute -top-6 -left-6 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
+          <div className="relative flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-amber-100 border border-amber-200/60 flex items-center justify-center">
+                <Icon name="tag" className="w-5 h-5 text-amber-700" />
+              </div>
+              <div>
+                <h1 className="font-serif text-2xl text-amber-950">Manage Categories</h1>
+                <p className="font-serif text-sm text-amber-700/60 mt-0.5">
+                  {categories.length} categories registered
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ===== 2-COLUMN GRID ===== */}
-      <div className="grid lg:grid-cols-3 gap-6 items-start">
+        {/* ===== 2-COLUMN GRID ===== */}
+        <div className="grid lg:grid-cols-3 gap-6 items-start">
 
-        {/* ===== LEFT (2/3): FORM + LIST ===== */}
-        <div className="lg:col-span-2 space-y-5">
+          {/* ===== LEFT (2/3): FORM + LIST ===== */}
+          <div className="lg:col-span-2 space-y-5">
 
-          {/* FORM */}
-          <form
-            onSubmit={handleSubmit}
-            className="relative card p-5 overflow-hidden"
-          >
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-flame-500/20 to-transparent" />
-            <div className="flex gap-3 flex-wrap">
-              <div className="flex-1 min-w-[200px] relative">
-                <Icon name="tag" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
+            {/* FORM */}
+            <form
+              onSubmit={handleSubmit}
+              className="relative bg-white/90 border border-amber-200/60 rounded-2xl p-5 overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+              <div className="flex gap-3 flex-wrap">
+                <div className="flex-1 min-w-[200px] relative">
+                  <Icon name="tag" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500" />
+                  <input
+                    ref={inputRef}
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                    placeholder={editingId ? 'Edit category name...' : 'New category name...'}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={saving || !name.trim()}
+                  className="inline-flex items-center gap-2 whitespace-nowrap px-5 py-3 bg-amber-800 hover:bg-amber-700 disabled:opacity-50 text-amber-50 font-serif text-sm tracking-wide rounded-xl transition-colors"
+                >
+                  {saving ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Saving...
+                    </>
+                  ) : editingId ? (
+                    <>
+                      <Icon name="check" className="w-4 h-4" />
+                      Update
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="plus" className="w-4 h-4" />
+                      Add
+                    </>
+                  )}
+                </button>
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="whitespace-nowrap px-4 py-3 bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-900 font-serif text-sm rounded-xl transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <p className="font-serif text-sm text-red-600 mt-3 flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-red-500" />
+                      {error}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </form>
+
+            {/* SEARCH (if more than 5 categories) */}
+            {categories.length > 5 && (
+              <div className="relative">
+                <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500" />
                 <input
-                  ref={inputRef}
-                  required
-                  className="w-full input-field pl-10 bg-ink-800/50"
-                  placeholder={editingId ? 'Edit category name...' : 'New category name...'}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  onFocus={(e) => e.target.select()}
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                  placeholder="Search categories..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
                 />
               </div>
-              <button
-                type="submit"
-                disabled={saving || !name.trim()}
-                className="btn-primary inline-flex items-center gap-2 whitespace-nowrap px-5"
-              >
-                {saving ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Saving...
-                  </>
-                ) : editingId ? (
-                  <>
-                    <Icon name="check" className="w-4 h-4" />
-                    Update
-                  </>
-                ) : (
-                  <>
-                    <Icon name="plus" className="w-4 h-4" />
-                    Add
-                  </>
-                )}
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="btn-secondary whitespace-nowrap px-4"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
+            )}
 
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="overflow-hidden"
-                >
-                  <p className="text-sm text-red-400 mt-3 flex items-center gap-2">
-                    <span className="w-1 h-1 rounded-full bg-red-400" />
-                    {error}
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </form>
-
-          {/* SEARCH (if more than 5 categories) */}
-          {categories.length > 5 && (
-            <div className="relative">
-              <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
-              <input
-                className="w-full input-field pl-10 bg-ink-800/50"
-                placeholder="Search categories..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
-          )}
-
-          {/* CATEGORY LIST */}
-          {loading ? (
-            <Loading />
-          ) : categories.length === 0 ? (
-            <EmptyState text="No categories yet. Add your first category!" />
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-ink-800 flex items-center justify-center">
-                <Icon name="search" className="w-6 h-6 text-ink-500" />
-              </div>
-              <p className="text-sm text-ink-400">
-                No categories match &quot;{query}&quot;
-              </p>
-            </div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25 }}
-              className="space-y-2"
-            >
-              <AnimatePresence initial={false} mode="popLayout">
-                {filtered.map((category, index) => {
-                  const isEditing = editingId === category.id;
-                  const color = categoryColors[index % categoryColors.length];
-                  return (
-                    <motion.div
-                      key={category.id}
-                      layout
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.98 }}
-                      transition={{ duration: 0.2, delay: index * 0.02 }}
-                      className={`group relative card p-4 transition-all duration-200 ${
-                        isEditing
-                          ? 'border-flame-500/30 bg-flame-500/5'
-                          : 'hover:bg-ink-800/50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                          {/* Icon with rotating color */}
-                          <div className={`w-10 h-10 rounded-xl ${color.bg} ${color.border} border flex items-center justify-center flex-shrink-0`}>
-                            <Icon name="tag" className={`w-4 h-4 ${color.text}`} />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="font-medium text-white block truncate">
-                              {category.name}
-                            </span>
-                            <span className="text-xs text-ink-400 mt-0.5 block">
-                              {isEditing ? 'Currently editing' : 'Event category'}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => startEdit(category)}
-                            className="p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-all"
-                            aria-label={`Edit category ${category.name}`}
-                          >
-                            <Icon name="edit" className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(category.id, category.name)}
-                            className="p-2 rounded-lg text-ink-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                            aria-label={`Delete category ${category.name}`}
-                          >
-                            <Icon name="trash" className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </motion.div>
-          )}
-
-          {!loading && categories.length > 0 && (
-            <p className="text-xs text-ink-500 text-center mt-4">
-              Total {categories.length} categories • Click the edit icon to modify
-            </p>
-          )}
-        </div>
-
-        {/* ===== RIGHT (1/3): SIDEBAR PANEL ===== */}
-        <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-6">
-
-          {/* Card: Summary */}
-          <div className="card p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-flame-500/10 flex items-center justify-center">
-                <Icon name="sparkle" className="w-4 h-4 text-flame-400" />
-              </div>
-              <h3 className="font-semibold text-white">Summary</h3>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-ink-400">Total Categories</span>
-                <span className="text-sm font-bold text-white font-mono tabular-nums">
-                  {stats.total}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-ink-400">Displayed</span>
-                <span className="text-sm font-bold text-white font-mono tabular-nums">
-                  {filtered.length}
-                </span>
-              </div>
-              {stats.longest && (
-                <div className="pt-3 border-t border-ink-700/50">
-                  <span className="text-[10px] text-ink-500 uppercase tracking-wider block mb-1">
-                    Longest name
-                  </span>
-                  <span className="text-xs text-ink-200 break-all">
-                    {stats.longest}
-                  </span>
+            {/* CATEGORY LIST */}
+            {loading ? (
+              <Loading />
+            ) : categories.length === 0 ? (
+              <EmptyState text="No categories yet. Add your first category!" />
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 border border-amber-200/60 flex items-center justify-center">
+                  <Icon name="search" className="w-6 h-6 text-amber-500" />
                 </div>
-              )}
-            </div>
+                <p className="font-serif text-sm text-amber-700/60">
+                  No categories match &quot;{query}&quot;
+                </p>
+              </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className="space-y-2"
+              >
+                <AnimatePresence initial={false} mode="popLayout">
+                  {filtered.map((category, index) => {
+                    const isEditing = editingId === category.id;
+                    const color = categoryColors[index % categoryColors.length];
+                    return (
+                      <motion.div
+                        key={category.id}
+                        layout
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ duration: 0.2, delay: index * 0.02 }}
+                        className={`group relative bg-white/90 border rounded-2xl p-4 transition-all duration-200 ${
+                          isEditing
+                            ? 'border-amber-400 bg-amber-50/60'
+                            : 'border-amber-200/60 hover:border-amber-300/80 hover:bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* Icon with rotating color */}
+                            <div className={`w-10 h-10 rounded-xl ${color.bg} ${color.border} border flex items-center justify-center flex-shrink-0`}>
+                              <Icon name="tag" className={`w-4 h-4 ${color.text}`} />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="font-serif font-semibold text-amber-950 block truncate">
+                                {category.name}
+                              </span>
+                              <span className="font-serif text-xs text-amber-700/60 mt-0.5 block">
+                                {isEditing ? 'Currently editing' : 'Event category'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => startEdit(category)}
+                              className="p-2 rounded-lg text-amber-500 hover:text-amber-900 hover:bg-amber-100 transition-all"
+                              aria-label={`Edit category ${category.name}`}
+                            >
+                              <Icon name="edit" className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(category.id, category.name)}
+                              className="p-2 rounded-lg text-amber-500 hover:text-red-600 hover:bg-red-50 transition-all"
+                              aria-label={`Delete category ${category.name}`}
+                            >
+                              <Icon name="trash" className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </motion.div>
+            )}
+
+            {!loading && categories.length > 0 && (
+              <p className="font-serif text-xs text-amber-600/60 text-center mt-4">
+                Total {categories.length} categories • Click the edit icon to modify
+              </p>
+            )}
           </div>
 
-          {/* Card: Tips */}
-          <div className="card p-5 bg-gradient-to-br from-flame-500/5 to-transparent">
-            <div className="flex items-center gap-2 mb-3">
-              <Icon name="info" className="w-4 h-4 text-flame-400" />
-              <h3 className="font-semibold text-white text-sm">Tips</h3>
+          {/* ===== RIGHT (1/3): SIDEBAR PANEL ===== */}
+          <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-6">
+
+            {/* Card: Summary */}
+            <div className="bg-white/90 border border-amber-200/60 rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                  <Icon name="sparkle" className="w-4 h-4 text-amber-700" />
+                </div>
+                <h3 className="font-serif font-semibold text-amber-950">Summary</h3>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-serif text-xs text-amber-700/70">Total Categories</span>
+                  <span className="font-serif text-sm font-bold text-amber-950 font-mono tabular-nums">
+                    {stats.total}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-serif text-xs text-amber-700/70">Displayed</span>
+                  <span className="font-serif text-sm font-bold text-amber-950 font-mono tabular-nums">
+                    {filtered.length}
+                  </span>
+                </div>
+                {stats.longest && (
+                  <div className="pt-3 border-t border-amber-200/50">
+                    <span className="font-serif text-[10px] text-amber-600/70 uppercase tracking-wider block mb-1">
+                      Longest name
+                    </span>
+                    <span className="font-serif text-xs text-amber-900 break-all">
+                      {stats.longest}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
-            <ul className="space-y-2 text-xs text-ink-400 leading-relaxed">
-              <li className="flex items-start gap-2">
-                <span className="w-1 h-1 rounded-full bg-flame-400 mt-1.5 flex-shrink-0" />
-                Use short and clear category names.
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="w-1 h-1 rounded-full bg-flame-400 mt-1.5 flex-shrink-0" />
-                Categories will appear in the user's event filter.
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="w-1 h-1 rounded-full bg-flame-400 mt-1.5 flex-shrink-0" />
-                Press <kbd className="px-1 py-0.5 bg-ink-800 rounded text-[10px] font-mono">Esc</kbd> to cancel editing.
-              </li>
-            </ul>
+
+            {/* Card: Tips */}
+            <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200/60 rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Icon name="info" className="w-4 h-4 text-amber-700" />
+                <h3 className="font-serif font-semibold text-amber-950 text-sm">Tips</h3>
+              </div>
+              <ul className="space-y-2 font-serif text-xs text-amber-800/70 leading-relaxed">
+                <li className="flex items-start gap-2">
+                  <span className="w-1 h-1 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
+                  Use short and clear category names.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1 h-1 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
+                  Categories will appear in the user's event filter.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1 h-1 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
+                  Press <kbd className="px-1.5 py-0.5 bg-amber-100 border border-amber-200/60 rounded text-[10px] font-mono text-amber-900">Esc</kbd> to cancel editing.
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

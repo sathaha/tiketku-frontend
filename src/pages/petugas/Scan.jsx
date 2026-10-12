@@ -28,14 +28,14 @@ function Badge({ status }) {
     return (
       <span className="inline-flex items-center gap-1.5 -rotate-3 px-3 py-1 text-[10px] font-serif tracking-[0.15em] uppercase text-emerald-700 bg-emerald-50/90 border border-dashed border-emerald-400 rounded-full">
         <Icon name="check" className="w-3 h-3" />
-        Sudah Check-in
+        Checked In
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-serif tracking-[0.15em] uppercase text-amber-700 bg-amber-50/80 border border-amber-200/50 rounded-full">
       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-      Belum Check-in
+      Not Checked In
     </span>
   );
 }
@@ -91,7 +91,7 @@ export default function Scan() {
         () => {}
       );
     } catch (err) {
-      setError('Tidak bisa mengakses kamera. Gunakan input kode manual di bawah.');
+      setError('Could not access the camera. Use the manual code input below.');
       setScannerActive(false);
     }
   }
@@ -114,7 +114,7 @@ export default function Scan() {
       const res = await api.get(`/checkin/validate/${encodeURIComponent(trimmed)}`);
       setResult(res.data.ticket);
     } catch (err) {
-      setError(err.response?.data?.message || 'Tiket tidak valid.');
+      setError(err.response?.data?.message || 'Invalid ticket.');
       if (err.response?.data?.ticket) setResult(err.response.data.ticket);
     } finally {
       setLoading(false);
@@ -129,7 +129,7 @@ export default function Scan() {
       setResult({ ...result, is_checked_in: true });
       setError('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Gagal melakukan check-in.');
+      setError(err.response?.data?.message || 'Failed to check in.');
     } finally {
       setConfirming(false);
     }
@@ -162,10 +162,10 @@ export default function Scan() {
           </div>
           <div>
             <h1 className="font-serif text-2xl font-bold text-amber-950 leading-tight">
-              Scan Tiket
+              Scan Ticket
             </h1>
             <p className="text-sm font-serif text-amber-700/60">
-              Validasi QR code atau masukkan kode tiket
+              Validate a QR code or enter the ticket code
             </p>
           </div>
         </div>
@@ -179,7 +179,7 @@ export default function Scan() {
                 className="w-full flex items-center justify-center gap-2.5 px-4 py-3 text-sm font-serif font-medium text-amber-50 bg-amber-800 hover:bg-amber-900 rounded-md transition-colors"
               >
                 <Icon name="camera" className="w-5 h-5" />
-                Buka Kamera &amp; Scan QR
+                Open Camera &amp; Scan QR
               </button>
             ) : (
               <div>
@@ -204,15 +204,15 @@ export default function Scan() {
                   className="w-full flex items-center justify-center gap-2 mt-3 px-4 py-2.5 text-sm font-serif text-amber-800 hover:bg-amber-50 border border-amber-200/60 rounded-md transition-colors"
                 >
                   <Icon name="stop" className="w-4 h-4" />
-                  Hentikan Kamera
+                  Stop Camera
                 </button>
               </div>
             )}
 
-            <Divider label="atau" />
+            <Divider label="or" />
 
             <label className="block text-xs font-serif text-amber-800 mb-2">
-              Kode Tiket
+              Ticket Code
             </label>
             <div className="flex gap-2">
               <input
@@ -227,7 +227,7 @@ export default function Scan() {
                 disabled={loading || !manualCode.trim()}
                 className="px-5 py-2.5 text-sm font-serif font-medium text-amber-50 bg-amber-800 hover:bg-amber-900 disabled:opacity-40 disabled:cursor-not-allowed rounded-md transition-colors whitespace-nowrap"
               >
-                {loading ? 'Memeriksa...' : 'Cek Tiket'}
+                {loading ? 'Checking...' : 'Check Ticket'}
               </button>
             </div>
           </div>
@@ -273,7 +273,7 @@ export default function Scan() {
                 <div className="flex items-start gap-2.5">
                   <Icon name="user" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <dt className="text-xs text-amber-700/60">Pemesan</dt>
+                    <dt className="text-xs text-amber-700/60">Customer</dt>
                     <dd className="text-amber-950">{result.customer_name}</dd>
                   </div>
                 </div>
@@ -287,14 +287,14 @@ export default function Scan() {
                 <div className="flex items-start gap-2.5">
                   <Icon name="phone" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <dt className="text-xs text-amber-700/60">No. HP</dt>
+                    <dt className="text-xs text-amber-700/60">Phone</dt>
                     <dd className="text-amber-950">{result.customer_phone || '-'}</dd>
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <Icon name="ticket" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <dt className="text-xs text-amber-700/60">Kategori</dt>
+                    <dt className="text-xs text-amber-700/60">Category</dt>
                     <dd className="text-amber-950">{result.ticket_category_name}</dd>
                   </div>
                 </div>
@@ -314,7 +314,7 @@ export default function Scan() {
                 {result.is_checked_in ? (
                   <div className="flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-serif rounded-md px-4 py-3">
                     <Icon name="check" className="w-4 h-4" />
-                    <span>Tiket sudah check-in</span>
+                    <span>Ticket already checked in</span>
                     {result.checked_in_at && (
                       <span className="text-emerald-600/70 text-xs">
                         · {formatDate(result.checked_in_at)}
@@ -328,11 +328,11 @@ export default function Scan() {
                     className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-serif font-medium text-amber-50 bg-amber-800 hover:bg-amber-900 disabled:opacity-50 rounded-md transition-colors"
                   >
                     {confirming ? (
-                      'Memproses...'
+                      'Processing...'
                     ) : (
                       <>
                         <Icon name="check" className="w-4 h-4" />
-                        Konfirmasi Check-in
+                        Confirm Check-in
                       </>
                     )}
                   </button>
@@ -343,7 +343,7 @@ export default function Scan() {
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-serif text-amber-800 hover:bg-amber-50 border border-amber-200/60 rounded-md transition-colors"
                 >
                   <Icon name="refresh" className="w-4 h-4" />
-                  Scan Tiket Lain
+                  Scan Another Ticket
                 </button>
               </div>
             </div>

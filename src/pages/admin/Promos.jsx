@@ -31,7 +31,7 @@ function Spinner({ className = 'h-4 w-4' }) {
   );
 }
 
-const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-flame-500/60';
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60';
 
 const emptyForm = {
   code: '',
@@ -55,11 +55,11 @@ const ticketCss = `
 `;
 
 const statusMeta = {
-  active: { label: 'Active', text: 'text-emerald-400', dot: 'bg-emerald-400', stub: 'text-flame-400' },
-  scheduled: { label: 'Scheduled', text: 'text-blue-400', dot: 'bg-blue-400', stub: 'text-blue-400' },
-  usedUp: { label: 'Quota exhausted', text: 'text-orange-400', dot: 'bg-orange-400', stub: 'text-orange-400' },
-  expired: { label: 'Expired', text: 'text-yellow-400', dot: 'bg-yellow-400', stub: 'text-yellow-400' },
-  inactive: { label: 'Inactive', text: 'text-ink-400', dot: 'bg-ink-500', stub: 'text-ink-400' },
+  active: { label: 'Active', text: 'text-emerald-700', dot: 'bg-emerald-500', stub: 'text-amber-700' },
+  scheduled: { label: 'Scheduled', text: 'text-blue-700', dot: 'bg-blue-500', stub: 'text-blue-700' },
+  usedUp: { label: 'Quota exhausted', text: 'text-orange-700', dot: 'bg-orange-500', stub: 'text-orange-700' },
+  expired: { label: 'Expired', text: 'text-amber-700', dot: 'bg-amber-500', stub: 'text-amber-700' },
+  inactive: { label: 'Inactive', text: 'text-amber-700/60', dot: 'bg-amber-500/60', stub: 'text-amber-700/60' },
 };
 
 function getStatus(p) {
@@ -98,11 +98,11 @@ function Switch({ checked, onChange, disabled, label }) {
       disabled={disabled}
       onClick={onChange}
       className={`relative w-9 h-5 rounded-full shrink-0 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-        checked ? 'bg-emerald-500' : 'bg-ink-700'
+        checked ? 'bg-emerald-500' : 'bg-amber-300'
       } ${focusRing}`}
     >
       <span
-        className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+        className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform shadow-sm ${
           checked ? 'translate-x-4' : ''
         }`}
       />
@@ -119,7 +119,7 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
 
   return (
     <li
-      className="ticket-notch-sm card grid grid-cols-1 sm:grid-cols-[1fr_var(--stub)]"
+      className="ticket-notch-sm bg-white border border-amber-200/60 rounded-2xl grid grid-cols-1 sm:grid-cols-[1fr_var(--stub)]"
       style={{ '--stub': '10rem' }}
     >
       <div className="p-5 min-w-0">
@@ -129,18 +129,18 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
               <span
                 className={`px-2.5 py-1 rounded-md font-mono font-bold text-sm border ${
                   status === 'active'
-                    ? 'bg-flame-500/10 text-flame-400 border-flame-500/30'
-                    : 'bg-ink-700 text-ink-300 border-ink-600'
+                    ? 'bg-amber-100 text-amber-800 border-amber-200/60'
+                    : 'bg-white text-amber-900 border-amber-200/60'
                 }`}
               >
                 {promo.code}
               </span>
-              <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${meta.text}`}>
+              <span className={`inline-flex items-center gap-1.5 font-serif text-xs font-medium ${meta.text}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
                 {meta.label}
               </span>
             </div>
-            {promo.description && <p className="text-sm text-ink-300 mt-2">{promo.description}</p>}
+            {promo.description && <p className="font-serif text-sm text-amber-800/80 mt-2">{promo.description}</p>}
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
@@ -154,7 +154,7 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
               onClick={onEdit}
               aria-label={`Edit ${promo.code}`}
               title="Edit promo"
-              className={`p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors ${focusRing}`}
+              className={`p-2 rounded-lg text-amber-500 hover:text-amber-900 hover:bg-amber-100 transition-colors ${focusRing}`}
             >
               <Icon name="edit" className="w-4 h-4" />
             </button>
@@ -162,7 +162,7 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
               onClick={onAskDelete}
               aria-label={`Delete ${promo.code}`}
               title="Delete promo"
-              className={`p-2 rounded-lg text-ink-400 hover:text-red-400 hover:bg-red-500/10 transition-colors ${focusRing}`}
+              className={`p-2 rounded-lg text-amber-500 hover:text-red-600 hover:bg-red-50 transition-colors ${focusRing}`}
             >
               <Icon name="trash" className="w-4 h-4" />
             </button>
@@ -170,21 +170,21 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
         </div>
 
         <div className={dimmed}>
-          <p className="flex items-center gap-1.5 text-xs text-ink-400 mt-3">
+          <p className="flex items-center gap-1.5 font-serif text-xs text-amber-700/60 mt-3">
             <Icon name="calendar" className="w-3.5 h-3.5" />
             {formatDate(promo.valid_from)} to {formatDate(promo.valid_until)}
           </p>
 
           <div className="mt-4">
-            <div className="flex items-center justify-between text-xs text-ink-400 mb-1.5">
+            <div className="flex items-center justify-between font-serif text-xs text-amber-700/70 mb-1.5">
               <span>
-                Used <span className="text-ink-200 font-mono tabular-nums">{used}</span> of{' '}
+                Used <span className="text-amber-950 font-mono tabular-nums">{used}</span> of{' '}
                 <span className="font-mono tabular-nums">{promo.quota}</span>
               </span>
               <span className="font-mono tabular-nums">{pct}%</span>
             </div>
             <div
-              className="w-full bg-ink-800 rounded-full h-1.5 overflow-hidden"
+              className="w-full bg-amber-100 rounded-full h-1.5 overflow-hidden"
               role="progressbar"
               aria-valuenow={pct}
               aria-valuemin={0}
@@ -193,7 +193,7 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
             >
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  pct >= 100 ? 'bg-orange-500' : pct >= 80 ? 'bg-yellow-500' : 'bg-flame-500'
+                  pct >= 100 ? 'bg-orange-500' : pct >= 80 ? 'bg-yellow-500' : 'bg-amber-500'
                 }`}
                 style={{ width: `${pct}%` }}
               />
@@ -204,9 +204,9 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
         {confirming && (
           <div
             role="alert"
-            className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2.5"
+            className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-red-50 border border-red-200/60 px-3 py-2.5"
           >
-            <p className="text-sm text-red-300">
+            <p className="font-serif text-sm text-red-700">
               Delete <span className="font-mono font-semibold">{promo.code}</span>?{' '}
               {used > 0
                 ? `It has been used ${used} times, deactivating it is safer.`
@@ -215,14 +215,14 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
             <div className="flex gap-2">
               <button
                 onClick={onCancelDelete}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium text-ink-200 hover:bg-ink-700 transition-colors ${focusRing}`}
+                className={`px-3 py-1.5 rounded-md font-serif text-xs font-medium text-amber-800 hover:bg-amber-50 transition-colors ${focusRing}`}
               >
                 Cancel
               </button>
               <button
                 onClick={onDelete}
                 disabled={deleting}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-60 inline-flex items-center gap-1.5 ${focusRing}`}
+                className={`px-3 py-1.5 rounded-md font-serif text-xs font-medium bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-60 inline-flex items-center gap-1.5 ${focusRing}`}
               >
                 {deleting && <Spinner className="h-3 w-3" />}
                 Delete promo
@@ -234,16 +234,16 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
 
       {/* Stub */}
       <div
-        className={`order-first sm:order-last flex flex-col justify-center px-4 py-4 sm:text-center border-b border-dashed border-ink-700 sm:border-b-0 sm:border-l ${dimmed}`}
+        className={`order-first sm:order-last flex flex-col justify-center px-4 py-4 sm:text-center border-b border-dashed border-amber-200/60 sm:border-b-0 sm:border-l ${dimmed}`}
       >
         <p
-          className={`font-bold font-mono tabular-nums leading-none ${
+          className={`font-serif font-bold font-mono tabular-nums leading-none ${
             label.length > 9 ? 'text-lg' : 'text-2xl'
           } ${meta.stub}`}
         >
           {label}
         </p>
-        <p className="text-xs text-ink-400 mt-1.5">
+        <p className="font-serif text-xs text-amber-700/60 mt-1.5">
           {promo.discount_type === 'percentage' ? 'off' : 'off'}
         </p>
       </div>
@@ -255,14 +255,14 @@ function SkeletonList() {
   return (
     <div className="space-y-3 animate-pulse" aria-hidden="true">
       {[...Array(3)].map((_, i) => (
-        <div key={i} className="card grid grid-cols-1 sm:grid-cols-[1fr_10rem]">
+        <div key={i} className="bg-white border border-amber-200/60 rounded-2xl grid grid-cols-1 sm:grid-cols-[1fr_10rem]">
           <div className="p-5 space-y-3">
-            <div className="h-6 w-32 bg-ink-700 rounded" />
-            <div className="h-3 w-56 bg-ink-700 rounded" />
-            <div className="h-1.5 w-full bg-ink-700 rounded-full mt-6" />
+            <div className="h-6 w-32 bg-amber-100 rounded" />
+            <div className="h-3 w-56 bg-amber-100 rounded" />
+            <div className="h-1.5 w-full bg-amber-100 rounded-full mt-6" />
           </div>
-          <div className="p-5 border-t border-dashed border-ink-700 sm:border-t-0 sm:border-l flex items-center justify-center">
-            <div className="h-7 w-16 bg-ink-700 rounded" />
+          <div className="p-5 border-t border-dashed border-amber-200/60 sm:border-t-0 sm:border-l flex items-center justify-center">
+            <div className="h-7 w-16 bg-amber-100 rounded" />
           </div>
         </div>
       ))}
@@ -478,416 +478,430 @@ export default function Promos() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <style>{ticketCss}</style>
+      <div className="min-h-screen bg-[#f5ede4]">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <style>{ticketCss}</style>
 
-        {/* Header */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Promos & vouchers</h1>
-            <p className="text-sm text-ink-400 mt-1">
-              {loading ? 'Loading promos...' : `${promos.length} promos registered`}
-            </p>
-          </div>
-          <button
-            onClick={openCreateForm}
-            className="btn-primary inline-flex items-center gap-2 self-start sm:self-auto"
-          >
-            <Icon name="plus" className="w-4 h-4" />
-            Add promo
-          </button>
-        </header>
-
-        {/* Summary */}
-        {!loading && promos.length > 0 && (
-          <div className="card grid grid-cols-3 divide-x divide-ink-700 mb-6">
-            {[
-              { value: counts.active, label: 'Running promos' },
-              { value: totalUsed, label: 'Coupons used' },
-              { value: nearlyOut, label: 'Quota nearly used up' },
-            ].map((s) => (
-              <div key={s.label} className="p-4">
-                <p className="text-xl font-bold text-white font-mono tabular-nums leading-none">{s.value}</p>
-                <p className="text-xs text-ink-400 mt-1.5">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Search and filter */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-5">
-          <div className="relative flex-1">
-            <Icon name="search" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
-            <input
-              type="text"
-              aria-label="Search promos"
-              placeholder="Search code or description"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full input-field pl-10 bg-ink-800/40"
-            />
-          </div>
-          <div className="flex gap-1 p-1 bg-ink-800/40 rounded-lg overflow-x-auto">
-            {tabs.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setStatusFilter(tab.value)}
-                aria-pressed={statusFilter === tab.value}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${
-                  statusFilter === tab.value ? 'bg-flame-500 text-white' : 'text-ink-400 hover:text-white'
-                } ${focusRing}`}
-              >
-                {tab.label}
-                <span className="ml-1.5 font-mono tabular-nums opacity-70">{counts[tab.value]}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* List */}
-        {loading ? (
-          <SkeletonList />
-        ) : filtered.length === 0 ? (
-          <div className="card p-12 text-center">
-            <div className="w-14 h-14 mx-auto rounded-full bg-ink-800 flex items-center justify-center mb-4">
-              <Icon name="ticket" className="w-6 h-6 text-ink-400" />
+          {/* Header */}
+          <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+            <div>
+              <h1 className="font-serif text-2xl font-bold text-amber-950">Promos & vouchers</h1>
+              <p className="font-serif text-sm text-amber-700/70 mt-1">
+                {loading ? 'Loading promos...' : `${promos.length} promos registered`}
+              </p>
             </div>
-            {isFiltering ? (
-              <>
-                <h3 className="font-semibold text-white mb-1">No promos match</h3>
-                <p className="text-sm text-ink-400 mb-5">Change the keyword or status filter.</p>
-                <button onClick={resetFilters} className="btn-secondary">
-                  Reset filter
+            <button
+              onClick={openCreateForm}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif text-sm rounded-xl transition-colors self-start sm:self-auto"
+            >
+              <Icon name="plus" className="w-4 h-4" />
+              Add promo
+            </button>
+          </header>
+
+          {/* Summary */}
+          {!loading && promos.length > 0 && (
+            <div className="bg-white border border-amber-200/60 rounded-2xl grid grid-cols-3 divide-x divide-amber-200/60 mb-6">
+              {[
+                { value: counts.active, label: 'Running promos' },
+                { value: totalUsed, label: 'Coupons used' },
+                { value: nearlyOut, label: 'Quota nearly used up' },
+              ].map((s) => (
+                <div key={s.label} className="p-4">
+                  <p className="font-serif text-xl font-bold text-amber-950 font-mono tabular-nums leading-none">{s.value}</p>
+                  <p className="font-serif text-xs text-amber-700/70 mt-1.5">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Search and filter */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-5">
+            <div className="relative flex-1">
+              <Icon name="search" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-500" />
+              <input
+                type="text"
+                aria-label="Search promos"
+                placeholder="Search code or description"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+              />
+            </div>
+            <div className="flex gap-1 p-1 bg-white border border-amber-200/60 rounded-xl overflow-x-auto">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => setStatusFilter(tab.value)}
+                  aria-pressed={statusFilter === tab.value}
+                  className={`px-3 py-1.5 rounded-lg font-serif text-xs whitespace-nowrap transition-colors ${
+                    statusFilter === tab.value
+                      ? 'bg-amber-800 text-amber-50'
+                      : 'text-amber-700/70 hover:text-amber-900'
+                  } ${focusRing}`}
+                >
+                  {tab.label}
+                  <span className="ml-1.5 font-mono tabular-nums opacity-70">{counts[tab.value]}</span>
                 </button>
-              </>
-            ) : (
-              <>
-                <h3 className="font-semibold text-white mb-1">No promos yet</h3>
-                <p className="text-sm text-ink-400 mb-5">
-                  Create a promo code to boost sales for concerts that still need more attendees.
-                </p>
-                <button onClick={openCreateForm} className="btn-primary inline-flex items-center gap-2">
-                  <Icon name="plus" className="w-4 h-4" />
-                  Create first promo
-                </button>
-              </>
-            )}
+              ))}
+            </div>
           </div>
-        ) : (
-          <ul className="space-y-3">
-            {filtered.map(({ promo, status }) => (
-              <PromoRow
-                key={promo.id}
-                promo={promo}
-                status={status}
-                processing={processingId === promo.id}
-                confirming={confirmId === promo.id}
-                deleting={deletingId === promo.id}
-                onEdit={() => openEditForm(promo)}
-                onToggle={() => toggleActive(promo)}
-                onAskDelete={() => setConfirmId(promo.id)}
-                onCancelDelete={() => setConfirmId(null)}
-                onDelete={() => handleDelete(promo)}
-              />
-            ))}
-          </ul>
-        )}
 
-        {/* Form drawer */}
-        <AnimatePresence>
-          {showForm && (
-            <>
-              <motion.div
-                key="overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                onClick={resetForm}
-                className="fixed inset-0 bg-black/60 z-[60]"
-                aria-hidden="true"
-              />
-              <motion.aside
-                key="drawer"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="promo-form-title"
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ duration: 0.22, ease: 'easeOut' }}
-                className="fixed inset-y-0 right-0 z-[70] w-full max-w-md"
-              >
-                <div className="card !rounded-none !border-y-0 !border-r-0 h-full flex flex-col">
-                  <form onSubmit={handleSubmit} className="flex flex-col h-full min-h-0">
-                    <div className="flex items-start justify-between gap-3 p-5 border-b border-ink-700">
-                      <div>
-                        <h2 id="promo-form-title" className="font-semibold text-white">
-                          {editingId ? 'Edit promo' : 'Create new promo'}
-                        </h2>
-                        <p className="text-xs text-ink-400 mt-0.5">
-                          {editingId ? 'Update the promo details' : 'Fill in the promo details below'}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={resetForm}
-                        aria-label="Close form"
-                        className={`p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors ${focusRing}`}
-                      >
-                        <Icon name="close" className="w-5 h-5" />
-                      </button>
-                    </div>
+          {/* List */}
+          {loading ? (
+            <SkeletonList />
+          ) : filtered.length === 0 ? (
+            <div className="bg-white border border-amber-200/60 rounded-2xl p-12 text-center">
+              <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 border border-amber-200/60 flex items-center justify-center mb-4">
+                <Icon name="ticket" className="w-6 h-6 text-amber-600" />
+              </div>
+              {isFiltering ? (
+                <>
+                  <h3 className="font-serif font-semibold text-amber-950 mb-1">No promos match</h3>
+                  <p className="font-serif text-sm text-amber-700/70 mb-5">Change the keyword or status filter.</p>
+                  <button
+                    onClick={resetFilters}
+                    className="px-4 py-2 bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-900 font-serif text-sm rounded-xl transition-colors"
+                  >
+                    Reset filter
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-serif font-semibold text-amber-950 mb-1">No promos yet</h3>
+                  <p className="font-serif text-sm text-amber-700/70 mb-5">
+                    Create a promo code to boost sales for concerts that still need more attendees.
+                  </p>
+                  <button
+                    onClick={openCreateForm}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif text-sm rounded-xl transition-colors"
+                  >
+                    <Icon name="plus" className="w-4 h-4" />
+                    Create first promo
+                  </button>
+                </>
+              )}
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {filtered.map(({ promo, status }) => (
+                <PromoRow
+                  key={promo.id}
+                  promo={promo}
+                  status={status}
+                  processing={processingId === promo.id}
+                  confirming={confirmId === promo.id}
+                  deleting={deletingId === promo.id}
+                  onEdit={() => openEditForm(promo)}
+                  onToggle={() => toggleActive(promo)}
+                  onAskDelete={() => setConfirmId(promo.id)}
+                  onCancelDelete={() => setConfirmId(null)}
+                  onDelete={() => handleDelete(promo)}
+                />
+              ))}
+            </ul>
+          )}
 
-                    <div className="flex-1 overflow-y-auto p-5 space-y-6">
-                      {/* Live preview */}
-                      <div>
-                        <div
-                          className="ticket-notch grid grid-cols-[1fr_var(--stub)] rounded-xl border border-ink-700 bg-ink-800/40"
-                          style={{ '--stub': '7.5rem' }}
+          {/* Form drawer */}
+          <AnimatePresence>
+            {showForm && (
+              <>
+                <motion.div
+                  key="overlay"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={resetForm}
+                  className="fixed inset-0 bg-amber-950/50 z-[60]"
+                  aria-hidden="true"
+                />
+                <motion.aside
+                  key="drawer"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="promo-form-title"
+                  initial={{ x: '100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '100%' }}
+                  transition={{ duration: 0.22, ease: 'easeOut' }}
+                  className="fixed inset-y-0 right-0 z-[70] w-full max-w-md"
+                >
+                  <div className="bg-white !rounded-none !border-y-0 !border-r-0 h-full flex flex-col border-l border-amber-200/60 shadow-2xl">
+                    <form onSubmit={handleSubmit} className="flex flex-col h-full min-h-0">
+                      <div className="flex items-start justify-between gap-3 p-5 border-b border-amber-200/60">
+                        <div>
+                          <h2 id="promo-form-title" className="font-serif font-semibold text-amber-950">
+                            {editingId ? 'Edit promo' : 'Create new promo'}
+                          </h2>
+                          <p className="font-serif text-xs text-amber-700/70 mt-0.5">
+                            {editingId ? 'Update the promo details' : 'Fill in the promo details below'}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={resetForm}
+                          aria-label="Close form"
+                          className={`p-1.5 rounded-lg text-amber-500 hover:text-amber-900 hover:bg-amber-100 transition-colors ${focusRing}`}
                         >
-                          <div className="p-4 min-w-0">
-                            <p className="font-mono font-bold text-flame-400 truncate">
-                              {form.code || 'PROMOCODE'}
-                            </p>
-                            <p className="text-xs text-ink-400 mt-1 truncate">
-                              {form.description || 'Promo description'}
-                            </p>
-                          </div>
-                          <div className="flex flex-col justify-center text-center px-3 py-4 border-l border-dashed border-ink-700">
-                            <p
-                              className={`font-bold font-mono tabular-nums leading-none text-flame-400 ${
-                                previewLabel.length > 8 ? 'text-base' : 'text-xl'
-                              }`}
-                            >
-                              {previewLabel}
-                            </p>
-                            <p className="text-xs text-ink-400 mt-1.5">{isFixed ? 'off' : 'off'}</p>
-                          </div>
-                        </div>
-                        <p className="text-xs text-ink-400 mt-2.5">
-                          {previewValid
-                            ? `Example: a ${formatRupiah(SAMPLE_PRICE)} ticket becomes ${formatRupiah(previewPrice)}`
-                            : 'Enter a discount value to see a sample discount.'}
-                        </p>
+                          <Icon name="close" className="w-5 h-5" />
+                        </button>
                       </div>
 
-                      {/* Code */}
-                      <div className="space-y-4">
+                      <div className="flex-1 overflow-y-auto p-5 space-y-6">
+                        {/* Live preview */}
                         <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <label htmlFor="promo-code" className="block text-sm text-ink-200">
-                              Promo code
-                            </label>
-                            <button
-                              type="button"
-                              onClick={() => setForm({ ...form, code: randomCode() })}
-                              className={`text-xs text-flame-400 hover:text-flame-300 font-medium rounded ${focusRing}`}
-                            >
-                              Generate random code
-                            </button>
+                          <div
+                            className="ticket-notch grid grid-cols-[1fr_var(--stub)] rounded-xl border border-amber-200/60 bg-amber-50/50"
+                            style={{ '--stub': '7.5rem' }}
+                          >
+                            <div className="p-4 min-w-0">
+                              <p className="font-mono font-bold text-amber-700 truncate">
+                                {form.code || 'PROMOCODE'}
+                              </p>
+                              <p className="font-serif text-xs text-amber-700/70 mt-1 truncate">
+                                {form.description || 'Promo description'}
+                              </p>
+                            </div>
+                            <div className="flex flex-col justify-center text-center px-3 py-4 border-l border-dashed border-amber-200/60">
+                              <p
+                                className={`font-serif font-bold font-mono tabular-nums leading-none text-amber-700 ${
+                                  previewLabel.length > 8 ? 'text-base' : 'text-xl'
+                                }`}
+                              >
+                                {previewLabel}
+                              </p>
+                              <p className="font-serif text-xs text-amber-700/70 mt-1.5">{isFixed ? 'off' : 'off'}</p>
+                            </div>
                           </div>
-                          <input
-                            id="promo-code"
-                            required
-                            autoFocus
-                            className="w-full input-field uppercase font-mono bg-ink-800/40"
-                            placeholder="TIKETKU10"
-                            value={form.code}
-                            onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                          />
+                          <p className="font-serif text-xs text-amber-700/70 mt-2.5">
+                            {previewValid
+                              ? `Example: a ${formatRupiah(SAMPLE_PRICE)} ticket becomes ${formatRupiah(previewPrice)}`
+                              : 'Enter a discount value to see a sample discount.'}
+                          </p>
                         </div>
 
-                        <div>
-                          <label htmlFor="promo-desc" className="block text-sm text-ink-200 mb-1.5">
-                            Description <span className="text-ink-400">(optional)</span>
-                          </label>
-                          <input
-                            id="promo-desc"
-                            className="w-full input-field bg-ink-800/40"
-                            placeholder="Example: 10% off for all concerts"
-                            value={form.description}
-                            onChange={(e) => setForm({ ...form, description: e.target.value })}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Discount */}
-                      <div className="pt-6 border-t border-ink-700 space-y-4">
-                        <h3 className="text-sm font-semibold text-white">Discount</h3>
-                        <div
-                          role="radiogroup"
-                          aria-label="Discount type"
-                          className="grid grid-cols-2 gap-1 p-1 bg-ink-800/40 rounded-lg"
-                        >
-                          {[
-                            { value: 'percentage', label: 'Percentage (%)' },
-                            { value: 'fixed', label: 'Fixed amount (Rp)' },
-                          ].map((opt) => (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              role="radio"
-                              aria-checked={form.discount_type === opt.value}
-                              onClick={() => setForm({ ...form, discount_type: opt.value })}
-                              className={`py-1.5 rounded-md text-xs font-medium transition-colors ${
-                                form.discount_type === opt.value
-                                  ? 'bg-flame-500 text-white'
-                                  : 'text-ink-400 hover:text-white'
-                              } ${focusRing}`}
-                            >
-                              {opt.label}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div>
-                          <label htmlFor="promo-value" className="block text-sm text-ink-200 mb-1.5">
-                            Discount value
-                          </label>
-                          <div className="relative">
-                            {isFixed && (
-                              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-ink-400">
-                                Rp
-                              </span>
-                            )}
+                        {/* Code */}
+                        <div className="space-y-4">
+                          <div>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <label htmlFor="promo-code" className="block font-serif text-sm text-amber-900">
+                                Promo code
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => setForm({ ...form, code: randomCode() })}
+                                className={`font-serif text-xs text-amber-700 hover:text-amber-900 font-medium rounded ${focusRing}`}
+                              >
+                                Generate random code
+                              </button>
+                            </div>
                             <input
-                              id="promo-value"
+                              id="promo-code"
+                              required
+                              autoFocus
+                              className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-mono uppercase text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                              placeholder="TIKETKU10"
+                              value={form.code}
+                              onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                            />
+                          </div>
+
+                          <div>
+                            <label htmlFor="promo-desc" className="block font-serif text-sm text-amber-900 mb-1.5">
+                              Description <span className="text-amber-700/60">(optional)</span>
+                            </label>
+                            <input
+                              id="promo-desc"
+                              className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                              placeholder="Example: 10% off for all concerts"
+                              value={form.description}
+                              onChange={(e) => setForm({ ...form, description: e.target.value })}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Discount */}
+                        <div className="pt-6 border-t border-amber-200/60 space-y-4">
+                          <h3 className="font-serif font-semibold text-amber-950 text-sm">Discount</h3>
+                          <div
+                            role="radiogroup"
+                            aria-label="Discount type"
+                            className="grid grid-cols-2 gap-1 p-1 bg-white border border-amber-200/60 rounded-xl"
+                          >
+                            {[
+                              { value: 'percentage', label: 'Percentage (%)' },
+                              { value: 'fixed', label: 'Fixed amount (Rp)' },
+                            ].map((opt) => (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                role="radio"
+                                aria-checked={form.discount_type === opt.value}
+                                onClick={() => setForm({ ...form, discount_type: opt.value })}
+                                className={`py-1.5 rounded-lg font-serif text-xs transition-colors ${
+                                  form.discount_type === opt.value
+                                    ? 'bg-amber-800 text-amber-50'
+                                    : 'text-amber-700/70 hover:text-amber-900'
+                                } ${focusRing}`}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+
+                          <div>
+                            <label htmlFor="promo-value" className="block font-serif text-sm text-amber-900 mb-1.5">
+                              Discount value
+                            </label>
+                            <div className="relative">
+                              {isFixed && (
+                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-serif text-sm text-amber-500">
+                                  Rp
+                                </span>
+                              )}
+                              <input
+                                id="promo-value"
+                                required
+                                type="number"
+                                min="0"
+                                max={isFixed ? undefined : 100}
+                                className={`w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all ${isFixed ? 'pl-10' : 'pr-9'}`}
+                                placeholder={isFixed ? '50000' : '10'}
+                                value={form.discount_value}
+                                onChange={(e) => setForm({ ...form, discount_value: e.target.value })}
+                              />
+                              {!isFixed && (
+                                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 font-serif text-sm text-amber-500">
+                                  %
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Quota and period */}
+                        <div className="pt-6 border-t border-amber-200/60 space-y-4">
+                          <h3 className="font-serif font-semibold text-amber-950 text-sm">Quota and period</h3>
+                          <div>
+                            <label htmlFor="promo-quota" className="block font-serif text-sm text-amber-900 mb-1.5">
+                              Usage quota
+                            </label>
+                            <input
+                              id="promo-quota"
                               required
                               type="number"
-                              min="0"
-                              max={isFixed ? undefined : 100}
-                              className={`w-full input-field bg-ink-800/40 ${isFixed ? 'pl-10' : 'pr-9'}`}
-                              placeholder={isFixed ? '50000' : '10'}
-                              value={form.discount_value}
-                              onChange={(e) => setForm({ ...form, discount_value: e.target.value })}
+                              min="1"
+                              className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                              placeholder="100"
+                              value={form.quota}
+                              onChange={(e) => setForm({ ...form, quota: e.target.value })}
                             />
-                            {!isFixed && (
-                              <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-ink-400">
-                                %
-                              </span>
+                            {editingPromo && (
+                              <p className="font-serif text-xs text-amber-700/70 mt-1.5">
+                                Already used {editingPromo.used || 0} times.
+                              </p>
                             )}
                           </div>
-                        </div>
-                      </div>
 
-                      {/* Quota and period */}
-                      <div className="pt-6 border-t border-ink-700 space-y-4">
-                        <h3 className="text-sm font-semibold text-white">Quota and period</h3>
-                        <div>
-                          <label htmlFor="promo-quota" className="block text-sm text-ink-200 mb-1.5">
-                            Usage quota
-                          </label>
-                          <input
-                            id="promo-quota"
-                            required
-                            type="number"
-                            min="1"
-                            className="w-full input-field bg-ink-800/40"
-                            placeholder="100"
-                            value={form.quota}
-                            onChange={(e) => setForm({ ...form, quota: e.target.value })}
-                          />
-                          {editingPromo && (
-                            <p className="text-xs text-ink-400 mt-1.5">
-                              Already used {editingPromo.used || 0} times.
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label htmlFor="promo-from" className="block text-sm text-ink-200 mb-1.5">
-                              Valid from
-                            </label>
-                            <input
-                              id="promo-from"
-                              required
-                              type="date"
-                              className="w-full input-field bg-ink-800/40"
-                              value={form.valid_from}
-                              onChange={(e) => setForm({ ...form, valid_from: e.target.value })}
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="promo-until" className="block text-sm text-ink-200 mb-1.5">
-                              Valid until
-                            </label>
-                            <input
-                              id="promo-until"
-                              required
-                              type="date"
-                              min={form.valid_from || undefined}
-                              className="w-full input-field bg-ink-800/40"
-                              value={form.valid_until}
-                              onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
-                            />
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label htmlFor="promo-from" className="block font-serif text-sm text-amber-900 mb-1.5">
+                                Valid from
+                              </label>
+                              <input
+                                id="promo-from"
+                                required
+                                type="date"
+                                className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                                value={form.valid_from}
+                                onChange={(e) => setForm({ ...form, valid_from: e.target.value })}
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="promo-until" className="block font-serif text-sm text-amber-900 mb-1.5">
+                                Valid until
+                              </label>
+                              <input
+                                id="promo-until"
+                                required
+                                type="date"
+                                min={form.valid_from || undefined}
+                                className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                                value={form.valid_until}
+                                onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="p-4 border-t border-ink-700 space-y-3">
-                      {error && (
-                        <div
-                          role="alert"
-                          className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
-                        >
-                          <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
-                          {error}
+                      <div className="p-4 border-t border-amber-200/60 space-y-3">
+                        {error && (
+                          <div
+                            role="alert"
+                            className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200/60 text-red-700 font-serif text-sm"
+                          >
+                            <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
+                            {error}
+                          </div>
+                        )}
+                        <div className="flex gap-3">
+                          <button
+                            type="submit"
+                            disabled={saving}
+                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-800 hover:bg-amber-700 disabled:opacity-50 text-amber-50 font-serif text-sm rounded-xl transition-colors"
+                          >
+                            {saving ? (
+                              <>
+                                <Spinner />
+                                Saving...
+                              </>
+                            ) : editingId ? (
+                              'Update promo'
+                            ) : (
+                              'Save promo'
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={resetForm}
+                            className="px-4 py-2.5 bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-900 font-serif text-sm rounded-xl transition-colors"
+                          >
+                            Cancel
+                          </button>
                         </div>
-                      )}
-                      <div className="flex gap-3">
-                        <button
-                          type="submit"
-                          disabled={saving}
-                          className="btn-primary inline-flex items-center justify-center gap-2 flex-1"
-                        >
-                          {saving ? (
-                            <>
-                              <Spinner />
-                              Saving...
-                            </>
-                          ) : editingId ? (
-                            'Update promo'
-                          ) : (
-                            'Save promo'
-                          )}
-                        </button>
-                        <button type="button" onClick={resetForm} className="btn-secondary">
-                          Cancel
-                        </button>
                       </div>
-                    </div>
-                  </form>
-                </div>
-              </motion.aside>
-            </>
-          )}
-        </AnimatePresence>
-
-        {/* Toast */}
-        <div className="fixed bottom-6 inset-x-0 z-[80] flex justify-center px-4 pointer-events-none">
-          <AnimatePresence>
-            {toast && (
-              <motion.div
-                key={toast.id}
-                role="status"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 12 }}
-                transition={{ duration: 0.18 }}
-                className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium ${
-                  toast.type === 'error'
-                    ? 'bg-red-500/10 border-red-500/30 text-red-300'
-                    : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                }`}
-              >
-                <Icon name={toast.type === 'error' ? 'alert' : 'check'} className="w-4 h-4" />
-                {toast.message}
-              </motion.div>
+                    </form>
+                  </div>
+                </motion.aside>
+              </>
             )}
           </AnimatePresence>
+
+          {/* Toast */}
+          <div className="fixed bottom-6 inset-x-0 z-[80] flex justify-center px-4 pointer-events-none">
+            <AnimatePresence>
+              {toast && (
+                <motion.div
+                  key={toast.id}
+                  role="status"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 12 }}
+                  transition={{ duration: 0.18 }}
+                  className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-lg border font-serif text-sm font-medium ${
+                    toast.type === 'error'
+                      ? 'bg-red-50 border-red-200/60 text-red-700'
+                      : 'bg-emerald-50 border-emerald-200/60 text-emerald-700'
+                  }`}
+                >
+                  <Icon name={toast.type === 'error' ? 'alert' : 'check'} className="w-4 h-4" />
+                  {toast.message}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </MotionConfig>

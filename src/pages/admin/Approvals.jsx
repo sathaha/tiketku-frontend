@@ -106,371 +106,373 @@ export default function Approvals() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-[#f5ede4] px-4 py-6">
+      <div className="max-w-7xl mx-auto">
 
-      {/* ===== HEADER ===== */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
-            <Icon name="check" className="w-5 h-5 text-yellow-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Concert Approvals</h1>
-            <p className="text-sm text-ink-400 mt-0.5">
-              Review events from organizers before they go live
-            </p>
-          </div>
-        </div>
-        {!loading && pending.length > 0 && (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs font-medium self-start sm:self-auto">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-60" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500" />
-            </span>
-            {pending.length} pending
-          </span>
-        )}
-      </div>
-
-      {/* ===== SUCCESS MESSAGE ===== */}
-      <AnimatePresence>
-        {successMsg && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2 p-3 mb-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm"
-          >
-            <Icon name="check" className="w-4 h-4 shrink-0" />
-            {successMsg}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {loading ? (
-        <Loading />
-      ) : pending.length === 0 ? (
-        <div className="text-center py-20">
-          <div className="w-16 h-16 mx-auto rounded-full bg-ink-800 flex items-center justify-center mb-4">
-            <Icon name="check" className="w-7 h-7 text-emerald-400" />
-          </div>
-          <h3 className="font-semibold text-white text-lg mb-1">All caught up</h3>
-          <p className="text-ink-400 text-sm">There are no concerts waiting for approval.</p>
-        </div>
-      ) : (
-        <>
-
-          {/* ===== TABLE HEADER (desktop) ===== */}
-          <div className="hidden lg:grid grid-cols-12 gap-4 px-5 py-3 bg-ink-800/60 border border-ink-700/60 rounded-t-xl text-[10px] uppercase tracking-wider text-ink-400 font-semibold">
-            <div className="col-span-1 flex items-center gap-2">
-              <div className="w-4 h-4 rounded border border-ink-600" />
+        {/* ===== HEADER ===== */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-amber-100 border border-amber-200/60 flex items-center justify-center">
+              <Icon name="check" className="w-5 h-5 text-amber-700" />
             </div>
-            <div className="col-span-3">Concert</div>
-            <div className="col-span-2">Organizer</div>
-            <div className="col-span-3">Event Info</div>
-            <div className="col-span-2">Venue</div>
-            <div className="col-span-1 text-right">Actions</div>
+            <div>
+              <h1 className="font-serif text-2xl text-amber-950">Concert Approvals</h1>
+              <p className="font-serif text-sm text-amber-700/60 mt-0.5">
+                Review events from organizers before they go live
+              </p>
+            </div>
           </div>
-
-          {/* ===== TABLE ROWS ===== */}
-          <div className="space-y-2 lg:space-y-0">
-            {pending.map((concert, index) => {
-              const chipColor = chipColors[index % chipColors.length];
-              const isRejecting = rejectingId === concert.id;
-
-              return (
-                <motion.div
-                  key={concert.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.03 }}
-                  className={`bg-ink-800/30 lg:bg-ink-800/20 border border-ink-700/60 lg:border-t-0 hover:bg-ink-800/60 transition-colors ${
-                    index === pending.length - 1 ? 'lg:rounded-b-xl' : ''
-                  } ${isRejecting ? 'ring-1 ring-red-500/40' : ''}`}
-                >
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 lg:px-5 lg:py-4 items-center">
-
-                    {/* Checkbox (desktop) */}
-                    <div className="hidden lg:flex lg:col-span-1 items-center">
-                      <div className="w-4 h-4 rounded border border-ink-600" />
-                    </div>
-
-                    {/* Poster + Name */}
-                    <div className="lg:col-span-3 flex items-center gap-3 min-w-0">
-                      <div className="w-12 h-12 rounded-lg bg-ink-700 overflow-hidden shrink-0 relative">
-                        {concert.poster ? (
-                          <img src={concert.poster} className="w-full h-full object-cover" alt="" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Icon name="mic" className="w-5 h-5 text-ink-500" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-medium text-white text-sm truncate">
-                          {concert.name}
-                        </h3>
-                        <p className="text-xs text-ink-400 truncate mt-0.5">
-                          {concert.artist || 'Artist not provided'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Organizer */}
-                    <div className="lg:col-span-2 min-w-0">
-                      <div className="lg:hidden text-[10px] uppercase tracking-wider text-ink-500 mb-1">
-                        Organizer
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-ink-300 truncate">
-                        <div className="w-6 h-6 rounded-full bg-ink-700 flex items-center justify-center text-[10px] text-ink-300 font-semibold shrink-0">
-                          {concert.organizer_name?.charAt(0)?.toUpperCase() || '?'}
-                        </div>
-                        <span className="truncate">{concert.organizer_name || '-'}</span>
-                      </div>
-                    </div>
-
-                    {/* Event Info (chips) */}
-                    <div className="lg:col-span-3 min-w-0">
-                      <div className="lg:hidden text-[10px] uppercase tracking-wider text-ink-500 mb-1">
-                        Event Info
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {concert.category_name && (
-                          <span className={`text-[10px] px-2 py-0.5 rounded-md border font-medium ${chipColor}`}>
-                            {concert.category_name}
-                          </span>
-                        )}
-                        {concert.concert_date && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-ink-700/60 text-ink-300 border border-ink-700 flex items-center gap-1">
-                            <Icon name="calendar" className="w-3 h-3" />
-                            {concert.concert_date}
-                          </span>
-                        )}
-                        {concert.min_price && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-flame-500/15 text-flame-300 border border-flame-500/30 font-mono">
-                            {concert.min_price}
-                          </span>
-                        )}
-                        {concert.description && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-ink-700/60 text-ink-400 border border-ink-700 truncate max-w-[150px]">
-                            {concert.description.slice(0, 30)}...
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Venue */}
-                    <div className="lg:col-span-2 min-w-0">
-                      <div className="lg:hidden text-[10px] uppercase tracking-wider text-ink-500 mb-1">
-                        Venue
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-ink-300 truncate">
-                        <Icon name="pin" className="w-3.5 h-3.5 text-ink-500 flex-shrink-0" />
-                        <span className="truncate">{concert.venue_name || '-'}</span>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="lg:col-span-1 flex items-center justify-end gap-1">
-                      <button
-                        disabled={processing || isRejecting}
-                        onClick={() => setApproveTarget(concert)}
-                        className="w-8 h-8 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 flex items-center justify-center transition-colors disabled:opacity-40"
-                        title="Approve"
-                      >
-                        <Icon name="check" className="w-4 h-4" />
-                      </button>
-                      <button
-                        disabled={processing || isRejecting}
-                        onClick={() => {
-                          setRejectingId(concert.id);
-                          setReason('');
-                        }}
-                        className="w-8 h-8 rounded-lg bg-red-500/15 hover:bg-red-500/30 border border-red-500/30 text-red-400 flex items-center justify-center transition-colors disabled:opacity-40"
-                        title="Reject"
-                      >
-                        <Icon name="close" className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* ===== INLINE REJECT PANEL ===== */}
-                  <AnimatePresence>
-                    {isRejecting && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden border-t border-red-500/20"
-                      >
-                        <div className="p-4 lg:px-5 bg-red-500/5">
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center">
-                              <Icon name="alert" className="w-3.5 h-3.5 text-red-400" />
-                            </div>
-                            <span className="text-sm font-medium text-red-300">
-                              Rejection Reason
-                            </span>
-                          </div>
-
-                          {/* Quick reasons chips */}
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {QUICK_REASONS.map((qr) => (
-                              <button
-                                key={qr}
-                                type="button"
-                                onClick={() => setReason(qr)}
-                                className={`px-3 py-1.5 rounded-full text-xs transition-colors border ${
-                                  reason === qr
-                                    ? 'bg-red-500/20 text-red-300 border-red-500/40'
-                                    : 'bg-ink-700/60 text-ink-300 hover:bg-ink-600 border-ink-700'
-                                }`}
-                              >
-                                {qr}
-                              </button>
-                            ))}
-                          </div>
-
-                          <textarea
-                            className="w-full px-3 py-2.5 bg-ink-900/50 border border-ink-700 rounded-lg text-sm text-white placeholder-ink-500 focus:outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 transition-all mb-3 resize-none"
-                            rows={2}
-                            placeholder="Additional details (optional)..."
-                            value={reason}
-                            onChange={(e) => setReason(e.target.value)}
-                          />
-
-                          <div className="flex gap-2 justify-end">
-                            <button
-                              onClick={() => {
-                                setRejectingId(null);
-                                setReason('');
-                              }}
-                              className="px-4 py-2 rounded-lg bg-ink-700 hover:bg-ink-600 text-white text-sm font-medium transition-colors"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              disabled={processing}
-                              onClick={() => handleReject(concert.id, concert.name)}
-                              className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-sm font-medium transition-colors inline-flex items-center gap-2"
-                            >
-                              {processing ? (
-                                <>
-                                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                  </svg>
-                                  Sending...
-                                </>
-                              ) : (
-                                <>
-                                  <Icon name="close" className="w-4 h-4" />
-                                  Send Rejection
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          {/* ===== TABLE FOOTER ===== */}
-          <div className="hidden lg:flex items-center justify-between px-5 py-3 bg-ink-800/60 border border-t-0 border-ink-700/60 rounded-b-xl text-xs text-ink-400">
-            <span>
-              <span className="text-white font-medium">{pending.length}</span> concerts awaiting approval
+          {!loading && pending.length > 0 && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100/70 border border-amber-200/60 text-amber-800 text-xs font-medium self-start sm:self-auto">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-600" />
+              </span>
+              {pending.length} pending
             </span>
-            <span className="flex items-center gap-1.5">
-              <Icon name="clock" className="w-3.5 h-3.5 text-yellow-500" />
-              Needs review soon
-            </span>
-          </div>
-        </>
-      )}
+          )}
+        </div>
 
-      {/* ===== APPROVE CONFIRMATION MODAL ===== */}
-      <AnimatePresence>
-        {approveTarget && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setApproveTarget(null)}
-          >
+        {/* ===== SUCCESS MESSAGE ===== */}
+        <AnimatePresence>
+          {successMsg && (
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-ink-800 border border-ink-700 rounded-2xl max-w-sm w-full p-6 relative overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-center gap-2 p-3 mb-4 rounded-xl bg-emerald-50/80 border border-emerald-200/60 text-emerald-700 text-sm font-serif"
             >
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-emerald-500" />
-
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                  <Icon name="check" className="w-5 h-5 text-emerald-400" />
-                </div>
-                <h3 className="font-semibold text-white text-lg">Approve Concert</h3>
-              </div>
-
-              <p className="text-ink-300 text-sm mb-2">
-                This concert will be published:
-              </p>
-              <p className="text-white font-medium mb-4">
-                {approveTarget.name}
-              </p>
-
-              <div className="space-y-2 mb-6 text-xs text-ink-400">
-                {approveTarget.artist && (
-                  <p className="flex items-center gap-2">
-                    <Icon name="mic" className="w-3.5 h-3.5 text-ink-500" />
-                    {approveTarget.artist}
-                  </p>
-                )}
-                {approveTarget.venue_name && (
-                  <p className="flex items-center gap-2">
-                    <Icon name="pin" className="w-3.5 h-3.5 text-ink-500" />
-                    {approveTarget.venue_name}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={handleApprove}
-                  disabled={processing}
-                  className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
-                >
-                  {processing ? (
-                    <>
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Processing...
-                    </>
-                  ) : (
-                    'Yes, Approve'
-                  )}
-                </button>
-                <button
-                  onClick={() => setApproveTarget(null)}
-                  disabled={processing}
-                  className="flex-1 py-2.5 bg-ink-700 hover:bg-ink-600 text-white rounded-xl text-sm font-semibold transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
+              <Icon name="check" className="w-4 h-4 shrink-0" />
+              {successMsg}
             </motion.div>
-          </motion.div>
+          )}
+        </AnimatePresence>
+
+        {loading ? (
+          <Loading />
+        ) : pending.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-16 h-16 mx-auto rounded-full bg-amber-100 border border-amber-200/60 flex items-center justify-center mb-4">
+              <Icon name="check" className="w-7 h-7 text-emerald-600" />
+            </div>
+            <h3 className="font-serif text-amber-950 text-lg mb-1">All caught up</h3>
+            <p className="font-serif text-amber-700/60 text-sm">There are no concerts waiting for approval.</p>
+          </div>
+        ) : (
+          <>
+
+            {/* ===== TABLE HEADER (desktop) ===== */}
+            <div className="hidden lg:grid grid-cols-12 gap-4 px-5 py-3 bg-white border border-amber-200/60 rounded-t-xl text-[10px] uppercase tracking-wider text-amber-700/70 font-semibold">
+              <div className="col-span-1 flex items-center gap-2">
+                <div className="w-4 h-4 rounded border border-amber-200" />
+              </div>
+              <div className="col-span-3">Concert</div>
+              <div className="col-span-2">Organizer</div>
+              <div className="col-span-3">Event Info</div>
+              <div className="col-span-2">Venue</div>
+              <div className="col-span-1 text-right">Actions</div>
+            </div>
+
+            {/* ===== TABLE ROWS ===== */}
+            <div className="space-y-2 lg:space-y-0">
+              {pending.map((concert, index) => {
+                const chipColor = chipColors[index % chipColors.length];
+                const isRejecting = rejectingId === concert.id;
+
+                return (
+                  <motion.div
+                    key={concert.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    className={`bg-white/80 border border-amber-200/60 lg:border-t-0 hover:bg-white transition-colors ${
+                      index === pending.length - 1 ? 'lg:rounded-b-xl' : ''
+                    } ${isRejecting ? 'ring-1 ring-red-400/40' : ''}`}
+                  >
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 lg:px-5 lg:py-4 items-center">
+
+                      {/* Checkbox (desktop) */}
+                      <div className="hidden lg:flex lg:col-span-1 items-center">
+                        <div className="w-4 h-4 rounded border border-amber-200" />
+                      </div>
+
+                      {/* Poster + Name */}
+                      <div className="lg:col-span-3 flex items-center gap-3 min-w-0">
+                        <div className="w-12 h-12 rounded-lg bg-amber-100 overflow-hidden shrink-0 relative border border-amber-200/60">
+                          {concert.poster ? (
+                            <img src={concert.poster} className="w-full h-full object-cover" alt="" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Icon name="mic" className="w-5 h-5 text-amber-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-serif font-semibold text-amber-950 text-sm truncate">
+                            {concert.name}
+                          </h3>
+                          <p className="font-serif text-xs text-amber-700/60 truncate mt-0.5">
+                            {concert.artist || 'Artist not provided'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Organizer */}
+                      <div className="lg:col-span-2 min-w-0">
+                        <div className="lg:hidden text-[10px] uppercase tracking-wider text-amber-600/60 mb-1">
+                          Organizer
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-amber-800 truncate">
+                          <div className="w-6 h-6 rounded-full bg-amber-800 flex items-center justify-center text-[10px] text-amber-50 font-semibold shrink-0">
+                            {concert.organizer_name?.charAt(0)?.toUpperCase() || '?'}
+                          </div>
+                          <span className="truncate font-serif">{concert.organizer_name || '-'}</span>
+                        </div>
+                      </div>
+
+                      {/* Event Info (chips) */}
+                      <div className="lg:col-span-3 min-w-0">
+                        <div className="lg:hidden text-[10px] uppercase tracking-wider text-amber-600/60 mb-1">
+                          Event Info
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {concert.category_name && (
+                            <span className={`text-[10px] px-2 py-0.5 rounded-md border font-medium ${chipColor}`}>
+                              {concert.category_name}
+                            </span>
+                          )}
+                          {concert.concert_date && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200/60 flex items-center gap-1 font-serif">
+                              <Icon name="calendar" className="w-3 h-3" />
+                              {concert.concert_date}
+                            </span>
+                          )}
+                          {concert.min_price && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-100/70 text-amber-800 border border-amber-200/60 font-mono">
+                              {concert.min_price}
+                            </span>
+                          )}
+                          {concert.description && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-50 text-amber-700/70 border border-amber-200/60 truncate max-w-[150px] font-serif">
+                              {concert.description.slice(0, 30)}...
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Venue */}
+                      <div className="lg:col-span-2 min-w-0">
+                        <div className="lg:hidden text-[10px] uppercase tracking-wider text-amber-600/60 mb-1">
+                          Venue
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-amber-800 truncate font-serif">
+                          <Icon name="pin" className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                          <span className="truncate">{concert.venue_name || '-'}</span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="lg:col-span-1 flex items-center justify-end gap-1">
+                        <button
+                          disabled={processing || isRejecting}
+                          onClick={() => setApproveTarget(concert)}
+                          className="w-8 h-8 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/60 text-emerald-700 flex items-center justify-center transition-colors disabled:opacity-40"
+                          title="Approve"
+                        >
+                          <Icon name="check" className="w-4 h-4" />
+                        </button>
+                        <button
+                          disabled={processing || isRejecting}
+                          onClick={() => {
+                            setRejectingId(concert.id);
+                            setReason('');
+                          }}
+                          className="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200/60 text-red-600 flex items-center justify-center transition-colors disabled:opacity-40"
+                          title="Reject"
+                        >
+                          <Icon name="close" className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* ===== INLINE REJECT PANEL ===== */}
+                    <AnimatePresence>
+                      {isRejecting && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden border-t border-red-200/40"
+                        >
+                          <div className="p-4 lg:px-5 bg-red-50/60">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                                <Icon name="alert" className="w-3.5 h-3.5 text-red-600" />
+                              </div>
+                              <span className="font-serif text-sm font-medium text-red-700">
+                                Rejection Reason
+                              </span>
+                            </div>
+
+                            {/* Quick reasons chips */}
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {QUICK_REASONS.map((qr) => (
+                                <button
+                                  key={qr}
+                                  type="button"
+                                  onClick={() => setReason(qr)}
+                                  className={`px-3 py-1.5 rounded-full text-xs transition-colors border font-serif ${
+                                    reason === qr
+                                      ? 'bg-red-100 text-red-700 border-red-300'
+                                      : 'bg-white text-amber-800 hover:bg-amber-50 border-amber-200/60'
+                                  }`}
+                                >
+                                  {qr}
+                                </button>
+                              ))}
+                            </div>
+
+                            <textarea
+                              className="w-full px-3 py-2.5 bg-white border border-amber-200/60 rounded-lg text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-300/20 transition-all mb-3 resize-none font-serif"
+                              rows={2}
+                              placeholder="Additional details (optional)..."
+                              value={reason}
+                              onChange={(e) => setReason(e.target.value)}
+                            />
+
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                onClick={() => {
+                                  setRejectingId(null);
+                                  setReason('');
+                                }}
+                                className="px-4 py-2 rounded-lg bg-white hover:bg-amber-50 text-amber-900 border border-amber-200/60 text-sm font-medium transition-colors font-serif"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                disabled={processing}
+                                onClick={() => handleReject(concert.id, concert.name)}
+                                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors inline-flex items-center gap-2 font-serif"
+                              >
+                                {processing ? (
+                                  <>
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    Sending...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Icon name="close" className="w-4 h-4" />
+                                    Send Rejection
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* ===== TABLE FOOTER ===== */}
+            <div className="hidden lg:flex items-center justify-between px-5 py-3 bg-white border border-t-0 border-amber-200/60 rounded-b-xl text-xs text-amber-700/70 font-serif">
+              <span>
+                <span className="text-amber-950 font-bold">{pending.length}</span> concerts awaiting approval
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Icon name="clock" className="w-3.5 h-3.5 text-amber-500" />
+                Needs review soon
+              </span>
+            </div>
+          </>
         )}
-      </AnimatePresence>
+
+        {/* ===== APPROVE CONFIRMATION MODAL ===== */}
+        <AnimatePresence>
+          {approveTarget && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-amber-950/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setApproveTarget(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white border border-amber-200/60 rounded-2xl max-w-sm w-full p-6 relative overflow-hidden shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-emerald-500" />
+
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-200/60 flex items-center justify-center shrink-0">
+                    <Icon name="check" className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <h3 className="font-serif font-bold text-amber-950 text-lg">Approve Concert</h3>
+                </div>
+
+                <p className="text-amber-800/70 text-sm mb-2 font-serif">
+                  This concert will be published:
+                </p>
+                <p className="text-amber-950 font-semibold mb-4 font-serif">
+                  {approveTarget.name}
+                </p>
+
+                <div className="space-y-2 mb-6 text-xs text-amber-700/70 font-serif">
+                  {approveTarget.artist && (
+                    <p className="flex items-center gap-2">
+                      <Icon name="mic" className="w-3.5 h-3.5 text-amber-500" />
+                      {approveTarget.artist}
+                    </p>
+                  )}
+                  {approveTarget.venue_name && (
+                    <p className="flex items-center gap-2">
+                      <Icon name="pin" className="w-3.5 h-3.5 text-amber-500" />
+                      {approveTarget.venue_name}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleApprove}
+                    disabled={processing}
+                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2 font-serif"
+                  >
+                    {processing ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Processing...
+                      </>
+                    ) : (
+                      'Yes, Approve'
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setApproveTarget(null)}
+                    disabled={processing}
+                    className="flex-1 py-2.5 bg-white hover:bg-amber-50 text-amber-900 border border-amber-200/60 rounded-xl text-sm font-semibold transition-colors font-serif"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

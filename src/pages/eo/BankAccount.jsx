@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../api/axios';
-import { Loading } from '../../components/Ui';
 
 const BANKS = [
   'BCA', 'BNI', 'BRI', 'Mandiri', 'CIMB Niaga', 'Permata',
@@ -21,13 +20,33 @@ function Icon({ name, className = 'w-4 h-4' }) {
   const path = paths[name];
   if (!path) return null;
   return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d={path} />
     </svg>
   );
 }
 
-// Mask nomor rekening: 1234••••••7890
+function Spinner({ className = 'h-4 w-4' }) {
+  return (
+    <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+    </svg>
+  );
+}
+
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60';
+
+/* Notches are cut out of the ticket with a mask, so they work on any background. */
+const notch = `radial-gradient(circle 9px at calc(100% - var(--stub)) 0, #0000 97%, #000) top / 100% 51% no-repeat, radial-gradient(circle 9px at calc(100% - var(--stub)) 100%, #0000 97%, #000) bottom / 100% 51% no-repeat`;
+const ticketCss = `
+  .ticket-notch { -webkit-mask: ${notch}; mask: ${notch}; }
+  @media (min-width: 640px) {
+    .ticket-notch-sm { -webkit-mask: ${notch}; mask: ${notch}; }
+  }
+`;
+
+// Mask account number: 1234••••••7890
 function maskAccountNumber(num) {
   if (!num) return '-';
   const s = String(num);
@@ -35,6 +54,19 @@ function maskAccountNumber(num) {
   const first = s.slice(0, 4);
   const last = s.slice(-4);
   return `${first}${'•'.repeat(Math.max(s.length - 8, 4))}${last}`;
+}
+
+function SkeletonCard() {
+  return (
+    <div className="animate-pulse space-y-4" aria-hidden="true">
+      <div className="bg-white border border-amber-200/60 rounded-2xl p-6 space-y-4">
+        <div className="h-3 w-32 bg-amber-100 rounded" />
+        <div className="h-6 w-24 bg-amber-100 rounded" />
+        <div className="h-7 w-48 bg-amber-100 rounded" />
+        <div className="h-4 w-40 bg-amber-100 rounded" />
+      </div>
+    </div>
+  );
 }
 
 export default function BankAccount() {
@@ -63,12 +95,18 @@ export default function BankAccount() {
           });
           setIsEditing(false);
         } else {
-          setIsEditing(true); // belum ada, langsung tampil form
+          setIsEditing(true);
         }
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!saved) return;
+    const t = setTimeout(() => setSaved(false), 3200);
+    return () => clearTimeout(t);
+  }, [saved]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -76,17 +114,12 @@ export default function BankAccount() {
     setSaved(false);
 
     if (!/^\d{6,30}$/.test(form.account_number)) {
-      setError('Nomor rekening hanya boleh angka (6-30 digit).');
+      setError('Account number must contain only digits (6-30 digits).');
       return;
     }
 
     if (form.account_holder.trim().length < 3) {
-      setError('Nama pemilik rekening minimal 3 karakter.');
-      return;
-    }
-
-    // Kalau sudah ada rekening dan ini update, minta konfirmasi
-    if (existing && !confirm('Ubah data rekening? Pastikan data baru sudah benar.')) {
+      setError('Account holder name must be at least 3 characters.');
       return;
     }
 
@@ -102,9 +135,8 @@ export default function BankAccount() {
       setExisting(res.data);
       setIsEditing(false);
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Gagal menyimpan rekening.');
+      setError(err.response?.data?.message || 'Failed to save bank account.');
     } finally {
       setSaving(false);
     }
@@ -122,239 +154,250 @@ export default function BankAccount() {
     }
   }
 
-  if (loading) return <Loading />;
-
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-flame-500/10 border border-flame-500/20 flex items-center justify-center text-flame-400">
-              <Icon name="bank" className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-white tracking-tight">
-                Rekening Pencairan
-              </h1>
-              <p className="text-sm text-ink-400 mt-0.5">
-                Admin akan mentransfer dana ke rekening ini
-              </p>
-            </div>
+    <div className="min-h-screen bg-[#f5ede4]">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <style>{ticketCss}</style>
+
+        {/* Header */}
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+          <div>
+            <h1 className="font-serif text-2xl font-bold text-amber-950">Payout account</h1>
+            <p className="font-serif text-sm text-amber-700/70 mt-1">
+              Admin will transfer funds to this account
+            </p>
           </div>
 
           {/* Status badge */}
           {existing ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <Icon name="check" className="w-3 h-3" />
-              Aktif
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 font-serif text-xs font-medium rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200/60 self-start sm:self-auto">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Active
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 font-serif text-xs font-medium rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200/60 self-start sm:self-auto">
               <Icon name="alert" className="w-3 h-3" />
-              Belum diisi
+              Not set
             </span>
           )}
+        </header>
+
+        {/* Info */}
+        <div className="flex items-start gap-3 p-4 mb-6 rounded-2xl border border-dashed border-amber-300/60 bg-amber-50/50">
+          <Icon name="info" className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <p className="font-serif text-sm text-amber-800">
+            Make sure the account details are correct and registered under your own name.
+            Incorrect details may cause funds to fail or be returned by the bank.
+          </p>
         </div>
-        <div className="h-px bg-ink-700/60 mt-5" />
-      </div>
 
-      {/* Info */}
-      <div className="flex items-start gap-3 p-4 mb-6 rounded-lg border border-dashed border-ink-600/60 bg-ink-800/40">
-        <Icon name="info" className="w-4 h-4 text-flame-400 shrink-0 mt-0.5" />
-        <p className="text-sm text-ink-300">
-          Pastikan data rekening benar dan atas nama kamu sendiri. Kesalahan data bisa menyebabkan
-          dana tidak masuk atau dikembalikan oleh bank.
-        </p>
-      </div>
-
-      {/* ===== REKENING TERSIMPAN ===== */}
-      <AnimatePresence>
-        {existing && !isEditing && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mb-5"
-          >
-            {/* Kartu rekening gaya bank */}
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-ink-800 to-ink-900 border border-ink-700 p-6">
-              {/* Dekorasi sudut */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-flame-500/5 rounded-full blur-2xl pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-40 h-40 bg-flame-500/5 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="relative">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.25em] text-flame-400/80">
-                    <Icon name="shield" className="w-3.5 h-3.5" />
-                    Rekening Tersimpan
-                  </div>
-                  <div className="text-flame-400">
-                    <Icon name="bank" className="w-5 h-5" />
-                  </div>
-                </div>
-
-                <p className="text-xs text-ink-500 mb-1">Bank</p>
-                <p className="text-lg font-bold text-white mb-4">{existing.bank_name}</p>
-
-                <p className="text-xs text-ink-500 mb-1">Nomor Rekening</p>
-                <p className="text-xl font-mono font-bold text-white tracking-widest mb-4">
-                  {maskAccountNumber(existing.account_number)}
-                </p>
-
-                <p className="text-xs text-ink-500 mb-1">Atas Nama</p>
-                <p className="text-sm text-white">{existing.account_holder}</p>
-
-                {existing.updated_at && (
-                  <p className="text-[10px] text-ink-500 mt-4">
-                    Terakhir diperbarui: {new Date(existing.updated_at).toLocaleDateString('id-ID', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-end mt-3">
-              <button
-                onClick={() => setIsEditing(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-300 bg-ink-800 hover:bg-ink-700 rounded-lg transition-colors"
-              >
-                <Icon name="edit" className="w-4 h-4" />
-                Ubah Rekening
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ===== FORM EDIT / CREATE ===== */}
-      <AnimatePresence>
-        {isEditing && (
-          <motion.form
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            onSubmit={handleSubmit}
-            className="card p-6 space-y-5"
-          >
-            {existing && (
-              <div className="flex items-center justify-between pb-4 border-b border-ink-700/60">
-                <h3 className="text-sm font-semibold text-white">Ubah Data Rekening</h3>
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="p-1.5 text-ink-400 hover:text-white hover:bg-ink-800 rounded-lg transition-colors"
+        {loading ? (
+          <SkeletonCard />
+        ) : (
+          <>
+            {/* ===== SAVED ACCOUNT ===== */}
+            <AnimatePresence>
+              {existing && !isEditing && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="mb-5"
                 >
-                  <Icon name="close" className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+                  {/* Bank-style account card */}
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-800 to-amber-900 border border-amber-700/60 p-6 shadow-xl shadow-amber-900/10">
+                    {/* Corner decoration */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div>
-              <label className="block text-sm text-ink-200 mb-1.5">Bank</label>
-              <select
-                className="w-full input-field"
-                value={form.bank_name}
-                onChange={(e) => setForm({ ...form, bank_name: e.target.value })}
-              >
-                {BANKS.map((b) => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
-            </div>
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-2 font-serif text-[10px] uppercase tracking-[0.25em] text-amber-200/80">
+                          <Icon name="shield" className="w-3.5 h-3.5" />
+                          Saved account
+                        </div>
+                        <div className="text-amber-200/80">
+                          <Icon name="bank" className="w-5 h-5" />
+                        </div>
+                      </div>
 
-            <div>
-              <label className="block text-sm text-ink-200 mb-1.5">Nomor Rekening</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                className="w-full input-field font-mono tracking-wider"
-                placeholder="1234567890"
-                value={form.account_number}
-                onChange={(e) => setForm({
-                  ...form,
-                  account_number: e.target.value.replace(/\D/g, ''),
-                })}
-              />
-              <p className="text-xs text-ink-500 mt-1">
-                Hanya angka, tanpa spasi atau tanda hubung.
-              </p>
-            </div>
+                      <p className="font-serif text-xs text-amber-100/60 mb-1">Bank</p>
+                      <p className="font-serif text-lg font-bold text-amber-50 mb-4">
+                        {existing.bank_name}
+                      </p>
 
-            <div>
-              <label className="block text-sm text-ink-200 mb-1.5">
-                Nama Pemilik Rekening
-              </label>
-              <input
-                type="text"
-                className="w-full input-field"
-                placeholder="Sesuai buku tabungan"
-                value={form.account_holder}
-                onChange={(e) => setForm({ ...form, account_holder: e.target.value })}
-              />
-              <p className="text-xs text-ink-500 mt-1">
-                Sesuai nama di buku tabungan / rekening bank.
-              </p>
-            </div>
+                      <p className="font-serif text-xs text-amber-100/60 mb-1">Account number</p>
+                      <p className="font-mono font-bold text-xl text-amber-50 tracking-widest mb-4">
+                        {maskAccountNumber(existing.account_number)}
+                      </p>
 
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
-              >
-                <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
-                {error}
-              </motion.div>
-            )}
+                      <p className="font-serif text-xs text-amber-100/60 mb-1">Account holder</p>
+                      <p className="font-serif text-sm text-amber-50">{existing.account_holder}</p>
 
-            {saved && (
-              <motion.div
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm"
-              >
-                <Icon name="check" className="w-4 h-4" />
-                Rekening berhasil disimpan.
-              </motion.div>
-            )}
+                      {existing.updated_at && (
+                        <p className="font-serif text-[10px] text-amber-100/50 mt-4">
+                          Last updated: {new Date(existing.updated_at).toLocaleDateString('en-US', {
+                            day: '2-digit',
+                            month: 'long',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
-            <div className="pt-2 flex justify-end gap-3">
-              {existing && (
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="px-4 py-2.5 text-sm font-medium text-ink-300 bg-ink-800 hover:bg-ink-700 rounded-lg transition-colors"
-                >
-                  Batal
-                </button>
+                  <div className="flex justify-end mt-3">
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className={`inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-900 font-serif text-sm rounded-xl transition-colors ${focusRing}`}
+                    >
+                      <Icon name="edit" className="w-4 h-4" />
+                      Edit account
+                    </button>
+                  </div>
+                </motion.div>
               )}
-              <button
-                type="submit"
-                disabled={saving}
-                className="btn-primary inline-flex items-center gap-2"
-              >
-                {saving ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Menyimpan...
-                  </>
-                ) : existing ? (
-                  'Simpan Perubahan'
-                ) : (
-                  'Simpan Rekening'
-                )}
-              </button>
-            </div>
-          </motion.form>
+            </AnimatePresence>
+
+            {/* ===== EDIT / CREATE FORM ===== */}
+            <AnimatePresence>
+              {isEditing && (
+                <motion.form
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  onSubmit={handleSubmit}
+                  className="bg-white border border-amber-200/60 rounded-2xl p-6 space-y-5"
+                >
+                  {existing && (
+                    <div className="flex items-center justify-between pb-4 border-b border-amber-200/60">
+                      <h3 className="font-serif font-semibold text-amber-950 text-sm">
+                        Edit account details
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        aria-label="Close form"
+                        className={`p-1.5 text-amber-500 hover:text-amber-900 hover:bg-amber-100 rounded-lg transition-colors ${focusRing}`}
+                      >
+                        <Icon name="close" className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  <div>
+                    <label htmlFor="bank-name" className="block font-serif text-sm text-amber-900 mb-1.5">
+                      Bank
+                    </label>
+                    <select
+                      id="bank-name"
+                      className={`w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all ${focusRing}`}
+                      value={form.bank_name}
+                      onChange={(e) => setForm({ ...form, bank_name: e.target.value })}
+                    >
+                      {BANKS.map((b) => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="account-number" className="block font-serif text-sm text-amber-900 mb-1.5">
+                      Account number
+                    </label>
+                    <input
+                      id="account-number"
+                      type="text"
+                      inputMode="numeric"
+                      className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-mono text-sm text-amber-950 tracking-wider placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                      placeholder="1234567890"
+                      value={form.account_number}
+                      onChange={(e) => setForm({
+                        ...form,
+                        account_number: e.target.value.replace(/\D/g, ''),
+                      })}
+                    />
+                    <p className="font-serif text-xs text-amber-700/70 mt-1.5">
+                      Digits only, without spaces or dashes.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="account-holder" className="block font-serif text-sm text-amber-900 mb-1.5">
+                      Account holder name
+                    </label>
+                    <input
+                      id="account-holder"
+                      type="text"
+                      className="w-full px-3.5 py-2.5 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                      placeholder="As shown on your passbook"
+                      value={form.account_holder}
+                      onChange={(e) => setForm({ ...form, account_holder: e.target.value })}
+                    />
+                    <p className="font-serif text-xs text-amber-700/70 mt-1.5">
+                      Must match the name on your passbook / bank account.
+                    </p>
+                  </div>
+
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      role="alert"
+                      className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200/60 text-red-700 font-serif text-sm"
+                    >
+                      <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
+                      {error}
+                    </motion.div>
+                  )}
+
+                  {saved && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      role="status"
+                      className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200/60 text-emerald-700 font-serif text-sm"
+                    >
+                      <Icon name="check" className="w-4 h-4" />
+                      Bank account saved successfully.
+                    </motion.div>
+                  )}
+
+                  <div className="pt-2 flex justify-end gap-3">
+                    {existing && (
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className={`px-4 py-2.5 bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-900 font-serif text-sm rounded-xl transition-colors ${focusRing}`}
+                      >
+                        Cancel
+                      </button>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className={`inline-flex items-center gap-2 px-4 py-2.5 bg-amber-800 hover:bg-amber-700 disabled:opacity-50 text-amber-50 font-serif text-sm rounded-xl transition-colors ${focusRing}`}
+                    >
+                      {saving ? (
+                        <>
+                          <Spinner />
+                          Saving...
+                        </>
+                      ) : existing ? (
+                        'Save changes'
+                      ) : (
+                        'Save account'
+                      )}
+                    </button>
+                  </div>
+                </motion.form>
+              )}
+            </AnimatePresence>
+          </>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 }

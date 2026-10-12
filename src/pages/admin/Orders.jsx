@@ -22,7 +22,7 @@ function Icon({ name, className = 'w-4 h-4' }) {
   );
 }
 
-const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-flame-500/60';
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60';
 const PAGE_SIZE = 20;
 
 const statusTabs = [
@@ -41,17 +41,17 @@ function formatTime(d) {
 
 function SkeletonRows() {
   return (
-    <div className="card animate-pulse" aria-hidden="true">
+    <div className="bg-white border border-amber-200/60 rounded-2xl animate-pulse" aria-hidden="true">
       {[...Array(6)].map((_, i) => (
-        <div key={i} className="flex items-center justify-between gap-4 px-5 py-4 border-t first:border-t-0 border-ink-700">
+        <div key={i} className="flex items-center justify-between gap-4 px-5 py-4 border-t first:border-t-0 border-amber-200/60">
           <div className="flex items-center gap-6">
-            <div className="h-3 w-24 bg-ink-700 rounded" />
+            <div className="h-3 w-24 bg-amber-100 rounded" />
             <div className="space-y-2">
-              <div className="h-3 w-36 bg-ink-700 rounded" />
-              <div className="h-3 w-28 bg-ink-700 rounded" />
+              <div className="h-3 w-36 bg-amber-100 rounded" />
+              <div className="h-3 w-28 bg-amber-100 rounded" />
             </div>
           </div>
-          <div className="h-4 w-20 bg-ink-700 rounded" />
+          <div className="h-4 w-20 bg-amber-100 rounded" />
         </div>
       ))}
     </div>
@@ -189,365 +189,375 @@ export default function Orders() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-white">Transactions</h1>
-          <p className="text-sm text-ink-400 mt-1">
-            Status updates automatically when the customer pays via Xendit, with no manual verification.
-          </p>
-        </header>
+      <div className="min-h-screen bg-[#f5ede4] px-4 py-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <header className="mb-6">
+            <h1 className="font-serif text-2xl font-bold text-amber-950">Transactions</h1>
+            <p className="font-serif text-sm text-amber-700/70 mt-1">
+              Status updates automatically when the customer pays via Xendit, with no manual verification.
+            </p>
+          </header>
 
-        {/* Summary */}
-        {!loading && orders.length > 0 && (
-          <div className="card grid grid-cols-2 divide-x divide-ink-700 mb-6">
-            <div className="p-4">
-              <p className="text-xs text-ink-400">Transactions found</p>
-              <p className="text-xl font-bold text-white font-mono tabular-nums mt-1.5 leading-none">
-                {filteredOrders.length}
-              </p>
-            </div>
-            <div className="p-4">
-              <p className="text-xs text-ink-400">Paid revenue</p>
-              <p className="text-xl font-bold text-flame-400 font-mono tabular-nums mt-1.5 leading-none">
-                {formatRupiah(paidRevenue)}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Search and status */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
-          <div className="flex gap-1 p-1 bg-ink-800/40 rounded-lg overflow-x-auto self-start">
-            {statusTabs.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => updateParams({ status: tab.value })}
-                aria-pressed={status === tab.value}
-                className={`px-3.5 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${
-                  status === tab.value ? 'bg-flame-500 text-white' : 'text-ink-400 hover:text-white'
-                } ${focusRing}`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="relative flex-1 lg:max-w-sm lg:ml-auto">
-            <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
-            <input
-              ref={searchRef}
-              type="text"
-              aria-label="Search transactions"
-              className="w-full input-field pl-10 bg-ink-800/40"
-              placeholder="Search order code, name, email, or concert"
-              value={search}
-              onChange={(e) => updateParams({ q: e.target.value }, true)}
-            />
-          </div>
-        </div>
-
-        {/* Table */}
-        {loading ? (
-          <SkeletonRows />
-        ) : filteredOrders.length === 0 ? (
-          <div className="card p-12 text-center">
-            <div className="w-14 h-14 mx-auto rounded-full bg-ink-800 flex items-center justify-center mb-4">
-              <Icon name="receipt" className="w-6 h-6 text-ink-400" />
-            </div>
-            {isFiltering ? (
-              <>
-                <h3 className="font-semibold text-white mb-1">No transactions match</h3>
-                <p className="text-sm text-ink-400 mb-5">Change the keyword or status filter.</p>
-                <button onClick={() => setSearchParams({})} className="btn-secondary">
-                  Reset filter
-                </button>
-              </>
-            ) : (
-              <>
-                <h3 className="font-semibold text-white mb-1">No transactions yet</h3>
-                <p className="text-sm text-ink-400">Transactions will appear here after the first ticket is ordered.</p>
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="card overflow-hidden">
-            <div className={`hidden lg:grid ${tableCols} gap-4 px-5 py-3 border-b border-ink-700 text-xs text-ink-400`}>
-              <span>Order code</span>
-              <span>Customer</span>
-              <span>Concert</span>
-              <span className="text-right">Total</span>
-              <span>Status</span>
-              <span className="text-right">Created</span>
-            </div>
-
-            <ul className="divide-y divide-ink-700">
-              {pageItems.map((order) => (
-                <li
-                  key={order.id}
-                  className={`relative grid grid-cols-2 ${tableCols} gap-x-4 gap-y-2 items-center px-5 py-4 hover:bg-ink-800/40 transition-colors`}
-                >
-                  <div className="order-1 lg:order-none">
-                    <button
-                      type="button"
-                      onClick={() => copyCode(order.order_code)}
-                      title="Copy order code"
-                      className={`relative z-10 inline-flex items-center gap-1.5 text-xs font-mono text-ink-300 hover:text-white transition-colors rounded ${focusRing}`}
-                    >
-                      {copiedCode === order.order_code ? 'Copied' : order.order_code}
-                      <Icon
-                        name={copiedCode === order.order_code ? 'check' : 'copy'}
-                        className={`w-3 h-3 ${copiedCode === order.order_code ? 'text-emerald-400' : ''}`}
-                      />
-                    </button>
-                  </div>
-
-                  <div className="order-3 lg:order-none col-span-2 lg:col-span-1 min-w-0">
-                    <button
-                      type="button"
-                      onClick={() => openDetail(order.id)}
-                      className={`text-left font-medium text-white truncate max-w-full rounded after:absolute after:inset-0 after:content-[''] ${focusRing}`}
-                    >
-                      {order.customer_name}
-                    </button>
-                    {order.customer_email && (
-                      <p className="text-xs text-ink-400 truncate">{order.customer_email}</p>
-                    )}
-                  </div>
-
-                  <div className="order-4 lg:order-none col-span-2 lg:col-span-1 min-w-0">
-                    <p className="text-sm text-ink-200 truncate">{order.concert_name}</p>
-                    <p className="text-xs text-ink-400 truncate">
-                      {order.ticket_category_name} × {order.qty}
-                    </p>
-                  </div>
-
-                  <div className="order-5 lg:order-none lg:text-right">
-                    <p className="font-semibold text-flame-400 font-mono tabular-nums">
-                      {formatRupiah(order.total_price)}
-                    </p>
-                  </div>
-
-                  <div className="order-2 lg:order-none justify-self-end lg:justify-self-start">
-                    <StatusBadge status={order.status} />
-                  </div>
-
-                  <div className="order-6 lg:order-none text-right justify-self-end">
-                    <p className="text-xs text-ink-300">{formatDate(order.created_at)}</p>
-                    <p className="text-xs text-ink-400 font-mono tabular-nums">{formatTime(order.created_at)}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            {filteredOrders.length > PAGE_SIZE && (
-              <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-ink-700 text-xs text-ink-400">
-                <span>
-                  Showing{' '}
-                  <span className="text-white font-mono tabular-nums">
-                    {pageStart + 1}-{Math.min(pageStart + PAGE_SIZE, filteredOrders.length)}
-                  </span>{' '}
-                  of <span className="font-mono tabular-nums">{filteredOrders.length}</span>
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setPage(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className={`px-3 py-1.5 rounded-md bg-ink-800 hover:bg-ink-700 text-ink-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${focusRing}`}
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => setPage(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className={`px-3 py-1.5 rounded-md bg-ink-800 hover:bg-ink-700 text-ink-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${focusRing}`}
-                  >
-                    Next
-                  </button>
-                </div>
+          {/* Summary */}
+          {!loading && orders.length > 0 && (
+            <div className="bg-white border border-amber-200/60 rounded-2xl grid grid-cols-2 divide-x divide-amber-200/60 mb-6">
+              <div className="p-4">
+                <p className="font-serif text-xs text-amber-700/70">Transactions found</p>
+                <p className="font-serif text-xl font-bold text-amber-950 font-mono tabular-nums mt-1.5 leading-none">
+                  {filteredOrders.length}
+                </p>
               </div>
-            )}
-          </div>
-        )}
+              <div className="p-4">
+                <p className="font-serif text-xs text-amber-700/70">Paid revenue</p>
+                <p className="font-serif text-xl font-bold text-amber-700 font-mono tabular-nums mt-1.5 leading-none">
+                  {formatRupiah(paidRevenue)}
+                </p>
+              </div>
+            </div>
+          )}
 
-        {/* Detail drawer */}
-        <AnimatePresence>
-          {selectedId && (
-            <>
-              <motion.div
-                key="overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                onClick={closeDrawer}
-                className="fixed inset-0 bg-black/60 z-[60]"
-                aria-hidden="true"
+          {/* Search and status */}
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
+            <div className="flex gap-1 p-1 bg-white border border-amber-200/60 rounded-xl overflow-x-auto self-start">
+              {statusTabs.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => updateParams({ status: tab.value })}
+                  aria-pressed={status === tab.value}
+                  className={`px-3.5 py-1.5 rounded-lg font-serif text-xs whitespace-nowrap transition-colors ${
+                    status === tab.value
+                      ? 'bg-amber-800 text-amber-50'
+                      : 'text-amber-700/70 hover:text-amber-900'
+                  } ${focusRing}`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative flex-1 lg:max-w-sm lg:ml-auto">
+              <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500" />
+              <input
+                ref={searchRef}
+                type="text"
+                aria-label="Search transactions"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+                placeholder="Search order code, name, email, or concert"
+                value={search}
+                onChange={(e) => updateParams({ q: e.target.value }, true)}
               />
-              <motion.aside
-                key="drawer"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="order-title"
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ duration: 0.22, ease: 'easeOut' }}
-                className="fixed inset-y-0 right-0 z-[70] w-full max-w-md"
-              >
-                <div className="card !rounded-none !border-y-0 !border-r-0 h-full flex flex-col">
-                  <div className="flex items-start justify-between gap-3 p-5 border-b border-ink-700">
-                    <div className="min-w-0">
-                      {base && (
-                        <button
-                          type="button"
-                          onClick={() => copyCode(base.order_code)}
-                          title="Copy order code"
-                          className={`inline-flex items-center gap-1.5 text-xs font-mono text-ink-400 hover:text-white transition-colors rounded ${focusRing}`}
-                        >
-                          {copiedCode === base.order_code ? 'Copied' : base.order_code}
-                          <Icon
-                            name={copiedCode === base.order_code ? 'check' : 'copy'}
-                            className={`w-3 h-3 ${copiedCode === base.order_code ? 'text-emerald-400' : ''}`}
-                          />
-                        </button>
-                      )}
-                      <h2 id="order-title" className="font-semibold text-white mt-1 truncate">
-                        {base?.concert_name || 'Transaction detail'}
-                      </h2>
+            </div>
+          </div>
+
+          {/* Table */}
+          {loading ? (
+            <SkeletonRows />
+          ) : filteredOrders.length === 0 ? (
+            <div className="bg-white border border-amber-200/60 rounded-2xl p-12 text-center">
+              <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 border border-amber-200/60 flex items-center justify-center mb-4">
+                <Icon name="receipt" className="w-6 h-6 text-amber-600" />
+              </div>
+              {isFiltering ? (
+                <>
+                  <h3 className="font-serif font-semibold text-amber-950 mb-1">No transactions match</h3>
+                  <p className="font-serif text-sm text-amber-700/70 mb-5">Change the keyword or status filter.</p>
+                  <button
+                    onClick={() => setSearchParams({})}
+                    className="px-4 py-2 bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-900 font-serif text-sm rounded-xl transition-colors"
+                  >
+                    Reset filter
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-serif font-semibold text-amber-950 mb-1">No transactions yet</h3>
+                  <p className="font-serif text-sm text-amber-700/70">Transactions will appear here after the first ticket is ordered.</p>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white border border-amber-200/60 rounded-2xl overflow-hidden">
+              <div className={`hidden lg:grid ${tableCols} gap-4 px-5 py-3 border-b border-amber-200/60 font-serif text-xs text-amber-700/70`}>
+                <span>Order code</span>
+                <span>Customer</span>
+                <span>Concert</span>
+                <span className="text-right">Total</span>
+                <span>Status</span>
+                <span className="text-right">Created</span>
+              </div>
+
+              <ul className="divide-y divide-amber-200/60">
+                {pageItems.map((order) => (
+                  <li
+                    key={order.id}
+                    className={`relative grid grid-cols-2 ${tableCols} gap-x-4 gap-y-2 items-center px-5 py-4 hover:bg-amber-50/60 transition-colors`}
+                  >
+                    <div className="order-1 lg:order-none">
+                      <button
+                        type="button"
+                        onClick={() => copyCode(order.order_code)}
+                        title="Copy order code"
+                        className={`relative z-10 inline-flex items-center gap-1.5 font-mono text-xs text-amber-800 hover:text-amber-950 transition-colors rounded ${focusRing}`}
+                      >
+                        {copiedCode === order.order_code ? 'Copied' : order.order_code}
+                        <Icon
+                          name={copiedCode === order.order_code ? 'check' : 'copy'}
+                          className={`w-3 h-3 ${copiedCode === order.order_code ? 'text-emerald-600' : ''}`}
+                        />
+                      </button>
                     </div>
+
+                    <div className="order-3 lg:order-none col-span-2 lg:col-span-1 min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => openDetail(order.id)}
+                        className={`text-left font-serif font-medium text-amber-950 truncate max-w-full rounded after:absolute after:inset-0 after:content-[''] ${focusRing}`}
+                      >
+                        {order.customer_name}
+                      </button>
+                      {order.customer_email && (
+                        <p className="font-serif text-xs text-amber-700/60 truncate">{order.customer_email}</p>
+                      )}
+                    </div>
+
+                    <div className="order-4 lg:order-none col-span-2 lg:col-span-1 min-w-0">
+                      <p className="font-serif text-sm text-amber-900 truncate">{order.concert_name}</p>
+                      <p className="font-serif text-xs text-amber-700/60 truncate">
+                        {order.ticket_category_name} × {order.qty}
+                      </p>
+                    </div>
+
+                    <div className="order-5 lg:order-none lg:text-right">
+                      <p className="font-serif font-semibold text-amber-700 font-mono tabular-nums">
+                        {formatRupiah(order.total_price)}
+                      </p>
+                    </div>
+
+                    <div className="order-2 lg:order-none justify-self-end lg:justify-self-start">
+                      <StatusBadge status={order.status} />
+                    </div>
+
+                    <div className="order-6 lg:order-none text-right justify-self-end">
+                      <p className="font-serif text-xs text-amber-800">{formatDate(order.created_at)}</p>
+                      <p className="font-serif text-xs text-amber-600/60 font-mono tabular-nums">{formatTime(order.created_at)}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {filteredOrders.length > PAGE_SIZE && (
+                <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-amber-200/60 font-serif text-xs text-amber-700/70">
+                  <span>
+                    Showing{' '}
+                    <span className="text-amber-950 font-mono tabular-nums">
+                      {pageStart + 1}-{Math.min(pageStart + PAGE_SIZE, filteredOrders.length)}
+                    </span>{' '}
+                    of <span className="font-mono tabular-nums">{filteredOrders.length}</span>
+                  </span>
+                  <div className="flex gap-2">
                     <button
-                      onClick={closeDrawer}
-                      aria-label="Close"
-                      className={`p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors ${focusRing}`}
+                      onClick={() => setPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1.5 rounded-lg bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-serif ${focusRing}`}
                     >
-                      <Icon name="close" className="w-5 h-5" />
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => setPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1.5 rounded-lg bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-serif ${focusRing}`}
+                    >
+                      Next
                     </button>
                   </div>
+                </div>
+              )}
+            </div>
+          )}
 
-                  <div className="flex-1 overflow-y-auto p-5 space-y-5">
-                    {base && (
-                      <div className="flex items-center gap-3">
-                        <StatusBadge status={base.status} />
-                        <span className="text-xs text-ink-400">
-                          Created {formatDate(base.created_at)}, {formatTime(base.created_at)}
-                        </span>
+          {/* Detail drawer */}
+          <AnimatePresence>
+            {selectedId && (
+              <>
+                <motion.div
+                  key="overlay"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={closeDrawer}
+                  className="fixed inset-0 bg-amber-950/50 z-[60]"
+                  aria-hidden="true"
+                />
+                <motion.aside
+                  key="drawer"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="order-title"
+                  initial={{ x: '100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '100%' }}
+                  transition={{ duration: 0.22, ease: 'easeOut' }}
+                  className="fixed inset-y-0 right-0 z-[70] w-full max-w-md"
+                >
+                  <div className="bg-white !rounded-none !border-y-0 !border-r-0 h-full flex flex-col border-l border-amber-200/60 shadow-2xl">
+                    <div className="flex items-start justify-between gap-3 p-5 border-b border-amber-200/60">
+                      <div className="min-w-0">
+                        {base && (
+                          <button
+                            type="button"
+                            onClick={() => copyCode(base.order_code)}
+                            title="Copy order code"
+                            className={`inline-flex items-center gap-1.5 font-mono text-xs text-amber-700/70 hover:text-amber-950 transition-colors rounded ${focusRing}`}
+                          >
+                            {copiedCode === base.order_code ? 'Copied' : base.order_code}
+                            <Icon
+                              name={copiedCode === base.order_code ? 'check' : 'copy'}
+                              className={`w-3 h-3 ${copiedCode === base.order_code ? 'text-emerald-600' : ''}`}
+                            />
+                          </button>
+                        )}
+                        <h2 id="order-title" className="font-serif font-semibold text-amber-950 mt-1 truncate">
+                          {base?.concert_name || 'Transaction detail'}
+                        </h2>
                       </div>
-                    )}
+                      <button
+                        onClick={closeDrawer}
+                        aria-label="Close"
+                        className={`p-1.5 rounded-lg text-amber-500 hover:text-amber-900 hover:bg-amber-100 transition-colors ${focusRing}`}
+                      >
+                        <Icon name="close" className="w-5 h-5" />
+                      </button>
+                    </div>
 
-                    {base && (
-                      <div className="rounded-xl border border-ink-700 divide-y divide-ink-700">
-                        <div className="p-4">
-                          <p className="text-sm font-medium text-white">{base.customer_name}</p>
-                          {(detail?.customer_email || base.customer_email) && (
-                            <p className="text-xs text-ink-400 mt-0.5">
-                              {detail?.customer_email || base.customer_email}
-                            </p>
-                          )}
+                    <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                      {base && (
+                        <div className="flex items-center gap-3">
+                          <StatusBadge status={base.status} />
+                          <span className="font-serif text-xs text-amber-700/70">
+                            Created {formatDate(base.created_at)}, {formatTime(base.created_at)}
+                          </span>
                         </div>
-                        <div className="flex items-center justify-between gap-3 p-4">
-                          <div className="flex items-center gap-2.5 text-sm text-ink-200 min-w-0">
-                            <Icon name="ticket" className="w-4 h-4 text-flame-400 shrink-0" />
-                            <span className="truncate">{base.ticket_category_name}</span>
-                          </div>
-                          <span className="text-sm text-white font-mono tabular-nums shrink-0">× {base.qty}</span>
-                        </div>
-                      </div>
-                    )}
+                      )}
 
-                    {detailLoading || !detail ? (
-                      <div className="animate-pulse space-y-3" aria-hidden="true">
-                        <div className="h-32 bg-ink-800/60 rounded-xl" />
-                        <div className="h-16 bg-ink-800/60 rounded-xl" />
-                      </div>
-                    ) : (
-                      <>
-                        {/* Receipt */}
-                        <div className="rounded-xl border border-dashed border-ink-700 divide-y divide-dashed divide-ink-700 text-sm">
-                          <div className="p-4 space-y-2">
-                            <div className="flex justify-between text-ink-300">
-                              <span>Ticket subtotal</span>
-                              <span className="font-mono tabular-nums">
-                                {formatRupiah(detail.unit_price * detail.qty)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between text-ink-300">
-                              <span>Service fee</span>
-                              <span className="font-mono tabular-nums">{formatRupiah(detail.platform_fee_amount)}</span>
-                            </div>
-                            {detail.discount_amount > 0 && (
-                              <div className="flex justify-between text-emerald-400">
-                                <span>Discount</span>
-                                <span className="font-mono tabular-nums">-{formatRupiah(detail.discount_amount)}</span>
-                              </div>
+                      {base && (
+                        <div className="rounded-xl border border-amber-200/60 divide-y divide-amber-200/60">
+                          <div className="p-4">
+                            <p className="font-serif font-medium text-amber-950">{base.customer_name}</p>
+                            {(detail?.customer_email || base.customer_email) && (
+                              <p className="font-serif text-xs text-amber-700/70 mt-0.5">
+                                {detail?.customer_email || base.customer_email}
+                              </p>
                             )}
                           </div>
-                          <div className="flex items-center justify-between p-4">
-                            <span className="font-semibold text-white">Total paid</span>
-                            <span className="text-lg font-bold text-flame-400 font-mono tabular-nums">
-                              {formatRupiah(detail.total_price)}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between px-4 py-3 text-xs text-ink-400">
-                            <span>EO share</span>
-                            <span className="font-mono tabular-nums">{formatRupiah(detail.eo_payout_amount)}</span>
+                          <div className="flex items-center justify-between gap-3 p-4">
+                            <div className="flex items-center gap-2.5 font-serif text-sm text-amber-900 min-w-0">
+                              <Icon name="ticket" className="w-4 h-4 text-amber-500 shrink-0" />
+                              <span className="truncate">{base.ticket_category_name}</span>
+                            </div>
+                            <span className="font-serif text-sm text-amber-950 font-mono tabular-nums shrink-0">× {base.qty}</span>
                           </div>
                         </div>
+                      )}
 
-                        {detail.xendit_payment_channel && (
-                          <div className="flex items-start gap-3 p-4 rounded-xl border border-ink-700">
-                            <span className="w-9 h-9 rounded-lg bg-flame-500/10 text-flame-400 flex items-center justify-center shrink-0">
-                              <Icon name="bank" className="w-[18px] h-[18px]" />
-                            </span>
-                            <div>
-                              <p className="text-xs text-ink-400">Paid via</p>
-                              <p className="text-sm font-medium text-white mt-0.5">{detail.xendit_payment_channel}</p>
-                              <p className="text-xs text-ink-400 mt-0.5">
-                                {formatDate(detail.paid_at)}, {formatTime(detail.paid_at)}
-                              </p>
+                      {detailLoading || !detail ? (
+                        <div className="animate-pulse space-y-3" aria-hidden="true">
+                          <div className="h-32 bg-amber-100 rounded-xl" />
+                          <div className="h-16 bg-amber-100 rounded-xl" />
+                        </div>
+                      ) : (
+                        <>
+                          {/* Receipt */}
+                          <div className="rounded-xl border border-dashed border-amber-200/60 divide-y divide-dashed divide-amber-200/60 font-serif text-sm">
+                            <div className="p-4 space-y-2">
+                              <div className="flex justify-between text-amber-800/80">
+                                <span>Ticket subtotal</span>
+                                <span className="font-mono tabular-nums">
+                                  {formatRupiah(detail.unit_price * detail.qty)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-amber-800/80">
+                                <span>Service fee</span>
+                                <span className="font-mono tabular-nums">{formatRupiah(detail.platform_fee_amount)}</span>
+                              </div>
+                              {detail.discount_amount > 0 && (
+                                <div className="flex justify-between text-emerald-700">
+                                  <span>Discount</span>
+                                  <span className="font-mono tabular-nums">-{formatRupiah(detail.discount_amount)}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between p-4">
+                              <span className="font-serif font-semibold text-amber-950">Total paid</span>
+                              <span className="font-serif text-lg font-bold text-amber-700 font-mono tabular-nums">
+                                {formatRupiah(detail.total_price)}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between px-4 py-3 font-serif text-xs text-amber-700/70">
+                              <span>EO share</span>
+                              <span className="font-mono tabular-nums">{formatRupiah(detail.eo_payout_amount)}</span>
                             </div>
                           </div>
-                        )}
 
-                        {detail.status === 'lunas' && (
-                          <div className="flex items-center justify-between p-4 rounded-xl border border-ink-700">
-                            <span className="text-sm text-ink-300">Payout to EO</span>
-                            <StatusBadge status={detail.payout_status} />
-                          </div>
-                        )}
-                      </>
-                    )}
+                          {detail.xendit_payment_channel && (
+                            <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-200/60">
+                              <span className="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                                <Icon name="bank" className="w-[18px] h-[18px]" />
+                              </span>
+                              <div>
+                                <p className="font-serif text-xs text-amber-700/70">Paid via</p>
+                                <p className="font-serif text-sm font-medium text-amber-950 mt-0.5">{detail.xendit_payment_channel}</p>
+                                <p className="font-serif text-xs text-amber-700/70 mt-0.5">
+                                  {formatDate(detail.paid_at)}, {formatTime(detail.paid_at)}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {detail.status === 'lunas' && (
+                            <div className="flex items-center justify-between p-4 rounded-xl border border-amber-200/60">
+                              <span className="font-serif text-sm text-amber-800/80">Payout to EO</span>
+                              <StatusBadge status={detail.payout_status} />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    <div className="p-4 border-t border-amber-200/60">
+                      <button
+                        onClick={closeDrawer}
+                        className="w-full py-2.5 bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-900 font-serif text-sm rounded-xl transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
                   </div>
-
-                  <div className="p-4 border-t border-ink-700">
-                    <button onClick={closeDrawer} className="btn-secondary w-full">
-                      Close
-                    </button>
-                  </div>
-                </div>
-              </motion.aside>
-            </>
-          )}
-        </AnimatePresence>
-
-        {/* Toast */}
-        <div className="fixed bottom-6 inset-x-0 z-[80] flex justify-center px-4 pointer-events-none">
-          <AnimatePresence>
-            {toast && (
-              <motion.div
-                key={toast.id}
-                role="status"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 12 }}
-                transition={{ duration: 0.18 }}
-                className="pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium bg-red-500/10 border-red-500/30 text-red-300"
-              >
-                <Icon name="alert" className="w-4 h-4" />
-                {toast.message}
-              </motion.div>
+                </motion.aside>
+              </>
             )}
           </AnimatePresence>
+
+          {/* Toast */}
+          <div className="fixed bottom-6 inset-x-0 z-[80] flex justify-center px-4 pointer-events-none">
+            <AnimatePresence>
+              {toast && (
+                <motion.div
+                  key={toast.id}
+                  role="status"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 12 }}
+                  transition={{ duration: 0.18 }}
+                  className="pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-lg border font-serif text-sm font-medium bg-red-50 border-red-200/60 text-red-700"
+                >
+                  <Icon name="alert" className="w-4 h-4" />
+                  {toast.message}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </MotionConfig>

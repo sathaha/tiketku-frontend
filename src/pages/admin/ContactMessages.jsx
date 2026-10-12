@@ -121,296 +121,299 @@ export default function ContactMessages() {
   ];
 
   const statusConfig = {
-    unread: { label: 'Unread', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', dot: 'bg-amber-400' },
-    read: { label: 'Read', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', dot: 'bg-blue-400' },
-    replied: { label: 'Replied', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', dot: 'bg-emerald-400' },
+    unread: { label: 'Unread', color: 'text-amber-700', bg: 'bg-amber-100', border: 'border-amber-200/60', dot: 'bg-amber-500' },
+    read: { label: 'Read', color: 'text-blue-700', bg: 'bg-blue-100', border: 'border-blue-200/60', dot: 'bg-blue-500' },
+    replied: { label: 'Replied', color: 'text-emerald-700', bg: 'bg-emerald-100', border: 'border-emerald-200/60', dot: 'bg-emerald-500' },
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="relative mb-6">
-        <div className="absolute -top-8 -left-4 w-40 h-40 bg-flame-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-flame-500/10 flex items-center justify-center relative">
-              <Icon name="inbox" className="w-5 h-5 text-flame-400" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-flame-500 text-white text-[10px] font-bold flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-white tracking-tight">Inbox</h1>
-              <p className="text-sm text-ink-400 mt-0.5">
-                {messages.length} total messages • {unreadCount} unread
-              </p>
+    <div className="min-h-screen bg-[#f5ede4] px-4 py-6">
+      <div className="max-w-6xl mx-auto">
+
+        {/* Header */}
+        <div className="relative mb-6">
+          <div className="absolute -top-8 -left-4 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-amber-100 border border-amber-200/60 flex items-center justify-center relative">
+                <Icon name="inbox" className="w-5 h-5 text-amber-700" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-700 text-amber-50 text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
+              <div>
+                <h1 className="font-serif text-2xl text-amber-950 tracking-tight">Inbox</h1>
+                <p className="font-serif text-sm text-amber-700/60 mt-0.5">
+                  {messages.length} total messages • {unreadCount} unread
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Success Message */}
-      <AnimatePresence>
-        {successMsg && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2 px-4 py-2.5 mb-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm rounded-lg"
-          >
-            <Icon name="check" className="w-4 h-4" />
-            {successMsg}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Search & Filter */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative flex-1">
-          <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
-          <input
-            type="text"
-            placeholder="Search by name, email, or subject..."
-            className="w-full input-field pl-10 bg-ink-800/40"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-1 p-1 bg-ink-800/40 rounded-lg shrink-0">
-          {statusTabs.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setStatusFilter(tab.value)}
-              className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-all ${
-                statusFilter === tab.value
-                  ? 'bg-flame-500 text-white shadow-sm'
-                  : 'text-ink-400 hover:text-white'
-              }`}
+        {/* Success Message */}
+        <AnimatePresence>
+          {successMsg && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-center gap-2 px-4 py-2.5 mb-4 bg-emerald-50 border border-emerald-200/60 text-emerald-700 text-sm rounded-lg font-serif"
             >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+              <Icon name="check" className="w-4 h-4" />
+              {successMsg}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* Messages List */}
-      {loading ? (
-        <Loading />
-      ) : filteredMessages.length === 0 ? (
-        <EmptyState
-          text={
-            searchQuery || statusFilter !== 'all'
-              ? "No messages match the filter."
-              : "No incoming messages yet."
-          }
-        />
-      ) : (
-        <div className="space-y-2">
-          {filteredMessages.map((message, index) => {
-            const config = statusConfig[message.status] || statusConfig.unread;
-            const isUnread = message.status === 'unread';
-
-            return (
-              <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03 }}
-                onClick={() => viewMessage(message)}
-                className={`group card p-4 cursor-pointer transition-all ${
-                  isUnread
-                    ? 'border-flame-500/30 bg-flame-500/5 hover:bg-flame-500/10'
-                    : 'hover:border-ink-600'
+        {/* Search & Filter */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="relative flex-1">
+            <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500" />
+            <input
+              type="text"
+              placeholder="Search by name, email, or subject..."
+              className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-1 p-1 bg-white border border-amber-200/60 rounded-xl shrink-0">
+            {statusTabs.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setStatusFilter(tab.value)}
+                className={`px-3.5 py-1.5 rounded-lg font-serif text-xs transition-all ${
+                  statusFilter === tab.value
+                    ? 'bg-amber-800 text-amber-50 shadow-sm'
+                    : 'text-amber-700/70 hover:text-amber-900'
                 }`}
               >
-                <div className="flex items-start gap-3">
-                  {/* Avatar */}
-                  <div className={`w-10 h-10 rounded-lg ${config.bg} border ${config.border} flex items-center justify-center shrink-0`}>
-                    <Icon name="user" className={`w-4 h-4 ${config.color}`} />
-                  </div>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`font-medium text-sm ${
-                        isUnread ? 'text-white' : 'text-ink-200'
+        {/* Messages List */}
+        {loading ? (
+          <Loading />
+        ) : filteredMessages.length === 0 ? (
+          <EmptyState
+            text={
+              searchQuery || statusFilter !== 'all'
+                ? "No messages match the filter."
+                : "No incoming messages yet."
+            }
+          />
+        ) : (
+          <div className="space-y-2">
+            {filteredMessages.map((message, index) => {
+              const config = statusConfig[message.status] || statusConfig.unread;
+              const isUnread = message.status === 'unread';
+
+              return (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  onClick={() => viewMessage(message)}
+                  className={`group bg-white/90 border rounded-2xl p-4 cursor-pointer transition-all ${
+                    isUnread
+                      ? 'border-amber-300 bg-amber-50/80 hover:bg-amber-50'
+                      : 'border-amber-200/60 hover:border-amber-300 hover:bg-white'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    {/* Avatar */}
+                    <div className={`w-10 h-10 rounded-xl ${config.bg} border ${config.border} flex items-center justify-center shrink-0`}>
+                      <Icon name="user" className={`w-4 h-4 ${config.color}`} />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`font-serif font-semibold text-sm ${
+                          isUnread ? 'text-amber-950' : 'text-amber-900/80'
+                        }`}>
+                          {message.name}
+                        </span>
+                        {isUnread && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                        )}
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${config.bg} ${config.color} border ${config.border} font-serif`}>
+                          {config.label}
+                        </span>
+                      </div>
+
+                      <p className={`font-serif text-sm truncate ${
+                        isUnread ? 'text-amber-950 font-medium' : 'text-amber-800/80'
                       }`}>
-                        {message.name}
-                      </span>
-                      {isUnread && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-flame-500 animate-pulse" />
-                      )}
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${config.bg} ${config.color} border ${config.border}`}>
-                        {config.label}
-                      </span>
+                        {message.subject}
+                      </p>
+
+                      <div className="flex items-center gap-3 mt-1 font-serif text-xs text-amber-700/60">
+                        <span className="flex items-center gap-1">
+                          <Icon name="mail" className="w-3 h-3" />
+                          {message.email}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Icon name="clock" className="w-3 h-3" />
+                          {formatDate(message.created_at)}
+                        </span>
+                      </div>
                     </div>
 
-                    <p className={`text-sm truncate ${
-                      isUnread ? 'text-white font-medium' : 'text-ink-300'
-                    }`}>
-                      {message.subject}
-                    </p>
-
-                    <div className="flex items-center gap-3 mt-1 text-xs text-ink-400">
-                      <span className="flex items-center gap-1">
-                        <Icon name="mail" className="w-3 h-3" />
-                        {message.email}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Icon name="clock" className="w-3 h-3" />
-                        {formatDate(message.created_at)}
-                      </span>
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          viewMessage(message);
+                        }}
+                        className="p-2 rounded-lg text-amber-500 hover:text-amber-900 hover:bg-amber-100 transition-colors"
+                        title="View message"
+                      >
+                        <Icon name="eye" className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(message.id);
+                        }}
+                        className="p-2 rounded-lg text-amber-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title="Delete message"
+                      >
+                        <Icon name="trash" className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Detail Modal */}
+        <AnimatePresence>
+          {selectedMessage && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-amber-950/60 backdrop-blur-md flex items-center justify-center p-4 z-50"
+              onClick={() => setSelectedMessage(null)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="bg-white border border-amber-200/60 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between pb-4 border-b border-amber-200/60 mb-4 shrink-0">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h2 className="font-serif font-bold text-amber-950">{selectedMessage.subject}</h2>
+                    </div>
+                    <div className="flex items-center gap-2 font-serif text-xs text-amber-700/70">
+                      <span>From:</span>
+                      <span className="text-amber-950 font-medium">{selectedMessage.name}</span>
+                      <span>•</span>
+                      <span>{selectedMessage.email}</span>
+                    </div>
+                    <p className="font-serif text-xs text-amber-700/60 mt-1 flex items-center gap-1">
+                      <Icon name="clock" className="w-3 h-3" />
+                      {formatDate(selectedMessage.created_at)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedMessage(null)}
+                    className="p-2 rounded-lg text-amber-500 hover:text-amber-900 hover:bg-amber-100 transition-colors"
+                  >
+                    <Icon name="close" className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Message Content */}
+                <div className="flex-1 overflow-y-auto">
+                  <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4 mb-4">
+                    <p className="font-serif text-sm text-amber-900 leading-relaxed whitespace-pre-wrap">
+                      {selectedMessage.message}
+                    </p>
+                  </div>
+
+                  {/* Reply Section */}
+                  {selectedMessage.reply && (
+                    <div className="bg-emerald-50 border border-emerald-200/60 rounded-xl p-4">
+                      <p className="font-serif text-xs text-emerald-700 font-medium mb-2">Your Reply:</p>
+                      <p className="font-serif text-sm text-emerald-900 leading-relaxed">
+                        {selectedMessage.reply}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Reply Form */}
+                  {!selectedMessage.reply && (
+                    <div className="mt-4">
+                      <label className="block font-serif text-xs font-semibold text-amber-800/70 uppercase tracking-wider mb-2">
+                        Reply to Message
+                      </label>
+                      <textarea
+                        rows={4}
+                        className="w-full bg-white border border-amber-200/60 rounded-xl p-3.5 font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all resize-none"
+                        placeholder="Write your reply..."
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer Actions */}
+                <div className="pt-4 border-t border-amber-200/60 mt-4 shrink-0">
+                  <div className="flex items-center gap-3">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        viewMessage(message);
-                      }}
-                      className="p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors"
-                      title="View message"
+                      onClick={() => setSelectedMessage(null)}
+                      className="flex-1 py-2.5 px-4 rounded-xl font-serif text-xs font-semibold bg-white hover:bg-amber-50 text-amber-900 border border-amber-200/60 transition-colors"
                     >
-                      <Icon name="eye" className="w-4 h-4" />
+                      Close
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(message.id);
-                      }}
-                      className="p-2 rounded-lg text-ink-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                      title="Delete message"
-                    >
-                      <Icon name="trash" className="w-4 h-4" />
-                    </button>
+
+                    {!selectedMessage.reply && (
+                      <button
+                        onClick={handleSendReply}
+                        disabled={!replyText.trim() || sendingReply}
+                        className="flex-1 py-2.5 px-4 rounded-xl font-serif text-xs font-bold bg-amber-800 hover:bg-amber-700 text-amber-50 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                      >
+                        {sendingReply ? (
+                          <>
+                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="reply" className="w-4 h-4" />
+                            Send Reply
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Detail Modal */}
-      <AnimatePresence>
-        {selectedMessage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 z-50"
-            onClick={() => setSelectedMessage(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-ink-900 border border-ink-800 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between pb-4 border-b border-ink-800 mb-4 shrink-0">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h2 className="font-bold text-white">{selectedMessage.subject}</h2>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-ink-400">
-                    <span>From:</span>
-                    <span className="text-ink-200 font-medium">{selectedMessage.name}</span>
-                    <span>•</span>
-                    <span>{selectedMessage.email}</span>
-                  </div>
-                  <p className="text-xs text-ink-400 mt-1 flex items-center gap-1">
-                    <Icon name="clock" className="w-3 h-3" />
-                    {formatDate(selectedMessage.created_at)}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setSelectedMessage(null)}
-                  className="p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-800 transition-colors"
-                >
-                  <Icon name="close" className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Message Content */}
-              <div className="flex-1 overflow-y-auto">
-                <div className="bg-ink-950/50 border border-ink-800 rounded-xl p-4 mb-4">
-                  <p className="text-sm text-ink-200 leading-relaxed whitespace-pre-wrap">
-                    {selectedMessage.message}
-                  </p>
-                </div>
-
-                {/* Reply Section */}
-                {selectedMessage.reply && (
-                  <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
-                    <p className="text-xs text-emerald-400 font-medium mb-2">Your Reply:</p>
-                    <p className="text-sm text-ink-200 leading-relaxed">
-                      {selectedMessage.reply}
-                    </p>
-                  </div>
-                )}
-
-                {/* Reply Form */}
-                {!selectedMessage.reply && (
-                  <div className="mt-4">
-                    <label className="block text-xs font-semibold text-ink-300 uppercase tracking-wider mb-2">
-                      Reply to Message
-                    </label>
-                    <textarea
-                      rows={4}
-                      className="w-full bg-ink-950 border border-ink-800 rounded-xl p-3.5 text-sm text-white placeholder-ink-600 focus:outline-none focus:border-flame-500 transition-colors resize-none"
-                      placeholder="Write your reply..."
-                      value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Footer Actions */}
-              <div className="pt-4 border-t border-ink-800 mt-4 shrink-0">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setSelectedMessage(null)}
-                    className="flex-1 py-2.5 px-4 rounded-xl text-xs font-semibold bg-ink-800 hover:bg-ink-700 text-ink-300 transition-colors"
-                  >
-                    Close
-                  </button>
-
-                  {!selectedMessage.reply && (
-                    <button
-                      onClick={handleSendReply}
-                      disabled={!replyText.trim() || sendingReply}
-                      className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold bg-flame-500 hover:bg-flame-600 text-white transition-all shadow-lg shadow-flame-500/25 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
-                    >
-                      {sendingReply ? (
-                        <>
-                          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          Sending...
-                        </>
-                      ) : (
-                        <>
-                          <Icon name="reply" className="w-4 h-4" />
-                          Send Reply
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
