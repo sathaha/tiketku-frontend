@@ -24,7 +24,7 @@ function Icon({ name, className = 'w-4 h-4' }) {
   );
 }
 
-// Gradient warna untuk icon kategori (index-based)
+// Color gradients for category icons (index-based)
 const categoryColors = [
   { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', gradient: 'from-blue-500 to-blue-600' },
   { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', gradient: 'from-emerald-500 to-emerald-600' },
@@ -86,19 +86,19 @@ export default function Categories() {
       await fetchCategories();
       inputRef.current?.focus();
     } catch (err) {
-      setError(err.response?.data?.message || 'Gagal menyimpan kategori.');
+      setError(err.response?.data?.message || 'Failed to save category.');
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete(id, categoryName) {
-    if (!window.confirm(`Hapus kategori "${categoryName}"?`)) return;
+    if (!window.confirm(`Delete category "${categoryName}"?`)) return;
     try {
       await api.delete(`/categories/${id}`);
       fetchCategories();
     } catch (err) {
-      alert(err.response?.data?.message || 'Gagal menghapus kategori.');
+      alert(err.response?.data?.message || 'Failed to delete category.');
     }
   }
 
@@ -121,7 +121,7 @@ export default function Categories() {
     return categories.filter((c) => c.name.toLowerCase().includes(q));
   }, [categories, query]);
 
-  // Statistik ringkas
+  // Summary stats
   const stats = useMemo(() => {
     const total = categories.length;
     const longest = categories.reduce((max, c) => (c.name.length > max.length ? c : max), { name: '' });
@@ -140,16 +140,16 @@ export default function Categories() {
               <Icon name="tag" className="w-5 h-5 text-flame-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Kelola Kategori</h1>
+              <h1 className="text-2xl font-bold text-white">Manage Categories</h1>
               <p className="text-sm text-ink-400 mt-0.5">
-                {categories.length} kategori terdaftar
+                {categories.length} categories registered
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ===== GRID 2 KOLOM ===== */}
+      {/* ===== 2-COLUMN GRID ===== */}
       <div className="grid lg:grid-cols-3 gap-6 items-start">
 
         {/* ===== LEFT (2/3): FORM + LIST ===== */}
@@ -168,7 +168,7 @@ export default function Categories() {
                   ref={inputRef}
                   required
                   className="w-full input-field pl-10 bg-ink-800/50"
-                  placeholder={editingId ? 'Edit nama kategori...' : 'Nama kategori baru...'}
+                  placeholder={editingId ? 'Edit category name...' : 'New category name...'}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   onFocus={(e) => e.target.select()}
@@ -185,7 +185,7 @@ export default function Categories() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Menyimpan...
+                    Saving...
                   </>
                 ) : editingId ? (
                   <>
@@ -195,7 +195,7 @@ export default function Categories() {
                 ) : (
                   <>
                     <Icon name="plus" className="w-4 h-4" />
-                    Tambah
+                    Add
                   </>
                 )}
               </button>
@@ -205,7 +205,7 @@ export default function Categories() {
                   onClick={cancelEdit}
                   className="btn-secondary whitespace-nowrap px-4"
                 >
-                  Batal
+                  Cancel
                 </button>
               )}
             </div>
@@ -227,31 +227,31 @@ export default function Categories() {
             </AnimatePresence>
           </form>
 
-          {/* SEARCH (kalau kategori > 5) */}
+          {/* SEARCH (if more than 5 categories) */}
           {categories.length > 5 && (
             <div className="relative">
               <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
               <input
                 className="w-full input-field pl-10 bg-ink-800/50"
-                placeholder="Cari kategori..."
+                placeholder="Search categories..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
             </div>
           )}
 
-          {/* LIST CATEGORIES */}
+          {/* CATEGORY LIST */}
           {loading ? (
             <Loading />
           ) : categories.length === 0 ? (
-            <EmptyState text="Belum ada kategori. Tambahkan kategori pertamamu!" />
+            <EmptyState text="No categories yet. Add your first category!" />
           ) : filtered.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-ink-800 flex items-center justify-center">
                 <Icon name="search" className="w-6 h-6 text-ink-500" />
               </div>
               <p className="text-sm text-ink-400">
-                Tidak ada kategori yang cocok dengan &quot;{query}&quot;
+                No categories match &quot;{query}&quot;
               </p>
             </div>
           ) : (
@@ -281,7 +281,7 @@ export default function Categories() {
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          {/* Icon dengan warna bergilir */}
+                          {/* Icon with rotating color */}
                           <div className={`w-10 h-10 rounded-xl ${color.bg} ${color.border} border flex items-center justify-center flex-shrink-0`}>
                             <Icon name="tag" className={`w-4 h-4 ${color.text}`} />
                           </div>
@@ -290,7 +290,7 @@ export default function Categories() {
                               {category.name}
                             </span>
                             <span className="text-xs text-ink-400 mt-0.5 block">
-                              {isEditing ? 'Sedang diedit' : 'Kategori event'}
+                              {isEditing ? 'Currently editing' : 'Event category'}
                             </span>
                           </div>
                         </div>
@@ -299,14 +299,14 @@ export default function Categories() {
                           <button
                             onClick={() => startEdit(category)}
                             className="p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-all"
-                            aria-label={`Edit kategori ${category.name}`}
+                            aria-label={`Edit category ${category.name}`}
                           >
                             <Icon name="edit" className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(category.id, category.name)}
                             className="p-2 rounded-lg text-ink-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                            aria-label={`Hapus kategori ${category.name}`}
+                            aria-label={`Delete category ${category.name}`}
                           >
                             <Icon name="trash" className="w-4 h-4" />
                           </button>
@@ -321,7 +321,7 @@ export default function Categories() {
 
           {!loading && categories.length > 0 && (
             <p className="text-xs text-ink-500 text-center mt-4">
-              Total {categories.length} kategori • Klik ikon edit untuk mengubah
+              Total {categories.length} categories • Click the edit icon to modify
             </p>
           )}
         </div>
@@ -329,24 +329,24 @@ export default function Categories() {
         {/* ===== RIGHT (1/3): SIDEBAR PANEL ===== */}
         <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-6">
 
-          {/* Card: Ringkasan */}
+          {/* Card: Summary */}
           <div className="card p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-flame-500/10 flex items-center justify-center">
                 <Icon name="sparkle" className="w-4 h-4 text-flame-400" />
               </div>
-              <h3 className="font-semibold text-white">Ringkasan</h3>
+              <h3 className="font-semibold text-white">Summary</h3>
             </div>
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-ink-400">Total Kategori</span>
+                <span className="text-xs text-ink-400">Total Categories</span>
                 <span className="text-sm font-bold text-white font-mono tabular-nums">
                   {stats.total}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-ink-400">Ditampilkan</span>
+                <span className="text-xs text-ink-400">Displayed</span>
                 <span className="text-sm font-bold text-white font-mono tabular-nums">
                   {filtered.length}
                 </span>
@@ -354,7 +354,7 @@ export default function Categories() {
               {stats.longest && (
                 <div className="pt-3 border-t border-ink-700/50">
                   <span className="text-[10px] text-ink-500 uppercase tracking-wider block mb-1">
-                    Nama terpanjang
+                    Longest name
                   </span>
                   <span className="text-xs text-ink-200 break-all">
                     {stats.longest}
@@ -373,15 +373,15 @@ export default function Categories() {
             <ul className="space-y-2 text-xs text-ink-400 leading-relaxed">
               <li className="flex items-start gap-2">
                 <span className="w-1 h-1 rounded-full bg-flame-400 mt-1.5 flex-shrink-0" />
-                Gunakan nama kategori yang singkat dan jelas.
+                Use short and clear category names.
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1 h-1 rounded-full bg-flame-400 mt-1.5 flex-shrink-0" />
-                Kategori akan muncul di filter event user.
+                Categories will appear in the user's event filter.
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1 h-1 rounded-full bg-flame-400 mt-1.5 flex-shrink-0" />
-                Tekan <kbd className="px-1 py-0.5 bg-ink-800 rounded text-[10px] font-mono">Esc</kbd> untuk batal edit.
+                Press <kbd className="px-1 py-0.5 bg-ink-800 rounded text-[10px] font-mono">Esc</kbd> to cancel editing.
               </li>
             </ul>
           </div>

@@ -55,11 +55,11 @@ const ticketCss = `
 `;
 
 const statusMeta = {
-  active: { label: 'Aktif', text: 'text-emerald-400', dot: 'bg-emerald-400', stub: 'text-flame-400' },
-  scheduled: { label: 'Terjadwal', text: 'text-blue-400', dot: 'bg-blue-400', stub: 'text-blue-400' },
-  usedUp: { label: 'Kuota habis', text: 'text-orange-400', dot: 'bg-orange-400', stub: 'text-orange-400' },
-  expired: { label: 'Kedaluwarsa', text: 'text-yellow-400', dot: 'bg-yellow-400', stub: 'text-yellow-400' },
-  inactive: { label: 'Nonaktif', text: 'text-ink-400', dot: 'bg-ink-500', stub: 'text-ink-400' },
+  active: { label: 'Active', text: 'text-emerald-400', dot: 'bg-emerald-400', stub: 'text-flame-400' },
+  scheduled: { label: 'Scheduled', text: 'text-blue-400', dot: 'bg-blue-400', stub: 'text-blue-400' },
+  usedUp: { label: 'Quota exhausted', text: 'text-orange-400', dot: 'bg-orange-400', stub: 'text-orange-400' },
+  expired: { label: 'Expired', text: 'text-yellow-400', dot: 'bg-yellow-400', stub: 'text-yellow-400' },
+  inactive: { label: 'Inactive', text: 'text-ink-400', dot: 'bg-ink-500', stub: 'text-ink-400' },
 };
 
 function getStatus(p) {
@@ -148,7 +148,7 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
               checked={!!promo.is_active}
               disabled={processing}
               onChange={onToggle}
-              label={promo.is_active ? `Nonaktifkan ${promo.code}` : `Aktifkan ${promo.code}`}
+              label={promo.is_active ? `Deactivate ${promo.code}` : `Activate ${promo.code}`}
             />
             <button
               onClick={onEdit}
@@ -160,8 +160,8 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
             </button>
             <button
               onClick={onAskDelete}
-              aria-label={`Hapus ${promo.code}`}
-              title="Hapus promo"
+              aria-label={`Delete ${promo.code}`}
+              title="Delete promo"
               className={`p-2 rounded-lg text-ink-400 hover:text-red-400 hover:bg-red-500/10 transition-colors ${focusRing}`}
             >
               <Icon name="trash" className="w-4 h-4" />
@@ -172,13 +172,13 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
         <div className={dimmed}>
           <p className="flex items-center gap-1.5 text-xs text-ink-400 mt-3">
             <Icon name="calendar" className="w-3.5 h-3.5" />
-            {formatDate(promo.valid_from)} sampai {formatDate(promo.valid_until)}
+            {formatDate(promo.valid_from)} to {formatDate(promo.valid_until)}
           </p>
 
           <div className="mt-4">
             <div className="flex items-center justify-between text-xs text-ink-400 mb-1.5">
               <span>
-                Terpakai <span className="text-ink-200 font-mono tabular-nums">{used}</span> dari{' '}
+                Used <span className="text-ink-200 font-mono tabular-nums">{used}</span> of{' '}
                 <span className="font-mono tabular-nums">{promo.quota}</span>
               </span>
               <span className="font-mono tabular-nums">{pct}%</span>
@@ -189,7 +189,7 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
               aria-valuenow={pct}
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-label="Pemakaian kuota"
+              aria-label="Quota usage"
             >
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
@@ -207,17 +207,17 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
             className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2.5"
           >
             <p className="text-sm text-red-300">
-              Hapus <span className="font-mono font-semibold">{promo.code}</span>?{' '}
+              Delete <span className="font-mono font-semibold">{promo.code}</span>?{' '}
               {used > 0
-                ? `Sudah dipakai ${used} kali, menonaktifkannya lebih aman.`
-                : 'Tindakan ini tidak bisa dibatalkan.'}
+                ? `It has been used ${used} times, deactivating it is safer.`
+                : 'This action cannot be undone.'}
             </p>
             <div className="flex gap-2">
               <button
                 onClick={onCancelDelete}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium text-ink-200 hover:bg-ink-700 transition-colors ${focusRing}`}
               >
-                Batal
+                Cancel
               </button>
               <button
                 onClick={onDelete}
@@ -225,7 +225,7 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
                 className={`px-3 py-1.5 rounded-md text-xs font-medium bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-60 inline-flex items-center gap-1.5 ${focusRing}`}
               >
                 {deleting && <Spinner className="h-3 w-3" />}
-                Hapus promo
+                Delete promo
               </button>
             </div>
           </div>
@@ -244,7 +244,7 @@ function PromoRow({ promo, status, processing, confirming, deleting, onEdit, onT
           {label}
         </p>
         <p className="text-xs text-ink-400 mt-1.5">
-          {promo.discount_type === 'percentage' ? 'diskon' : 'potongan'}
+          {promo.discount_type === 'percentage' ? 'off' : 'off'}
         </p>
       </div>
     </li>
@@ -271,11 +271,11 @@ function SkeletonList() {
 }
 
 const tabs = [
-  { value: 'all', label: 'Semua' },
-  { value: 'active', label: 'Aktif' },
-  { value: 'scheduled', label: 'Terjadwal' },
-  { value: 'ended', label: 'Berakhir' },
-  { value: 'inactive', label: 'Nonaktif' },
+  { value: 'all', label: 'All' },
+  { value: 'active', label: 'Active' },
+  { value: 'scheduled', label: 'Scheduled' },
+  { value: 'ended', label: 'Ended' },
+  { value: 'inactive', label: 'Inactive' },
 ];
 
 export default function Promos() {
@@ -339,19 +339,19 @@ export default function Promos() {
     setError('');
 
     if (form.discount_type === 'percentage' && Number(form.discount_value) > 100) {
-      setError('Persentase diskon tidak boleh lebih dari 100%.');
+      setError('Discount percentage cannot be greater than 100%.');
       return;
     }
     if (Number(form.discount_value) <= 0) {
-      setError('Nilai diskon harus lebih dari 0.');
+      setError('Discount value must be greater than 0.');
       return;
     }
     if (Number(form.quota) <= 0) {
-      setError('Kuota harus lebih dari 0.');
+      setError('Quota must be greater than 0.');
       return;
     }
     if (form.valid_from && form.valid_until && form.valid_from > form.valid_until) {
-      setError('Tanggal mulai tidak boleh setelah tanggal berakhir.');
+      setError('Start date cannot be after the end date.');
       return;
     }
 
@@ -359,15 +359,15 @@ export default function Promos() {
     try {
       if (editingId) {
         await api.put(`/promos/${editingId}`, form);
-        notify('success', 'Promo diperbarui');
+        notify('success', 'Promo updated');
       } else {
         await api.post('/promos', form);
-        notify('success', 'Promo disimpan');
+        notify('success', 'Promo saved');
       }
       resetForm();
       fetchPromos(true);
     } catch (err) {
-      setError(err.response?.data?.message || 'Gagal menyimpan promo.');
+      setError(err.response?.data?.message || 'Failed to save promo.');
     } finally {
       setSaving(false);
     }
@@ -377,10 +377,10 @@ export default function Promos() {
     setProcessingId(p.id);
     try {
       await api.put(`/promos/${p.id}`, { ...p, is_active: !p.is_active });
-      notify('success', p.is_active ? `${p.code} dinonaktifkan` : `${p.code} diaktifkan`);
+      notify('success', p.is_active ? `${p.code} deactivated` : `${p.code} activated`);
       await fetchPromos(true);
     } catch (err) {
-      notify('error', err.response?.data?.message || 'Gagal mengubah status promo.');
+      notify('error', err.response?.data?.message || 'Failed to change promo status.');
     } finally {
       setProcessingId(null);
     }
@@ -391,10 +391,10 @@ export default function Promos() {
     try {
       await api.delete(`/promos/${promo.id}`);
       setConfirmId(null);
-      notify('success', `${promo.code} dihapus`);
+      notify('success', `${promo.code} deleted`);
       fetchPromos(true);
     } catch (err) {
-      notify('error', err.response?.data?.message || 'Gagal menghapus promo.');
+      notify('error', err.response?.data?.message || 'Failed to delete promo.');
     } finally {
       setDeletingId(null);
     }
@@ -484,9 +484,9 @@ export default function Promos() {
         {/* Header */}
         <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white">Promo & voucher</h1>
+            <h1 className="text-2xl font-bold text-white">Promos & vouchers</h1>
             <p className="text-sm text-ink-400 mt-1">
-              {loading ? 'Memuat promo...' : `${promos.length} promo terdaftar`}
+              {loading ? 'Loading promos...' : `${promos.length} promos registered`}
             </p>
           </div>
           <button
@@ -494,7 +494,7 @@ export default function Promos() {
             className="btn-primary inline-flex items-center gap-2 self-start sm:self-auto"
           >
             <Icon name="plus" className="w-4 h-4" />
-            Tambah promo
+            Add promo
           </button>
         </header>
 
@@ -502,9 +502,9 @@ export default function Promos() {
         {!loading && promos.length > 0 && (
           <div className="card grid grid-cols-3 divide-x divide-ink-700 mb-6">
             {[
-              { value: counts.active, label: 'Promo berjalan' },
-              { value: totalUsed, label: 'Kupon terpakai' },
-              { value: nearlyOut, label: 'Kuota hampir habis' },
+              { value: counts.active, label: 'Running promos' },
+              { value: totalUsed, label: 'Coupons used' },
+              { value: nearlyOut, label: 'Quota nearly used up' },
             ].map((s) => (
               <div key={s.label} className="p-4">
                 <p className="text-xl font-bold text-white font-mono tabular-nums leading-none">{s.value}</p>
@@ -520,8 +520,8 @@ export default function Promos() {
             <Icon name="search" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
             <input
               type="text"
-              aria-label="Cari promo"
-              placeholder="Cari kode atau deskripsi"
+              aria-label="Search promos"
+              placeholder="Search code or description"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full input-field pl-10 bg-ink-800/40"
@@ -554,21 +554,21 @@ export default function Promos() {
             </div>
             {isFiltering ? (
               <>
-                <h3 className="font-semibold text-white mb-1">Tidak ada promo yang cocok</h3>
-                <p className="text-sm text-ink-400 mb-5">Ubah kata kunci atau filter status.</p>
+                <h3 className="font-semibold text-white mb-1">No promos match</h3>
+                <p className="text-sm text-ink-400 mb-5">Change the keyword or status filter.</p>
                 <button onClick={resetFilters} className="btn-secondary">
                   Reset filter
                 </button>
               </>
             ) : (
               <>
-                <h3 className="font-semibold text-white mb-1">Belum ada promo</h3>
+                <h3 className="font-semibold text-white mb-1">No promos yet</h3>
                 <p className="text-sm text-ink-400 mb-5">
-                  Buat kode promo untuk mendorong penjualan konser yang masih sepi peminat.
+                  Create a promo code to boost sales for concerts that still need more attendees.
                 </p>
                 <button onClick={openCreateForm} className="btn-primary inline-flex items-center gap-2">
                   <Icon name="plus" className="w-4 h-4" />
-                  Buat promo pertama
+                  Create first promo
                 </button>
               </>
             )}
@@ -623,16 +623,16 @@ export default function Promos() {
                     <div className="flex items-start justify-between gap-3 p-5 border-b border-ink-700">
                       <div>
                         <h2 id="promo-form-title" className="font-semibold text-white">
-                          {editingId ? 'Edit promo' : 'Buat promo baru'}
+                          {editingId ? 'Edit promo' : 'Create new promo'}
                         </h2>
                         <p className="text-xs text-ink-400 mt-0.5">
-                          {editingId ? 'Perbarui detail promo' : 'Lengkapi detail promo di bawah ini'}
+                          {editingId ? 'Update the promo details' : 'Fill in the promo details below'}
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={resetForm}
-                        aria-label="Tutup form"
+                        aria-label="Close form"
                         className={`p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors ${focusRing}`}
                       >
                         <Icon name="close" className="w-5 h-5" />
@@ -648,10 +648,10 @@ export default function Promos() {
                         >
                           <div className="p-4 min-w-0">
                             <p className="font-mono font-bold text-flame-400 truncate">
-                              {form.code || 'KODEPROMO'}
+                              {form.code || 'PROMOCODE'}
                             </p>
                             <p className="text-xs text-ink-400 mt-1 truncate">
-                              {form.description || 'Deskripsi promo'}
+                              {form.description || 'Promo description'}
                             </p>
                           </div>
                           <div className="flex flex-col justify-center text-center px-3 py-4 border-l border-dashed border-ink-700">
@@ -662,13 +662,13 @@ export default function Promos() {
                             >
                               {previewLabel}
                             </p>
-                            <p className="text-xs text-ink-400 mt-1.5">{isFixed ? 'potongan' : 'diskon'}</p>
+                            <p className="text-xs text-ink-400 mt-1.5">{isFixed ? 'off' : 'off'}</p>
                           </div>
                         </div>
                         <p className="text-xs text-ink-400 mt-2.5">
                           {previewValid
-                            ? `Contoh: tiket ${formatRupiah(SAMPLE_PRICE)} jadi ${formatRupiah(previewPrice)}`
-                            : 'Isi nilai diskon untuk melihat contoh potongan harga.'}
+                            ? `Example: a ${formatRupiah(SAMPLE_PRICE)} ticket becomes ${formatRupiah(previewPrice)}`
+                            : 'Enter a discount value to see a sample discount.'}
                         </p>
                       </div>
 
@@ -677,14 +677,14 @@ export default function Promos() {
                         <div>
                           <div className="flex items-center justify-between mb-1.5">
                             <label htmlFor="promo-code" className="block text-sm text-ink-200">
-                              Kode promo
+                              Promo code
                             </label>
                             <button
                               type="button"
                               onClick={() => setForm({ ...form, code: randomCode() })}
                               className={`text-xs text-flame-400 hover:text-flame-300 font-medium rounded ${focusRing}`}
                             >
-                              Buat kode acak
+                              Generate random code
                             </button>
                           </div>
                           <input
@@ -700,12 +700,12 @@ export default function Promos() {
 
                         <div>
                           <label htmlFor="promo-desc" className="block text-sm text-ink-200 mb-1.5">
-                            Deskripsi <span className="text-ink-400">(opsional)</span>
+                            Description <span className="text-ink-400">(optional)</span>
                           </label>
                           <input
                             id="promo-desc"
                             className="w-full input-field bg-ink-800/40"
-                            placeholder="Contoh: Diskon 10% untuk semua konser"
+                            placeholder="Example: 10% off for all concerts"
                             value={form.description}
                             onChange={(e) => setForm({ ...form, description: e.target.value })}
                           />
@@ -714,15 +714,15 @@ export default function Promos() {
 
                       {/* Discount */}
                       <div className="pt-6 border-t border-ink-700 space-y-4">
-                        <h3 className="text-sm font-semibold text-white">Diskon</h3>
+                        <h3 className="text-sm font-semibold text-white">Discount</h3>
                         <div
                           role="radiogroup"
-                          aria-label="Tipe diskon"
+                          aria-label="Discount type"
                           className="grid grid-cols-2 gap-1 p-1 bg-ink-800/40 rounded-lg"
                         >
                           {[
-                            { value: 'percentage', label: 'Persentase (%)' },
-                            { value: 'fixed', label: 'Potongan tetap (Rp)' },
+                            { value: 'percentage', label: 'Percentage (%)' },
+                            { value: 'fixed', label: 'Fixed amount (Rp)' },
                           ].map((opt) => (
                             <button
                               key={opt.value}
@@ -743,7 +743,7 @@ export default function Promos() {
 
                         <div>
                           <label htmlFor="promo-value" className="block text-sm text-ink-200 mb-1.5">
-                            Nilai diskon
+                            Discount value
                           </label>
                           <div className="relative">
                             {isFixed && (
@@ -773,10 +773,10 @@ export default function Promos() {
 
                       {/* Quota and period */}
                       <div className="pt-6 border-t border-ink-700 space-y-4">
-                        <h3 className="text-sm font-semibold text-white">Kuota dan periode</h3>
+                        <h3 className="text-sm font-semibold text-white">Quota and period</h3>
                         <div>
                           <label htmlFor="promo-quota" className="block text-sm text-ink-200 mb-1.5">
-                            Kuota penggunaan
+                            Usage quota
                           </label>
                           <input
                             id="promo-quota"
@@ -790,7 +790,7 @@ export default function Promos() {
                           />
                           {editingPromo && (
                             <p className="text-xs text-ink-400 mt-1.5">
-                              Sudah terpakai {editingPromo.used || 0} kali.
+                              Already used {editingPromo.used || 0} times.
                             </p>
                           )}
                         </div>
@@ -798,7 +798,7 @@ export default function Promos() {
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label htmlFor="promo-from" className="block text-sm text-ink-200 mb-1.5">
-                              Berlaku dari
+                              Valid from
                             </label>
                             <input
                               id="promo-from"
@@ -811,7 +811,7 @@ export default function Promos() {
                           </div>
                           <div>
                             <label htmlFor="promo-until" className="block text-sm text-ink-200 mb-1.5">
-                              Berlaku sampai
+                              Valid until
                             </label>
                             <input
                               id="promo-until"
@@ -846,16 +846,16 @@ export default function Promos() {
                           {saving ? (
                             <>
                               <Spinner />
-                              Menyimpan...
+                              Saving...
                             </>
                           ) : editingId ? (
-                            'Perbarui promo'
+                            'Update promo'
                           ) : (
-                            'Simpan promo'
+                            'Save promo'
                           )}
                         </button>
                         <button type="button" onClick={resetForm} className="btn-secondary">
-                          Batal
+                          Cancel
                         </button>
                       </div>
                     </div>

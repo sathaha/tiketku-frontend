@@ -104,7 +104,7 @@ function TicketCard({ ticket, index }) {
       <div className="p-5">
         <div className="flex items-center justify-between mb-3">
           <span className="font-serif text-[9px] tracking-[0.3em] text-amber-600/60 uppercase">
-            E-Tiket #{index + 1}
+            E-Ticket #{index + 1}
           </span>
           <span className="font-mono text-[9px] tracking-[0.2em] text-amber-600/40 bg-amber-50 border border-amber-200/40 rounded-sm px-1.5 py-0.5">
             {ticket.ticket_code}
@@ -133,12 +133,12 @@ function TicketCard({ ticket, index }) {
             {copied ? (
               <>
                 <Icon name="check" className="w-3 h-3 text-emerald-600" />
-                Tersalin!
+                Copied!
               </>
             ) : (
               <>
                 <Icon name="copy" className="w-3 h-3" />
-                Salin Kode
+                Copy Code
               </>
             )}
           </button>
@@ -149,7 +149,7 @@ function TicketCard({ ticket, index }) {
             className="flex items-center gap-1 text-xs font-serif text-amber-700 hover:text-amber-900 transition-colors"
           >
             <Icon name="download" className="w-3 h-3" />
-            Unduh QR
+            Download QR
           </a>
         </div>
       </div>
@@ -159,7 +159,7 @@ function TicketCard({ ticket, index }) {
 
 // ===== STEPPER =====
 function Stepper({ currentStep }) {
-  const steps = ['Dates & Rooms', 'Extras', 'Payment', 'Confirmation'];
+  const steps = ['Select tickets', 'Concert Detail', 'Payment', 'E-ticket'];
 
   return (
     <div className="flex items-center justify-center gap-2 md:gap-4 flex-wrap">
@@ -199,7 +199,7 @@ function Stepper({ currentStep }) {
 }
 
 // ===================================================================
-// ⭐ TESTIMONIAL SECTION — Kirim testimoni platform
+// ⭐ TESTIMONIAL SECTION — Submit a platform testimonial
 // ===================================================================
 function TestimonialSection({ orderId }) {
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -219,7 +219,7 @@ function TestimonialSection({ orderId }) {
   const remaining = MAX_CHARS - text.length;
   const isValid = text.trim().length >= MIN_CHARS && text.length <= MAX_CHARS;
 
-  // Cek apakah sudah pernah kirim testimoni untuk order ini
+  // Check if a testimonial has already been submitted for this order
   useEffect(() => {
     let mounted = true;
     api
@@ -227,7 +227,7 @@ function TestimonialSection({ orderId }) {
       .then((res) => {
         if (!mounted) return;
         setHasSubmitted(res.data.hasSubmitted);
-        // Auto-show form kalau belum pernah kirim
+        // Auto-show form if not yet submitted
         if (!res.data.hasSubmitted) setShowForm(true);
       })
       .catch(() => {})
@@ -254,7 +254,7 @@ function TestimonialSection({ orderId }) {
       setHasSubmitted(true);
       setTimeout(() => setShowForm(false), 2500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Gagal mengirim testimoni');
+      setError(err.response?.data?.message || 'Failed to submit testimonial');
     } finally {
       setSubmitting(false);
     }
@@ -269,7 +269,7 @@ function TestimonialSection({ orderId }) {
     );
   }
 
-  // Kalau sudah pernah kirim & form sudah di-dismiss
+  // If already submitted & form is dismissed
   if (hasSubmitted && !showForm) {
     return (
       <motion.div
@@ -282,17 +282,17 @@ function TestimonialSection({ orderId }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-serif text-sm font-semibold text-emerald-900">
-            Testimoni sudah dikirim
+            Testimonial submitted
           </p>
           <p className="font-serif text-xs text-emerald-700/70 mt-0.5">
-            Terima kasih sudah berbagi pengalamanmu!
+            Thank you for sharing your experience!
           </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
           className="text-xs font-serif text-emerald-700 hover:text-emerald-900 underline"
         >
-          Lihat
+          View
         </button>
       </motion.div>
     );
@@ -314,9 +314,9 @@ function TestimonialSection({ orderId }) {
         >
           <Icon name="check" className="w-8 h-8" />
         </motion.div>
-        <h3 className="font-serif text-2xl text-amber-950 mb-2">Terima kasih!</h3>
+        <h3 className="font-serif text-2xl text-amber-950 mb-2">Thank you!</h3>
         <p className="font-serif text-sm text-amber-800/70">
-          Testimoni kamu sudah kami terima dan akan segera tampil di halaman utama.
+          Your testimonial has been received and will appear on the homepage soon.
         </p>
       </motion.div>
     );
@@ -329,12 +329,12 @@ function TestimonialSection({ orderId }) {
       animate={{ opacity: 1, y: 0 }}
       className="relative bg-[#faf6ef] border-2 border-amber-300/50 rounded-2xl p-6 md:p-8 shadow-xl"
     >
-      {/* Close button (kalau sudah pernah submit, biar bisa dismiss) */}
+      {/* Close button (only if already submitted, so it can be dismissed) */}
       {hasSubmitted && (
         <button
           onClick={() => setShowForm(false)}
           className="absolute top-4 right-4 w-8 h-8 rounded-full bg-amber-100 hover:bg-amber-200 flex items-center justify-center text-amber-700 transition-colors"
-          aria-label="Tutup"
+          aria-label="Close"
         >
           <Icon name="close" className="w-4 h-4" />
         </button>
@@ -346,21 +346,21 @@ function TestimonialSection({ orderId }) {
           <Icon name="quote" className="w-6 h-6 text-amber-700" />
         </div>
         <span className="block font-serif text-[10px] tracking-[0.4em] text-amber-600/80 uppercase mb-2">
-          Gimana Pengalamanmu?
+          How Was Your Experience?
         </span>
         <h3 className="font-serif text-2xl md:text-3xl text-amber-950 leading-tight">
-          Ceritakan <span className="italic text-amber-600">Pengalamanmu</span>
+          Tell Us Your <span className="italic text-amber-600">Experience</span>
         </h3>
         <p className="font-serif text-xs text-amber-700/60 mt-2">
-          Bantu penonton lain menemukan konser terbaik
+          Help other fans find the best concerts
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Rating bintang */}
+        {/* Star rating */}
         <div className="text-center">
           <label className="block font-serif text-[10px] tracking-[0.3em] text-amber-700/70 uppercase mb-3">
-            Rating Kamu
+            Your Rating
           </label>
           <div className="inline-flex gap-2" onMouseLeave={() => setHoverRating(0)}>
             {[1, 2, 3, 4, 5].map((star) => {
@@ -375,7 +375,7 @@ function TestimonialSection({ orderId }) {
                   whileTap={{ scale: 0.9 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 15 }}
                   className="focus:outline-none"
-                  aria-label={`Beri rating ${star}`}
+                  aria-label={`Rate ${star}`}
                 >
                   <svg
                     className={`w-9 h-9 transition-colors duration-150 ${
@@ -397,27 +397,27 @@ function TestimonialSection({ orderId }) {
             })}
           </div>
           <p className="font-serif text-xs text-amber-600/60 mt-2">
-            {['', 'Buruk', 'Kurang', 'Cukup', 'Bagus', 'Luar biasa!'][hoverRating || rating]}
+            {['', 'Bad', 'Poor', 'Okay', 'Good', 'Amazing!'][hoverRating || rating]}
           </p>
         </div>
 
         {/* Textarea */}
         <div>
           <label className="block font-serif text-[10px] tracking-[0.3em] text-amber-700/70 uppercase mb-2">
-            Ceritakan Pengalamanmu
+            Tell Us Your Experience
           </label>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Gimana pengalaman beli tiket, suasana konser, fasilitas venue..."
+            placeholder="How was the ticket-buying experience, the concert atmosphere, the venue facilities..."
             rows={5}
             maxLength={MAX_CHARS}
             className="w-full px-4 py-3 bg-white/70 border border-amber-200/60 rounded-xl text-amber-900 placeholder-amber-400/50 font-serif text-sm focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/10 transition-all resize-none"
           />
           <div className="flex items-center justify-between mt-2 text-[10px] font-serif text-amber-600/50">
-            <span>Min. {MIN_CHARS} karakter</span>
+            <span>Min. {MIN_CHARS} characters</span>
             <span className={remaining < 50 ? 'text-red-500' : ''}>
-              {remaining} karakter tersisa
+              {remaining} characters left
             </span>
           </div>
         </div>
@@ -447,12 +447,12 @@ function TestimonialSection({ orderId }) {
           {submitting ? (
             <>
               <span className="inline-block w-4 h-4 border-2 border-amber-200/40 border-t-amber-200 rounded-full animate-spin" />
-              Mengirim...
+              Sending...
             </>
           ) : (
             <>
               <Icon name="send" className="w-4 h-4" />
-              Kirim Testimoni
+              Submit Testimonial
             </>
           )}
         </motion.button>
@@ -500,18 +500,18 @@ export default function OrderDetail() {
     try {
       const res = await api.get(`/orders/${id}/check-payment`);
       if (res.data.status === 'lunas') {
-        setCheckMsg('Pembayaran dikonfirmasi! Tiketmu sudah siap.');
+        setCheckMsg('Payment confirmed! Your tickets are ready.');
         setCheckOk('success');
       } else if (res.data.status === 'kadaluarsa') {
-        setCheckMsg('Waktu pembayaran sudah habis.');
+        setCheckMsg('The payment window has expired.');
         setCheckOk('expired');
       } else {
-        setCheckMsg('Pembayaran belum kami terima. Sudah menyelesaikan pembayaran?');
+        setCheckMsg('We have not received your payment yet. Have you completed the payment?');
         setCheckOk('pending');
       }
       fetchOrder();
     } catch (err) {
-      setCheckMsg(err.response?.data?.message || 'Gagal memeriksa status pembayaran.');
+      setCheckMsg(err.response?.data?.message || 'Failed to check payment status.');
       setCheckOk('pending');
     } finally {
       setChecking(false);
@@ -532,16 +532,16 @@ export default function OrderDetail() {
           <div className="w-16 h-16 rounded-full bg-amber-100/70 border border-amber-200/50 flex items-center justify-center mx-auto mb-5">
             <Icon name="search" className="w-7 h-7 text-amber-400/60" />
           </div>
-          <h2 className="font-serif text-xl text-amber-950 mb-2">Pesanan Tidak Ditemukan</h2>
+          <h2 className="font-serif text-xl text-amber-950 mb-2">Order Not Found</h2>
           <p className="font-serif text-amber-700/50 mb-6 text-sm">
-            Pesanan yang kamu cari mungkin sudah dihapus atau tidak valid.
+            The order you are looking for may have been deleted or is invalid.
           </p>
           <Link
             to="/my-orders"
             className="inline-flex items-center gap-2 px-6 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif text-sm tracking-wide transition-colors rounded-md shadow-sm"
           >
             <Icon name="chevronLeft" className="w-4 h-4" />
-            Kembali ke Pesanan
+            Back to Orders
           </Link>
         </div>
       </div>
@@ -553,32 +553,32 @@ export default function OrderDetail() {
 
   const statusInfo = {
     menunggu_pembayaran: {
-      label: 'Menunggu Pembayaran',
-      description: 'Selesaikan pembayaranmu sebelum waktu habis',
+      label: 'Awaiting Payment',
+      description: 'Complete your payment before time runs out',
       icon: 'clock',
       color: 'text-amber-700',
       bg: 'bg-amber-50/80',
       border: 'border-amber-200/50',
     },
     lunas: {
-      label: 'Pembayaran Berhasil',
-      description: 'Tiketmu sudah siap digunakan',
+      label: 'Payment Successful',
+      description: 'Your tickets are ready to use',
       icon: 'checkCircle',
       color: 'text-emerald-700',
       bg: 'bg-emerald-50/80',
       border: 'border-emerald-200/50',
     },
     kadaluarsa: {
-      label: 'Pembayaran Kedaluwarsa',
-      description: 'Waktu pembayaran untuk pesanan ini sudah habis',
+      label: 'Payment Expired',
+      description: 'The payment window for this order has ended',
       icon: 'alert',
       color: 'text-red-600',
       bg: 'bg-red-50/80',
       border: 'border-red-200/50',
     },
     dibatalkan: {
-      label: 'Pesanan Dibatalkan',
-      description: 'Pesanan ini telah dibatalkan',
+      label: 'Order Cancelled',
+      description: 'This order has been cancelled',
       icon: 'alert',
       color: 'text-gray-500',
       bg: 'bg-gray-50/80',
@@ -615,7 +615,7 @@ export default function OrderDetail() {
           className="inline-flex items-center gap-1 text-sm font-serif text-amber-700/50 hover:text-amber-900 transition-colors group mb-6"
         >
           <Icon name="chevronLeft" className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Pesanan Saya
+          My Orders
         </Link>
 
         {/* ===== STEPPER ===== */}
@@ -639,17 +639,17 @@ export default function OrderDetail() {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-serif text-base font-semibold text-emerald-900">
-                Pesananmu sudah dikonfirmasi
+                Your order is confirmed
               </h3>
               <p className="text-xs font-serif text-emerald-800/70 mt-1 leading-relaxed">
-                Tiket elektronik sudah tersedia. Tunjukkan QR code di pintu masuk venue.
-                Jangan lupa datang tepat waktu ya!
+                Your e-tickets are ready. Show the QR code at the venue entrance.
+                Don't forget to arrive on time!
               </p>
             </div>
           </motion.div>
         )}
 
-        {/* ===== GRID 2 KOLOM ===== */}
+        {/* ===== 2-COLUMN GRID ===== */}
         <div className="grid lg:grid-cols-3 gap-6">
 
           {/* ===== LEFT COLUMN (2/3) ===== */}
@@ -662,13 +662,13 @@ export default function OrderDetail() {
               className="bg-white/90 border border-amber-200/40 rounded-2xl p-6 shadow-sm"
             >
               <h2 className="font-serif text-base font-semibold text-amber-950 mb-5">
-                Detail Pesanan
+                Order Details
               </h2>
 
               <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
                 <div>
                   <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">
-                    Pemesan
+                    Customer
                   </p>
                   <p className="font-serif text-sm text-amber-950 font-medium">
                     {order.customer_name || '-'}
@@ -677,7 +677,7 @@ export default function OrderDetail() {
 
                 <div>
                   <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">
-                    Kode Pesanan
+                    Order Code
                   </p>
                   <p className="font-mono text-sm text-amber-950">
                     #{order.order_code}
@@ -695,7 +695,7 @@ export default function OrderDetail() {
 
                 <div>
                   <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">
-                    Tanggal Pesan
+                    Order Date
                   </p>
                   <p className="font-serif text-sm text-amber-950">
                     {formatDate(order.created_at)}
@@ -705,7 +705,7 @@ export default function OrderDetail() {
                 {order.event_date && (
                   <div>
                     <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">
-                      Tanggal Event
+                      Event Date
                     </p>
                     <p className="font-serif text-sm text-amber-950">
                       {formatDate(order.event_date)}
@@ -718,10 +718,10 @@ export default function OrderDetail() {
 
                 <div>
                   <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">
-                    Kategori Tiket
+                    Ticket Category
                   </p>
                   <p className="font-serif text-sm text-amber-950">
-                    {order.ticket_category_name} · {order.qty}× tiket
+                    {order.ticket_category_name} · {order.qty}× tickets
                   </p>
                 </div>
               </div>
@@ -741,10 +741,10 @@ export default function OrderDetail() {
                   </div>
                   <div>
                     <h2 className="font-serif text-base font-semibold text-amber-950">
-                      E-Tiket Kamu
+                      Your E-Tickets
                     </h2>
                     <p className="text-xs font-serif text-amber-700/50">
-                      Tunjukkan QR code ini di pintu masuk venue
+                      Show these QR codes at the venue entrance
                     </p>
                   </div>
                 </div>
@@ -771,10 +771,10 @@ export default function OrderDetail() {
                   </div>
                   <div>
                     <h2 className="font-serif text-base font-semibold text-amber-950">
-                      Lokasi Venue
+                      Venue Location
                     </h2>
                     <p className="text-xs font-serif text-amber-700/50">
-                      Navigasi ke lokasi konser
+                      Navigate to the concert location
                     </p>
                   </div>
                 </div>
@@ -803,7 +803,7 @@ export default function OrderDetail() {
                         className="flex items-center gap-1.5 text-sm font-serif text-amber-700 hover:text-amber-900 transition-colors flex-shrink-0 bg-white border border-amber-200/40 rounded-md px-3 py-2"
                       >
                         <Icon name="map" className="w-4 h-4" />
-                        Buka Peta
+                        Open Map
                       </a>
                     ) : (
                       <a
@@ -813,7 +813,7 @@ export default function OrderDetail() {
                         className="flex items-center gap-1.5 text-sm font-serif text-amber-700 hover:text-amber-900 transition-colors flex-shrink-0 bg-white border border-amber-200/40 rounded-md px-3 py-2"
                       >
                         <Icon name="map" className="w-4 h-4" />
-                        Buka Peta
+                        Open Map
                       </a>
                     )}
                   </div>
@@ -831,7 +831,7 @@ export default function OrderDetail() {
                   <div className="bg-amber-50/50 border border-amber-200/30 rounded-xl p-6 text-center mb-4">
                     <Icon name="pin" className="w-10 h-10 text-amber-300/50 mx-auto mb-2" />
                     <p className="text-sm font-serif text-amber-700/50">
-                      Map tidak tersedia untuk venue ini
+                      Map is not available for this venue
                     </p>
                   </div>
                 )}
@@ -844,7 +844,7 @@ export default function OrderDetail() {
                     className="w-full py-3 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif tracking-[0.3em] uppercase text-xs transition-colors flex items-center justify-center gap-2 rounded-lg shadow-sm"
                   >
                     <Icon name="navigation" className="w-4 h-4" />
-                    Dapatkan Rute
+                    Get Directions
                   </a>
                 )}
               </motion.div>
@@ -860,27 +860,27 @@ export default function OrderDetail() {
                   className="bg-white/90 border border-amber-200/40 rounded-2xl p-6 shadow-sm"
                 >
                   <h2 className="font-serif text-base font-semibold text-amber-950 mb-5">
-                    Instruksi Pembayaran
+                    Payment Instructions
                   </h2>
 
                   <div className="bg-amber-50/60 border border-amber-200/40 rounded-xl p-4 mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-serif text-amber-600/50 uppercase tracking-wider">
-                        Total Pembayaran
+                        Total Payment
                       </span>
                       <span className="text-lg font-serif font-bold text-amber-800 tabular-nums">
                         {formatRupiah(order.total_price)}
                       </span>
                     </div>
                     <p className="text-xs font-serif text-amber-600/40">
-                      via Xendit · Virtual Account, QRIS, e-wallet, atau kartu kredit
+                      via Xendit · Virtual Account, QRIS, e-wallet, or credit card
                     </p>
                   </div>
 
                   {order.va_number && (
                     <div className="bg-amber-50/60 border border-amber-200/40 rounded-xl p-4 mb-4">
                       <p className="text-[10px] font-serif text-amber-600/50 uppercase tracking-wider mb-2">
-                        Nomor Virtual Account
+                        Virtual Account Number
                       </p>
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-lg font-bold text-amber-950 tracking-wide">
@@ -889,7 +889,7 @@ export default function OrderDetail() {
                         <button
                           onClick={copyVaNumber}
                           className="p-2 hover:bg-amber-100/50 rounded-md transition-colors"
-                          aria-label="Salin nomor VA"
+                          aria-label="Copy VA number"
                         >
                           {copiedVa ? (
                             <Icon name="check" className="w-4 h-4 text-emerald-600" />
@@ -906,7 +906,7 @@ export default function OrderDetail() {
                             exit={{ opacity: 0, height: 0 }}
                             className="text-xs text-emerald-700 font-serif mt-1"
                           >
-                            Nomor VA tersalin!
+                            VA number copied!
                           </motion.p>
                         )}
                       </AnimatePresence>
@@ -922,7 +922,7 @@ export default function OrderDetail() {
                         className="w-full py-3 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif tracking-[0.3em] uppercase text-xs transition-colors flex items-center justify-center gap-2 rounded-lg shadow-sm"
                       >
                         <Icon name="external" className="w-4 h-4" />
-                        Buka Halaman Pembayaran
+                        Open Payment Page
                       </a>
                     )}
                     <button
@@ -936,12 +936,12 @@ export default function OrderDetail() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                           </svg>
-                          Memeriksa...
+                          Checking...
                         </>
                       ) : (
                         <>
                           <Icon name="refresh" className="w-4 h-4" />
-                          Periksa Status Pembayaran
+                          Check Payment Status
                         </>
                       )}
                     </button>
@@ -967,7 +967,7 @@ export default function OrderDetail() {
               )}
             </AnimatePresence>
 
-            {/* ===== ⭐ TESTIMONIAL SECTION (GANTI REVIEW SECTION LAMA) ===== */}
+            {/* ===== ⭐ TESTIMONIAL SECTION (REPLACES THE OLD REVIEW SECTION) ===== */}
             {order.status === 'lunas' && (
               <TestimonialSection orderId={order.id} />
             )}
@@ -984,12 +984,12 @@ export default function OrderDetail() {
               className="bg-white/90 border border-amber-200/40 rounded-2xl p-5 shadow-sm"
             >
               <h3 className="font-serif text-base font-semibold text-amber-950 mb-4">
-                Ringkasan Reservasi
+                Reservation Summary
               </h3>
 
               <div className="mb-4">
                 <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1">
-                  Konser
+                  Concert
                 </p>
                 <p className="font-serif text-sm text-amber-950 font-medium leading-snug">
                   {order.concert_name}
@@ -1004,7 +1004,7 @@ export default function OrderDetail() {
               {order.event_date && (
                 <div className="mb-4">
                   <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1">
-                    Jadwal
+                    Schedule
                   </p>
                   <p className="font-serif text-sm text-amber-950 flex items-center gap-1.5">
                     <Icon name="calendar" className="w-3.5 h-3.5 text-amber-500" />
@@ -1033,7 +1033,7 @@ export default function OrderDetail() {
 
               <div className="mb-4">
                 <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1">
-                  Tiket
+                  Tickets
                 </p>
                 <p className="font-serif text-sm text-amber-950">
                   {order.ticket_category_name} × {order.qty}
@@ -1049,12 +1049,12 @@ export default function OrderDetail() {
               className="bg-white/90 border border-amber-200/40 rounded-2xl p-5 shadow-sm"
             >
               <h3 className="font-serif text-base font-semibold text-amber-950 mb-4">
-                Ringkasan Harga
+                Price Summary
               </h3>
 
               <div className="space-y-2 text-sm font-serif">
                 <div className="flex justify-between text-amber-800/70">
-                  <span>Tiket ({order.qty}×)</span>
+                  <span>Tickets ({order.qty}×)</span>
                   <span className="font-mono tabular-nums">
                     {formatRupiah((order.unit_price || 0) * order.qty)}
                   </span>
@@ -1062,7 +1062,7 @@ export default function OrderDetail() {
 
                 {order.discount_amount > 0 && (
                   <div className="flex justify-between text-emerald-700">
-                    <span>Diskon</span>
+                    <span>Discount</span>
                     <span className="font-mono tabular-nums">
                       −{formatRupiah(order.discount_amount)}
                     </span>
@@ -1071,7 +1071,7 @@ export default function OrderDetail() {
 
                 {order.platform_fee_amount > 0 && (
                   <div className="flex justify-between text-amber-800/70">
-                    <span>Biaya platform</span>
+                    <span>Platform fee</span>
                     <span className="font-mono tabular-nums">
                       {formatRupiah(order.platform_fee_amount)}
                     </span>
@@ -1095,7 +1095,7 @@ export default function OrderDetail() {
                   className="mt-5 w-full py-3 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif text-xs tracking-[0.2em] uppercase transition-colors flex items-center justify-center gap-2 rounded-lg shadow-sm"
                 >
                   <Icon name="download" className="w-4 h-4" />
-                  Unduh Tiket
+                  Download Tickets
                 </a>
               ) : order.status === 'menunggu_pembayaran' && order.xendit_invoice_url ? (
                 <a
@@ -1105,7 +1105,7 @@ export default function OrderDetail() {
                   className="mt-5 w-full py-3 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif text-xs tracking-[0.2em] uppercase transition-colors flex items-center justify-center gap-2 rounded-lg shadow-sm"
                 >
                   <Icon name="creditCard" className="w-4 h-4" />
-                  Bayar Sekarang
+                  Pay Now
                 </a>
               ) : null}
 
@@ -1127,8 +1127,8 @@ export default function OrderDetail() {
                   </div>
                   <p className="font-serif text-amber-800/70 text-sm">
                     {order.status === 'kadaluarsa'
-                      ? 'Waktu pembayaran untuk pesanan ini sudah habis. Silakan buat pesanan baru.'
-                      : 'Pesanan ini telah dibatalkan.'}
+                      ? 'The payment window for this order has ended. Please create a new order.'
+                      : 'This order has been cancelled.'}
                   </p>
                 </div>
               </motion.div>
@@ -1143,7 +1143,7 @@ export default function OrderDetail() {
               >
                 <span className="text-xs font-serif text-amber-700/70 flex items-center gap-2">
                   <Icon name="clock" className="w-3.5 h-3.5 text-amber-500" />
-                  Sisa waktu
+                  Time remaining
                 </span>
                 <CountdownTimer expiresAt={order.expires_at} />
               </motion.div>

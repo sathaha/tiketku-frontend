@@ -19,11 +19,11 @@ export default function ForgotPassword() {
       setStatus('success');
       setMessage(
         res.data?.message ||
-          'Kalau email terdaftar, kami sudah kirim link reset password ke inbox kamu.'
+          'If the email is registered, we have sent a password reset link to your inbox.'
       );
     } catch (err) {
       setStatus('error');
-      setMessage(err.response?.data?.message || 'Gagal mengirim email. Coba lagi.');
+      setMessage(err.response?.data?.message || 'Failed to send the email. Please try again.');
     }
   };
 
@@ -50,9 +50,9 @@ export default function ForgotPassword() {
               </svg>
             </div>
           </Link>
-          <h1 className="font-serif text-3xl text-amber-950">Lupa Password?</h1>
+          <h1 className="font-serif text-3xl text-amber-950">Forgot Password?</h1>
           <p className="font-serif text-sm text-amber-700/70 mt-2">
-            Masukkan email kamu, kami akan kirim link untuk reset password.
+            Enter your email and we will send you a password reset link.
           </p>
         </div>
 
@@ -65,13 +65,13 @@ export default function ForgotPassword() {
             </div>
             <p className="font-serif text-sm text-amber-900/80 leading-relaxed mb-6">{message}</p>
             <p className="font-serif text-xs text-amber-700/60 mb-6">
-              Tidak dapat email? Cek folder Spam atau Promotions.
+              Didn't receive the email? Check your Spam or Promotions folder.
             </p>
             <Link
               to="/login"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-amber-700 hover:bg-amber-600 text-amber-50 font-serif text-xs tracking-[0.2em] uppercase rounded-full transition-colors"
             >
-              Kembali ke Login
+              Back to Login
             </Link>
           </div>
         ) : (
@@ -87,7 +87,7 @@ export default function ForgotPassword() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
-                placeholder="email@kamu.com"
+                placeholder="email@you.com"
                 className="w-full px-5 py-3.5 bg-white border border-amber-300/60 rounded-full font-serif text-sm text-amber-950 placeholder-amber-700/40 focus:outline-none focus:border-amber-500/60 transition-colors disabled:opacity-50"
               />
             </div>
@@ -103,13 +103,13 @@ export default function ForgotPassword() {
               disabled={isLoading}
               className="w-full inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-amber-700 hover:bg-amber-600 text-amber-50 font-serif text-xs tracking-[0.2em] uppercase rounded-full transition-colors disabled:opacity-60"
             >
-              {isLoading ? 'Mengirim...' : 'Kirim Link Reset'}
+              {isLoading ? 'Sending...' : 'Send Reset Link'}
             </button>
 
             <p className="text-center font-serif text-sm text-amber-700/70">
-              Ingat password?{' '}
+              Remember your password?{' '}
               <Link to="/login" className="text-amber-700 hover:text-amber-600 font-medium">
-                Masuk di sini
+                Sign in here
               </Link>
             </p>
           </form>

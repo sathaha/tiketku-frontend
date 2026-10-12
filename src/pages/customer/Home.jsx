@@ -172,7 +172,7 @@ function TiltCard({ children, className = '', max = 8 }) {
   );
 }
 
-// ===== HERO TEXT REVEAL (per kata) =====
+// ===== HERO TEXT REVEAL (per word) =====
 function RevealWords({ text, className = '', delay = 0 }) {
   const words = text.split(' ');
   return (
@@ -258,7 +258,7 @@ function PromoCard({ concert }) {
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="grid md:grid-cols-5 gap-4 bg-white/60 border border-amber-200/40 rounded-2xl p-4 md:p-5"
     >
-      {/* Poster kiri with tilt */}
+      {/* Left poster with tilt */}
       <TiltCard className="md:col-span-3">
         <Link
           to={`/concerts/${concert.id}`}
@@ -302,20 +302,20 @@ function PromoCard({ concert }) {
           <div className="flex items-center gap-2 mb-2">
             <Icon name="flame" className="w-4 h-4 text-amber-600" />
             <span className="font-serif text-[10px] tracking-[0.25em] text-amber-700 uppercase">
-              Promo Spesial
+              Special Promo
             </span>
           </div>
 
           <p className="text-xs font-serif text-amber-700/60 mb-3 leading-relaxed">
-            Tickets cost {concert.min_price ? formatRupiah(concert.min_price) : 'Segera'}
+            Tickets cost {concert.min_price ? formatRupiah(concert.min_price) : 'Coming soon'}
             {concert.city ? ` — ${concert.city}` : ''}
           </p>
 
-          {/* Price mini cards (ala referensi card "Buy") */}
+          {/* Price mini cards (reference-style "Buy" card) */}
           <div className="grid grid-cols-2 gap-2 mb-4">
             <div className="bg-white border border-amber-200/50 rounded-xl p-3">
               <div className="text-[9px] font-serif tracking-[0.2em] text-amber-600/60 uppercase mb-1">
-                Mulai dari
+                Starting from
               </div>
               <div className="font-serif text-base font-bold text-amber-800">
                 <AnimatedNumber value={concert.min_price} />
@@ -327,7 +327,7 @@ function PromoCard({ concert }) {
             >
               <Icon name="arrow" className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               <span className="text-[10px] font-serif tracking-[0.2em] uppercase">
-                Pilih
+                Select
               </span>
             </Link>
           </div>
@@ -338,7 +338,7 @@ function PromoCard({ concert }) {
           className="inline-flex items-center justify-center gap-2 py-2.5 border border-amber-400/50 rounded-full text-xs font-serif text-amber-800 hover:bg-amber-50 transition-colors"
         >
           <Icon name="calendar" className="w-3.5 h-3.5" />
-          Pilih Tanggal
+          Choose Date
         </Link>
       </div>
     </motion.div>
@@ -405,7 +405,7 @@ function WhyCard({ variant = 'light', title, subtitle, icon, delay = 0 }) {
   );
 }
 
-// ===== FAQ ITEM (ala "Frequent questions") =====
+// ===== FAQ ITEM =====
 function FaqItem({ question, answer, open, onToggle }) {
   return (
     <div className={`border rounded-2xl overflow-hidden transition-colors ${
@@ -498,7 +498,7 @@ function EventRow({ concert, index }) {
 
         <div className="text-right flex-shrink-0">
           <div className="text-sm font-serif text-amber-800 font-semibold">
-            {concert.min_price ? formatRupiah(concert.min_price) : 'Segera'}
+            {concert.min_price ? formatRupiah(concert.min_price) : 'Coming soon'}
           </div>
           {Number(concert.avg_rating) > 0 && (
             <div className="text-[10px] text-amber-600/60 font-serif flex items-center gap-1 justify-end mt-0.5">
@@ -520,28 +520,28 @@ function EventRow({ concert, index }) {
 // ===== FAQ DATA =====
 const FAQS = [
   {
-    q: 'Bagaimana cara mendapatkan e-ticket?',
-    a: 'E-ticket akan dikirim ke email kamu setelah pembayaran berhasil. Kamu juga bisa melihatnya di halaman My Tickets.',
+    q: 'How do I get my e-ticket?',
+    a: 'E-tickets will be sent to your email after payment is successful. You can also view them on the My Tickets page.',
   },
   {
-    q: 'Apakah tiket bisa di-refund?',
-    a: 'Tiket tidak dapat dikembalikan, kecuali event dibatalkan oleh penyelenggara.',
+    q: 'Are tickets refundable?',
+    a: 'Tickets are non-refundable, unless the event is cancelled by the organizer.',
   },
   {
-    q: 'Metode pembayaran apa saja yang tersedia?',
-    a: 'Kami mendukung Virtual Account, QRIS, e-wallet (GoPay, OVO, Dana, ShopeePay), dan kartu kredit melalui Xendit.',
+    q: 'What payment methods are available?',
+    a: 'We support Virtual Account, QRIS, e-wallets (GoPay, OVO, Dana, ShopeePay), and credit cards through Xendit.',
   },
   {
-    q: 'Apakah ada diskon untuk pelajar?',
-    a: 'Beberapa event menyediakan kategori tiket khusus dengan harga lebih rendah. Cek halaman event untuk detailnya.',
+    q: 'Is there a student discount?',
+    a: 'Some events offer special ticket categories with lower prices. Check the event page for details.',
   },
   {
-    q: 'Bagaimana cara mengubah tanggal tiket?',
-    a: 'Hubungi customer support kami melalui halaman Contact untuk perubahan jadwal (jika diizinkan oleh penyelenggara).',
+    q: 'How do I change my ticket date?',
+    a: 'Contact our customer support through the Contact page for schedule changes (if allowed by the organizer).',
   },
   {
-    q: 'Apa yang perlu dibawa saat masuk venue?',
-    a: 'Cukup tunjukkan e-ticket (QR code) di pintu masuk. Beberapa venue juga memerlukan KTP asli untuk verifikasi.',
+    q: 'What do I need to bring when entering the venue?',
+    a: 'Simply show your e-ticket (QR code) at the entrance. Some venues also require a valid ID for verification.',
   },
 ];
 
@@ -632,7 +632,7 @@ export default function Home() {
       setConcerts(res.data);
     } catch (err) {
       console.error(err);
-      setError('Gagal memuat data. Silakan coba lagi.');
+      setError('Failed to load data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -699,9 +699,9 @@ export default function Home() {
             </motion.div>
 
             <h1 className="font-serif text-4xl md:text-6xl text-white leading-[0.95]">
-              <RevealWords text="Temukan event" delay={0.2} />
+              <RevealWords text="Find your" delay={0.2} />
               <br />
-              <RevealWords text="favoritmu." className="text-amber-400 italic" delay={0.5} />
+              <RevealWords text="favorite events." className="text-amber-400 italic" delay={0.5} />
             </h1>
 
             <motion.p
@@ -710,7 +710,7 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.9 }}
               className="text-amber-300/50 text-sm md:text-base font-serif mt-4 max-w-md"
             >
-              Ribuan event, satu tiket. Dari konser hingga festival — gerbangmu menanti.
+              Thousands of events, one ticket. From concerts to festivals — your gateway awaits.
             </motion.p>
           </div>
         </div>
@@ -738,8 +738,8 @@ export default function Home() {
           className="bg-white rounded-2xl shadow-2xl shadow-amber-950/30 border border-amber-200/50 overflow-hidden"
         >
           <div className="flex items-center gap-1 px-4 pt-3 border-b border-amber-100">
-            {['Konser', 'Festival', 'Teater', 'Semua'].map((tab) => {
-              const isAll = tab === 'Semua';
+            {['Concerts', 'Festivals', 'Theater', 'All'].map((tab) => {
+              const isAll = tab === 'All';
               return (
                 <button
                   key={tab}
@@ -772,7 +772,7 @@ export default function Home() {
               <Icon name="search" className="w-4 h-4 text-amber-500 flex-shrink-0" />
               <input
                 className="flex-1 bg-transparent text-amber-950 placeholder-amber-400/70 focus:outline-none font-serif text-sm"
-                placeholder="Cari event, artis..."
+                placeholder="Search events, artists..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -782,7 +782,7 @@ export default function Home() {
               <Icon name="pin" className="w-4 h-4 text-amber-500 flex-shrink-0" />
               <input
                 className="flex-1 bg-transparent text-amber-950 placeholder-amber-400/70 focus:outline-none font-serif text-sm w-full"
-                placeholder="Kota"
+                placeholder="City"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
               />
@@ -791,7 +791,7 @@ export default function Home() {
             <div className="hidden md:flex col-span-1 items-center gap-2 bg-amber-50/60 rounded-xl px-3 h-12 cursor-pointer hover:bg-amber-100/60 transition-colors">
               <Icon name="calendar" className="w-4 h-4 text-amber-500 flex-shrink-0" />
               <span className="font-serif text-sm text-amber-400/70">
-                Tanggal
+                Date
               </span>
             </div>
 
@@ -800,7 +800,7 @@ export default function Home() {
               className="col-span-2 md:col-span-1 h-12 rounded-xl bg-amber-700 hover:bg-amber-600 text-amber-50 font-serif text-sm tracking-wide transition-colors flex items-center justify-center gap-2"
             >
               <Icon name="search" className="w-4 h-4" />
-              Cari
+              Search
             </MagneticButton>
           </div>
         </motion.div>
@@ -810,11 +810,11 @@ export default function Home() {
             {isSearching ? (
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                Mencari...
+                Searching...
               </span>
             ) : (
               <>
-                <span>Filter aktif:</span>
+                <span>Active filters:</span>
                 {search && <span className="bg-amber-100/70 px-2 py-0.5 rounded-full">"{search}"</span>}
                 {city && (
                   <span className="bg-amber-100/70 px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -846,7 +846,7 @@ export default function Home() {
               onClick={fetchConcerts}
               className="px-6 py-2.5 bg-amber-800 text-amber-200 font-serif text-sm rounded-full hover:bg-amber-700 transition-colors"
             >
-              Coba Lagi
+              Try Again
             </button>
           </div>
         ) : concerts.length === 0 ? (
@@ -873,14 +873,14 @@ export default function Home() {
                       Promotional tickets
                     </h2>
                     <p className="text-sm font-serif text-amber-700/60 mt-1">
-                      Event pilihan dengan harga spesial minggu ini
+                      Featured events with special prices this week
                     </p>
                   </div>
                   <Link
                     to="/promos"
                     className="text-xs font-serif text-amber-700 hover:text-amber-900 flex items-center gap-1 group"
                   >
-                    Lihat semua
+                    See all
                     <Icon name="arrow" className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
@@ -897,28 +897,28 @@ export default function Home() {
             <RevealSection delay={0.05} className="mb-14">
               <div className="mb-8">
                 <h2 className="font-serif text-2xl md:text-3xl text-amber-950">
-                  Pesan tiket dalam 3 langkah
+                  Book tickets in 3 steps
                 </h2>
                 <p className="text-sm font-serif text-amber-700/60 mt-1">
-                  Nggak sampai 5 menit — janji!
+                  Less than 5 minutes — promise!
                 </p>
               </div>
 
               <div className="grid md:grid-cols-3 gap-4 md:gap-6 pt-4">
                 <StepCard
                   number="01"
-                  title="Pilih Event"
-                  description="Tentukan konser, festival, atau teater yang ingin kamu tonton."
+                  title="Choose Event"
+                  description="Pick the concert, festival, or theater show you want to watch."
                 />
                 <StepCard
                   number="02"
-                  title="Pilih Tiket"
-                  description="Pilih kategori tiket, jadwal, dan jumlah yang kamu butuhkan."
+                  title="Choose Ticket"
+                  description="Select the ticket category, schedule, and quantity you need."
                 />
                 <StepCard
                   number="03"
-                  title="Bayar"
-                  description="Selesaikan pembayaran via VA, QRIS, atau e-wallet favoritmu."
+                  title="Pay"
+                  description="Complete the payment via VA, QRIS, or your favorite e-wallet."
                 />
               </div>
             </RevealSection>
@@ -927,7 +927,7 @@ export default function Home() {
             <RevealSection delay={0.05} className="mb-14">
               <div className="mb-8">
                 <h2 className="font-serif text-2xl md:text-3xl text-amber-950">
-                  Kenapa beli tiket di TiketKu?
+                  Why buy tickets on TiketKu?
                 </h2>
               </div>
 
@@ -936,7 +936,7 @@ export default function Home() {
                   <WhyCard
                     variant="light"
                     title="Convenience"
-                    subtitle="Beli tiket, ubah, atau refund dengan mudah lewat satu platform."
+                    subtitle="Buy, change, or refund tickets easily through one platform."
                     icon="wallet"
                     delay={0}
                   />
@@ -944,8 +944,8 @@ export default function Home() {
                 <div>
                   <WhyCard
                     variant="amber"
-                    title="Diskon 10%"
-                    subtitle="Harga tiket lebih murah untuk pengguna baru."
+                    title="10% Off"
+                    subtitle="Cheaper ticket prices for new users."
                     icon="flame"
                     delay={0.05}
                   />
@@ -954,7 +954,7 @@ export default function Home() {
                   <WhyCard
                     variant="light"
                     title="+80"
-                    subtitle="Event organizer bekerja sama dengan kami."
+                    subtitle="Event organizers working with us."
                     icon="users"
                     delay={0.1}
                   />
@@ -962,8 +962,8 @@ export default function Home() {
                 <div>
                   <WhyCard
                     variant="dark"
-                    title="Dalam 5 Menit"
-                    subtitle="Proses pemesanan kilat, tanpa ribet."
+                    title="In 5 Minutes"
+                    subtitle="Lightning-fast booking process, hassle-free."
                     icon="bolt"
                     delay={0.15}
                   />
@@ -971,8 +971,8 @@ export default function Home() {
                 <div>
                   <WhyCard
                     variant="light"
-                    title="+8 Ribu"
-                    subtitle="Tiket berhasil terjual lewat platform kami."
+                    title="+8 Thousand"
+                    subtitle="Tickets successfully sold through our platform."
                     icon="ticket"
                     delay={0.2}
                   />
@@ -980,8 +980,8 @@ export default function Home() {
                 <div className="col-span-2">
                   <WhyCard
                     variant="light"
-                    title="Aman & Terpercaya"
-                    subtitle="Setiap pembayaran diverifikasi dan e-ticket dijamin asli."
+                    title="Safe & Trusted"
+                    subtitle="Every payment is verified and e-tickets are guaranteed authentic."
                     icon="shield"
                     delay={0.25}
                   />
@@ -994,7 +994,7 @@ export default function Home() {
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-1 h-5 bg-amber-600" />
                 <h2 className="font-serif text-2xl md:text-3xl text-amber-950">
-                  Semua Event
+                  All Events
                 </h2>
                 <span className="text-[10px] font-serif tracking-[0.25em] text-amber-400/60 uppercase">
                   {concerts.length} events
@@ -1012,7 +1012,7 @@ export default function Home() {
             <RevealSection delay={0.05} className="mb-14">
               <div className="mb-8">
                 <h2 className="font-serif text-2xl md:text-3xl text-amber-950">
-                  Pertanyaan umum
+                  Frequently asked questions
                 </h2>
               </div>
 
@@ -1031,17 +1031,17 @@ export default function Home() {
               <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/60 border border-amber-200/40 rounded-2xl p-5">
                 <div>
                   <p className="font-serif text-amber-900 font-semibold">
-                    Masih ada pertanyaan?
+                    Still have questions?
                   </p>
                   <p className="text-xs font-serif text-amber-700/60 mt-1">
-                    Tim kami siap membantu kamu.
+                    Our team is ready to help you.
                   </p>
                 </div>
                 <Link
                   to="/contact"
                   className="px-5 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif text-xs tracking-[0.2em] uppercase rounded-full transition-colors inline-flex items-center gap-2"
                 >
-                  Hubungi Kami
+                  Contact Us
                   <Icon name="arrow" className="w-3.5 h-3.5" />
                 </Link>
               </div>
@@ -1069,10 +1069,10 @@ export default function Home() {
 
                   <div className="relative h-full max-w-2xl mx-auto px-6 flex flex-col items-center justify-center text-center">
                     <h2 className="font-serif text-2xl md:text-3xl text-white leading-tight mb-2">
-                      Perjalanan Seru Dimulai di Sini
+                      Your Exciting Journey Starts Here
                     </h2>
                     <p className="text-amber-300/60 text-sm font-serif mb-5 max-w-md">
-                      Berlangganan untuk mendapatkan info event terbaru dan promo eksklusif.
+                      Subscribe to get the latest event info and exclusive promos.
                     </p>
 
                     <form
@@ -1086,7 +1086,7 @@ export default function Home() {
                           required
                           value={emailSub}
                           onChange={(e) => setEmailSub(e.target.value)}
-                          placeholder="Email kamu"
+                          placeholder="Your email"
                           className="flex-1 bg-transparent text-white placeholder-amber-200/50 focus:outline-none font-serif text-sm py-2"
                         />
                       </div>
@@ -1140,7 +1140,7 @@ export default function Home() {
               <h4 className="font-serif text-xs tracking-[0.3em] text-amber-400/80 uppercase mb-3">Quick Links</h4>
               <ul className="space-y-2">
                 {[
-                  { label: 'Promo & Diskon', href: '/promos' },
+                  { label: 'Promos & Discounts', href: '/promos' },
                   { label: 'My Tickets', href: '/my-orders' },
                   { label: 'About Us', href: '/about' },
                   { label: 'Contact', href: '/contact' },

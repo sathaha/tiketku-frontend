@@ -64,7 +64,7 @@ export default function AdminLayout({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [unseenPayouts, setUnseenPayouts] = useState(0);
 
-  // Mode ringkas hanya berlaku di desktop; drawer mobile selalu lebar penuh
+  // Compact mode only applies on desktop; the mobile drawer is always full width
   const compact = collapsed && isDesktop;
 
   useEffect(() => {
@@ -125,40 +125,40 @@ export default function AdminLayout({ children }) {
       try {
         localStorage.setItem('sidebar-collapsed', next ? '1' : '0');
       } catch {
-        // abaikan
+        // ignore
       }
       return next;
     });
   }
 
-  // Menu dikelompokkan supaya 12 item admin tidak jadi satu daftar panjang
+  // Menu is grouped so the 12 admin items don't become one long list
   const menuGroups = {
     admin: [
       { items: [{ to: '/admin/dashboard', label: 'Dashboard', icon: 'dashboard' }] },
       {
-        label: 'Event',
+        label: 'Events',
         items: [
-          { to: '/admin/concerts', label: 'Konser', icon: 'concert' },
-          { to: '/admin/approvals', label: 'Approval EO', icon: 'approval' },
-          { to: '/admin/venues', label: 'Venue', icon: 'venue' },
-          { to: '/admin/categories', label: 'Kategori', icon: 'category' },
+          { to: '/admin/concerts', label: 'Concerts', icon: 'concert' },
+          { to: '/admin/approvals', label: 'EO Approvals', icon: 'approval' },
+          { to: '/admin/venues', label: 'Venues', icon: 'venue' },
+          { to: '/admin/categories', label: 'Categories', icon: 'category' },
         ],
       },
       {
-        label: 'Keuangan',
+        label: 'Finance',
         items: [
-          { to: '/admin/orders', label: 'Transaksi', icon: 'orders' },
-          { to: '/admin/payouts', label: 'Pencairan Dana', icon: 'payouts' },
-          { to: '/admin/promos', label: 'Promo', icon: 'promos' },
-          { to: '/admin/reports', label: 'Laporan', icon: 'reports' },
+          { to: '/admin/orders', label: 'Transactions', icon: 'orders' },
+          { to: '/admin/payouts', label: 'Payouts', icon: 'payouts' },
+          { to: '/admin/promos', label: 'Promos', icon: 'promos' },
+          { to: '/admin/reports', label: 'Reports', icon: 'reports' },
         ],
       },
       {
-        label: 'Lainnya',
+        label: 'Others',
         items: [
-          { to: '/admin/users', label: 'Pengguna', icon: 'users' },
-          { to: '/admin/contact-messages', label: 'Pesan Masuk', icon: 'inbox', badge: unreadCount },
-          { to: '/admin/profile', label: 'Profil', icon: 'profile' },
+          { to: '/admin/users', label: 'Users', icon: 'users' },
+          { to: '/admin/contact-messages', label: 'Inbox', icon: 'inbox', badge: unreadCount },
+          { to: '/admin/profile', label: 'Profile', icon: 'profile' },
         ],
       },
     ],
@@ -166,10 +166,10 @@ export default function AdminLayout({ children }) {
       {
         items: [
           { to: '/eo/dashboard', label: 'Dashboard', icon: 'dashboard' },
-          { to: '/eo/concerts', label: 'Konser Saya', icon: 'concert' },
-          { to: '/eo/payouts', label: 'Pendapatan', icon: 'payouts', badge: unseenPayouts },
-          { to: '/eo/bank-account', label: 'Rekening', icon: 'bank' },
-          { to: '/eo/profile', label: 'Profil', icon: 'profile' },
+          { to: '/eo/concerts', label: 'My Concerts', icon: 'concert' },
+          { to: '/eo/payouts', label: 'Earnings', icon: 'payouts', badge: unseenPayouts },
+          { to: '/eo/bank-account', label: 'Bank Account', icon: 'bank' },
+          { to: '/eo/profile', label: 'Profile', icon: 'profile' },
         ],
       },
     ],
@@ -191,14 +191,14 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-ink-950 flex relative">
-      {/* Latar blur yang terlihat menembus panel kaca di sidebar */}
+      {/* Blurred background that shows through the glass panel in the sidebar */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-32 -left-20 w-[32rem] h-[32rem] rounded-full bg-flame-600/20 blur-[100px]" />
         <div className="absolute top-1/3 -right-32 w-[28rem] h-[28rem] rounded-full bg-flame-400/10 blur-[110px]" />
         <div className="absolute bottom-0 left-1/4 w-[26rem] h-[26rem] rounded-full bg-ink-700/40 blur-[100px]" />
       </div>
 
-      {/* Overlay mobile */}
+      {/* Mobile overlay */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
@@ -218,11 +218,11 @@ export default function AdminLayout({ children }) {
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           ${compact ? 'w-[72px]' : 'w-64'}`}
       >
-        {/* Toggle collapse — menempel di tepi sidebar */}
+        {/* Collapse toggle — attached to the sidebar edge */}
         <button
           type="button"
           onClick={toggleCollapsed}
-          aria-label={collapsed ? 'Perbesar sidebar' : 'Kecilkan sidebar'}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className={`hidden lg:flex absolute -right-3 top-5 z-10 w-6 h-6 items-center justify-center rounded-full bg-ink-700 border border-ink-500 text-ink-300 hover:text-flame-400 transition-colors ${focusRing}`}
         >
           <Icon name="chevron" className={`w-3.5 h-3.5 transition-transform duration-300 ${compact ? '' : 'rotate-180'}`} />
@@ -234,7 +234,7 @@ export default function AdminLayout({ children }) {
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            aria-label="Tutup menu"
+            aria-label="Close menu"
             className={`ml-auto lg:hidden p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-white/10 transition-colors ${focusRing}`}
           >
             <Icon name="close" className="w-4 h-4" />
@@ -242,7 +242,7 @@ export default function AdminLayout({ children }) {
         </div>
 
         {/* Nav */}
-        <nav aria-label="Menu utama" className="flex-1 overflow-y-auto py-4 no-scrollbar">
+        <nav aria-label="Main menu" className="flex-1 overflow-y-auto py-4 no-scrollbar">
           {!compact && <p className="px-6 pb-3 text-xs text-ink-500">{roleLabel}</p>}
 
           {groups.map((group, gi) => (
@@ -319,26 +319,26 @@ export default function AdminLayout({ children }) {
           <button
             type="button"
             onClick={handleLogout}
-            title={compact ? 'Keluar' : undefined}
-            aria-label={compact ? 'Keluar' : undefined}
+            title={compact ? 'Log out' : undefined}
+            aria-label={compact ? 'Log out' : undefined}
             className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-ink-300 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-colors ${focusRing} ${
               compact ? 'justify-center' : ''
             }`}
           >
             <Icon name="logout" className="w-4 h-4 shrink-0" />
-            {!compact && 'Keluar'}
+            {!compact && 'Log out'}
           </button>
         </div>
       </aside>
 
       {/* Main */}
       <div className="relative z-[1] flex-1 flex flex-col min-w-0">
-        {/* Top bar mobile */}
+        {/* Mobile top bar */}
         <header className="h-16 bg-ink-900/80 backdrop-blur-xl border-b border-ink-700 flex items-center px-4 sticky top-0 z-30 lg:hidden">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            aria-label="Buka menu"
+            aria-label="Open menu"
             className={`p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors ${focusRing}`}
           >
             <Icon name="menu" />

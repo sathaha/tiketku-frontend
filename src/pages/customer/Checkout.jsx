@@ -234,7 +234,7 @@ export default function Checkout() {
           <StepProgress />
         </div>
 
-        {/* ===== GRID 2 KOLOM ===== */}
+        {/* ===== 2-COLUMN GRID ===== */}
         <div className="grid lg:grid-cols-5 gap-6 lg:gap-8">
 
           {/* ===== LEFT COLUMN (3/5) — FORM ===== */}
@@ -268,7 +268,7 @@ export default function Checkout() {
                       Email Address
                     </p>
                     <p className="font-serif text-sm text-amber-950 truncate">
-                      {concert.customer_email || 'Login email kamu'}
+                      {concert.customer_email || 'Your login email'}
                     </p>
                   </div>
                 </div>
@@ -278,14 +278,14 @@ export default function Checkout() {
             {/* ===== EVENT & SHIPPING DETAILS ===== */}
             <div>
               <h2 className="font-serif text-xl text-amber-950 mb-4">
-                Detail Event
+                Event Details
               </h2>
 
               <div className="bg-white border border-amber-200/40 rounded-2xl p-5 space-y-4">
-                {/* Nama Konser */}
+                {/* Concert Name */}
                 <div>
                   <p className="text-[10px] font-serif tracking-[0.15em] text-amber-600/60 uppercase mb-1">
-                    Konser
+                    Concert
                   </p>
                   <p className="font-serif text-base text-amber-950 font-medium">
                     {concert.name}
@@ -297,13 +297,13 @@ export default function Checkout() {
                   )}
                 </div>
 
-                {/* Kategori */}
+                {/* Category */}
                 <div className="pt-4 border-t border-amber-100">
                   <p className="text-[10px] font-serif tracking-[0.15em] text-amber-600/60 uppercase mb-1">
-                    Kategori Tiket
+                    Ticket Category
                   </p>
                   <p className="font-serif text-sm text-amber-950">
-                    {category.name} × {state.qty} tiket
+                    {category.name} × {state.qty} tickets
                   </p>
                 </div>
 
@@ -311,7 +311,7 @@ export default function Checkout() {
                 {schedule && (
                   <div className="pt-4 border-t border-amber-100">
                     <p className="text-[10px] font-serif tracking-[0.15em] text-amber-600/60 uppercase mb-1">
-                      Jadwal
+                      Schedule
                     </p>
                     <p className="font-serif text-sm text-amber-950 flex items-center gap-1.5">
                       <Icon name="calendar" className="w-3.5 h-3.5 text-amber-500" />
@@ -342,7 +342,7 @@ export default function Checkout() {
             {/* ===== PROMO CODE ===== */}
             <div>
               <h2 className="font-serif text-xl text-amber-950 mb-4">
-                Kode Promo
+                Promo Code
               </h2>
               <div className="bg-white border border-amber-200/40 rounded-2xl p-5">
                 <button
@@ -352,7 +352,7 @@ export default function Checkout() {
                   <div className="flex items-center gap-2">
                     <Icon name="sparkle" className="w-4 h-4 text-amber-600" />
                     <span className="text-sm font-serif text-amber-900">
-                      {promo ? `Promo ${promo.code} diterapkan` : 'Punya kode promo?'}
+                      {promo ? `Promo ${promo.code} applied` : 'Have a promo code?'}
                     </span>
                   </div>
                   <Icon
@@ -375,7 +375,7 @@ export default function Checkout() {
                       <div className="flex gap-2 mt-4">
                         <input
                           className="flex-1 px-4 py-2.5 bg-amber-50/50 border border-amber-200/40 text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/20 transition-all font-serif text-sm uppercase rounded-xl"
-                          placeholder="Masukkan kode promo"
+                          placeholder="Enter promo code"
                           value={promoCode}
                           onChange={(e) => {
                             setPromoCode(e.target.value.toUpperCase());
@@ -388,7 +388,7 @@ export default function Checkout() {
                           disabled={promoChecking || !promoCode}
                           className="px-5 py-2.5 bg-amber-800 hover:bg-amber-700 disabled:opacity-50 text-amber-50 font-serif text-sm transition-colors rounded-xl"
                         >
-                          {promoChecking ? '...' : 'Pakai'}
+                          {promoChecking ? '...' : 'Apply'}
                         </button>
                       </div>
                       {promoError && (
@@ -397,7 +397,7 @@ export default function Checkout() {
                       {promo && (
                         <div className="flex items-center gap-2 mt-3 text-emerald-700 text-sm font-serif">
                           <Icon name="check" className="w-4 h-4" />
-                          Promo {promo.code} berhasil diterapkan!
+                          Promo {promo.code} applied successfully!
                         </div>
                       )}
                     </motion.div>
@@ -414,7 +414,7 @@ export default function Checkout() {
               </div>
             )}
 
-            {/* ===== CONTINUE TO PAYMENT BUTTON (mobile only — desktop di sidebar) ===== */}
+            {/* ===== CONTINUE TO PAYMENT BUTTON (mobile only — desktop is in the sidebar) ===== */}
             <button
               onClick={handleSubmit}
               disabled={loading}
@@ -426,11 +426,11 @@ export default function Checkout() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Memproses...
+                  Processing...
                 </>
               ) : (
                 <>
-                  Lanjut ke Pembayaran
+                  Continue to Payment
                   <Icon name="arrow" className="w-4 h-4" />
                 </>
               )}
@@ -475,7 +475,7 @@ export default function Checkout() {
                       {category.name}
                     </p>
                     <p className="font-serif text-xs text-amber-700/60">
-                      {state.qty} tiket
+                      {state.qty} tickets
                     </p>
                   </div>
                 </div>
@@ -489,14 +489,14 @@ export default function Checkout() {
                     </span>
                   </div>
                   <div className="flex justify-between text-amber-800/70">
-                    <span>Biaya layanan ({FEE_PERCENT}%)</span>
+                    <span>Service fee ({FEE_PERCENT}%)</span>
                     <span className="font-mono tabular-nums">
                       {formatRupiah(platformFee)}
                     </span>
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-emerald-700">
-                      <span>Diskon</span>
+                      <span>Discount</span>
                       <span className="font-mono tabular-nums">
                         −{formatRupiah(discount)}
                       </span>
@@ -553,11 +553,11 @@ export default function Checkout() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Memproses...
+                    Processing...
                   </>
                 ) : (
                   <>
-                    Lanjut ke Pembayaran
+                    Continue to Payment
                     <Icon name="arrow" className="w-4 h-4" />
                   </>
                 )}
@@ -566,7 +566,7 @@ export default function Checkout() {
               {/* Payment methods row */}
               <div className="bg-white border border-amber-200/40 rounded-2xl p-4">
                 <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/60 uppercase text-center mb-3">
-                  Metode Pembayaran
+                  Payment Methods
                 </p>
                 <div className="flex items-center justify-center gap-3">
                   {[
@@ -589,8 +589,8 @@ export default function Checkout() {
                 <div className="flex items-start gap-2 mt-4 pt-4 border-t border-amber-100">
                   <Icon name="shield" className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
                   <p className="text-[10px] font-serif text-amber-700/60 leading-relaxed">
-                    Pembayaran aman via <strong className="text-amber-800">Xendit</strong>.
-                    Kamu akan diarahkan ke halaman pembayaran setelah klik Lanjut.
+                    Secure payment via <strong className="text-amber-800">Xendit</strong>.
+                    You will be redirected to the payment page after clicking Continue.
                   </p>
                 </div>
               </div>

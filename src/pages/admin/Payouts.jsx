@@ -34,9 +34,9 @@ const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible
 const tableCols = 'sm:grid-cols-[minmax(0,1fr)_10rem_10rem_9rem]';
 
 const tabs = [
-  { value: 'all', label: 'Semua' },
-  { value: 'pending', label: 'Perlu dicairkan' },
-  { value: 'done', label: 'Beres' },
+  { value: 'all', label: 'All' },
+  { value: 'pending', label: 'Needs payout' },
+  { value: 'done', label: 'Settled' },
 ];
 
 function SkeletonTable() {
@@ -74,7 +74,7 @@ export default function Payouts() {
   const [confirmStep, setConfirmStep] = useState(false);
   const [payError, setPayError] = useState('');
 
-  // Rekening EO
+  // EO bank account
   const [eoBank, setEoBank] = useState(null);
   const [bankLoading, setBankLoading] = useState(false);
   const [copiedField, setCopiedField] = useState('');
@@ -140,7 +140,7 @@ export default function Payouts() {
           params: { payout_status: 'belum_cair' },
         }),
         api.get(`/bank-accounts/${eo.eo_id}`).catch((err) => {
-          // 404 = EO belum isi rekening, anggap null
+          // 404 = EO has not added a bank account yet, treat as null
           if (err.response?.status === 404) return { data: null };
           throw err;
         }),
@@ -151,7 +151,7 @@ export default function Payouts() {
     } catch (err) {
       if (requestId !== requestRef.current) return;
       console.error('Failed to fetch EO data:', err);
-      notify('error', 'Gagal memuat data EO.');
+      notify('error', 'Failed to load EO data.');
       setSelectedEo(null);
     } finally {
       if (requestId === requestRef.current) {
@@ -193,7 +193,7 @@ export default function Payouts() {
     if (selectedOrderIds.length === 0 || processing) return;
 
     if (!eoBank) {
-      setPayError('EO belum mengisi data rekening. Minta EO melengkapinya dulu sebelum mencairkan dana.');
+      setPayError('The EO has not filled in their bank account details. Ask the EO to complete them before paying out.');
       setConfirmStep(false);
       return;
     }
@@ -205,13 +205,13 @@ export default function Payouts() {
         order_ids: selectedOrderIds,
         note,
       });
-      notify('success', `${selectedOrderIds.length} order untuk ${selectedEo.eo_name} ditandai sudah dicairkan`);
+      notify('success', `${selectedOrderIds.length} orders for ${selectedEo.eo_name} marked as paid out`);
       requestRef.current++;
       setSelectedEo(null);
       setConfirmStep(false);
       fetchSummary(true);
     } catch (err) {
-      setPayError(err.response?.data?.message || 'Gagal memproses pencairan dana.');
+      setPayError(err.response?.data?.message || 'Failed to process the payout.');
       setConfirmStep(false);
     } finally {
       setProcessing(false);
@@ -262,9 +262,9 @@ export default function Payouts() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <header className="mb-6">
-          <h1 className="text-2xl font-bold text-white">Pencairan dana EO</h1>
+          <h1 className="text-2xl font-bold text-white">EO Payouts</h1>
           <p className="text-sm text-ink-400 mt-1">
-            Transfer pendapatan tiket ke event organizer, lalu tandai order yang sudah dicairkan.
+            Transfer ticket revenue to event organizers, then mark the orders as paid out.
           </p>
         </header>
 
@@ -272,22 +272,22 @@ export default function Payouts() {
         {!loading && summary.length > 0 && (
           <div className="card grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-ink-700 mb-6">
             <div className="p-4">
-              <p className="text-xs text-ink-400">Menunggu dicairkan</p>
+              <p className="text-xs text-ink-400">Awaiting payout</p>
               <p className="text-xl font-bold text-amber-400 font-mono tabular-nums mt-1.5 leading-none">
                 {formatRupiah(totalUnpaidAll)}
               </p>
             </div>
             <div className="p-4">
-              <p className="text-xs text-ink-400">Sudah dicairkan</p>
+              <p className="text-xs text-ink-400">Paid out</p>
               <p className="text-xl font-bold text-emerald-400 font-mono tabular-nums mt-1.5 leading-none">
                 {formatRupiah(totalPaidAll)}
               </p>
             </div>
             <div className="p-4">
-              <p className="text-xs text-ink-400">EO yang menunggu</p>
+              <p className="text-xs text-ink-400">EOs waiting</p>
               <p className="text-xl font-bold text-white font-mono tabular-nums mt-1.5 leading-none">
                 {eoWaiting}
-                <span className="text-sm font-normal text-ink-400"> dari {summary.length}</span>
+                <span className="text-sm font-normal text-ink-400"> of {summary.length}</span>
               </p>
             </div>
           </div>
@@ -300,8 +300,8 @@ export default function Payouts() {
               <Icon name="search" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
               <input
                 type="text"
-                aria-label="Cari EO"
-                placeholder="Cari nama atau email EO"
+                aria-label="Search EO"
+                placeholder="Search EO name or email"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full input-field pl-10 bg-ink-800/40"
@@ -333,16 +333,16 @@ export default function Payouts() {
             <div className="w-14 h-14 mx-auto rounded-full bg-ink-800 flex items-center justify-center mb-4">
               <Icon name="bank" className="w-6 h-6 text-ink-400" />
             </div>
-            <h3 className="font-semibold text-white mb-1">Belum ada saldo EO</h3>
-            <p className="text-sm text-ink-400">Saldo muncul di sini setelah tiket dari konser EO terjual.</p>
+            <h3 className="font-semibold text-white mb-1">No EO balance yet</h3>
+            <p className="text-sm text-ink-400">Balances will appear here once tickets from an EO's concert are sold.</p>
           </div>
         ) : rows.length === 0 ? (
           <div className="card p-12 text-center">
             <div className="w-14 h-14 mx-auto rounded-full bg-ink-800 flex items-center justify-center mb-4">
               <Icon name="search" className="w-6 h-6 text-ink-400" />
             </div>
-            <h3 className="font-semibold text-white mb-1">EO tidak ditemukan</h3>
-            <p className="text-sm text-ink-400 mb-5">Ubah kata kunci atau filter status.</p>
+            <h3 className="font-semibold text-white mb-1">No EO found</h3>
+            <p className="text-sm text-ink-400 mb-5">Change the keyword or status filter.</p>
             {isFiltering && (
               <button
                 onClick={() => {
@@ -359,8 +359,8 @@ export default function Payouts() {
           <div className="card overflow-hidden">
             <div className={`hidden sm:grid ${tableCols} gap-4 px-5 py-3 border-b border-ink-700 text-xs text-ink-400`}>
               <span>Event organizer</span>
-              <span className="text-right">Belum dicairkan</span>
-              <span className="text-right">Sudah dicairkan</span>
+              <span className="text-right">Unpaid</span>
+              <span className="text-right">Paid out</span>
               <span />
             </div>
 
@@ -385,7 +385,7 @@ export default function Payouts() {
                     </div>
 
                     <div className="sm:text-right">
-                      <p className="text-xs text-ink-400 sm:hidden mb-1">Belum dicairkan</p>
+                      <p className="text-xs text-ink-400 sm:hidden mb-1">Unpaid</p>
                       <p
                         className={`font-semibold font-mono tabular-nums ${
                           hasUnpaid ? 'text-amber-400' : 'text-ink-400'
@@ -394,12 +394,12 @@ export default function Payouts() {
                         {formatRupiah(eo.belum_cair)}
                       </p>
                       {hasUnpaid && (
-                        <p className="text-xs text-ink-400 mt-0.5">{eo.jumlah_order_belum_cair} order</p>
+                        <p className="text-xs text-ink-400 mt-0.5">{eo.jumlah_order_belum_cair} orders</p>
                       )}
                     </div>
 
                     <div className="sm:text-right">
-                      <p className="text-xs text-ink-400 sm:hidden mb-1">Sudah dicairkan</p>
+                      <p className="text-xs text-ink-400 sm:hidden mb-1">Paid out</p>
                       <p className="font-mono tabular-nums text-emerald-400">{formatRupiah(eo.sudah_cair)}</p>
                     </div>
 
@@ -410,10 +410,10 @@ export default function Payouts() {
                           className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-flame-500 hover:bg-flame-600 active:scale-[0.98] text-white rounded-lg text-sm font-medium transition-all ${focusRing}`}
                         >
                           <Icon name="bank" className="w-4 h-4" />
-                          Cairkan
+                          Pay out
                         </button>
                       ) : (
-                        <span className="text-xs text-ink-400">Tidak ada tagihan</span>
+                        <span className="text-xs text-ink-400">No outstanding balance</span>
                       )}
                     </div>
                   </li>
@@ -453,14 +453,14 @@ export default function Payouts() {
                   <div className="flex items-start justify-between gap-3 p-5 border-b border-ink-700">
                     <div className="min-w-0">
                       <h2 id="payout-title" className="font-semibold text-white truncate">
-                        Cairkan dana untuk {selectedEo.eo_name}
+                        Pay out funds to {selectedEo.eo_name}
                       </h2>
                       <p className="text-xs text-ink-400 mt-0.5 truncate">{selectedEo.eo_email}</p>
                     </div>
                     <button
                       onClick={closeDrawer}
                       disabled={processing}
-                      aria-label="Tutup"
+                      aria-label="Close"
                       className={`p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors disabled:opacity-50 ${focusRing}`}
                     >
                       <Icon name="close" className="w-5 h-5" />
@@ -482,7 +482,7 @@ export default function Payouts() {
                           <Icon name="bank" className="w-[18px] h-[18px]" />
                         </span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-ink-400">Rekening tujuan</p>
+                          <p className="text-xs text-ink-400">Destination account</p>
                           <p className="font-semibold text-white mt-1">{eoBank.bank_name}</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <p className="font-mono text-sm text-ink-200 tracking-wider">{eoBank.account_number}</p>
@@ -490,8 +490,8 @@ export default function Payouts() {
                               type="button"
                               onClick={() => copyToClipboard(eoBank.account_number, 'account')}
                               className={`p-1 rounded text-ink-400 hover:text-white transition-colors ${focusRing}`}
-                              aria-label="Salin nomor rekening"
-                              title="Salin nomor rekening"
+                              aria-label="Copy account number"
+                              title="Copy account number"
                             >
                               <Icon
                                 name={copiedField === 'account' ? 'check' : 'copy'}
@@ -508,9 +508,9 @@ export default function Payouts() {
                           <Icon name="alert" className="w-[18px] h-[18px]" />
                         </span>
                         <div>
-                          <p className="font-semibold text-white text-sm">Rekening belum diisi</p>
+                          <p className="font-semibold text-white text-sm">Bank account not set</p>
                           <p className="text-xs text-ink-300 mt-1">
-                            EO belum mengisi data rekening. Minta EO melengkapinya dulu sebelum kamu mencairkan dana.
+                            The EO has not added bank account details. Ask the EO to complete them before you pay out.
                           </p>
                         </div>
                       </div>
@@ -528,8 +528,8 @@ export default function Payouts() {
                         <div className="w-14 h-14 rounded-full bg-ink-800 flex items-center justify-center mx-auto mb-3">
                           <Icon name="receipt" className="w-6 h-6 text-ink-400" />
                         </div>
-                        <p className="font-semibold text-white mb-1">Semua order sudah dicairkan</p>
-                        <p className="text-sm text-ink-400">Tidak ada transaksi yang menunggu untuk EO ini.</p>
+                        <p className="font-semibold text-white mb-1">All orders have been paid out</p>
+                        <p className="text-sm text-ink-400">There are no transactions waiting for this EO.</p>
                       </div>
                     ) : (
                       <>
@@ -543,10 +543,10 @@ export default function Payouts() {
                                 disabled={confirmStep || processing}
                                 className="rounded border-ink-700 text-flame-500 focus:ring-flame-500/20 bg-ink-900 w-4 h-4 cursor-pointer"
                               />
-                              Pilih semua ({orders.length} order)
+                              Select all ({orders.length} orders)
                             </label>
                             <span className="text-xs text-ink-400">
-                              <span className="text-white font-mono tabular-nums">{selectedOrderIds.length}</span> dipilih
+                              <span className="text-white font-mono tabular-nums">{selectedOrderIds.length}</span> selected
                             </span>
                           </div>
 
@@ -577,7 +577,7 @@ export default function Payouts() {
                                       </div>
                                       <p className="flex items-center gap-1.5 text-xs text-ink-400 mt-1.5">
                                         <Icon name="calendar" className="w-3 h-3" />
-                                        Lunas {formatDate(order.paid_at)}
+                                        Paid {formatDate(order.paid_at)}
                                       </p>
                                     </div>
                                     <span className="text-sm font-semibold text-flame-400 font-mono tabular-nums shrink-0">
@@ -592,14 +592,14 @@ export default function Payouts() {
 
                         <div>
                           <label htmlFor="payout-note" className="block text-sm text-ink-200 mb-1.5">
-                            Catatan transfer atau nomor referensi <span className="text-ink-400">(opsional)</span>
+                            Transfer note or reference number <span className="text-ink-400">(optional)</span>
                           </label>
                           <textarea
                             id="payout-note"
                             rows={2}
                             disabled={confirmStep || processing}
                             className="w-full input-field bg-ink-800/40 resize-none"
-                            placeholder="Contoh: Transfer BCA a.n Admin, Ref#982371923"
+                            placeholder="Example: BCA transfer a.n Admin, Ref#982371923"
                             value={note}
                             onChange={(e) => setNote(e.target.value)}
                           />
@@ -624,14 +624,14 @@ export default function Payouts() {
                       {!confirmStep ? (
                         <>
                           <div className="flex items-center justify-between px-1">
-                            <span className="text-sm text-ink-400">Total dipilih</span>
+                            <span className="text-sm text-ink-400">Selected total</span>
                             <span className="text-lg font-bold text-flame-400 font-mono tabular-nums">
                               {formatRupiah(selectedTotal)}
                             </span>
                           </div>
                           <div className="flex gap-3">
                             <button type="button" onClick={closeDrawer} className="btn-secondary">
-                              Batal
+                              Cancel
                             </button>
                             <button
                               type="button"
@@ -643,7 +643,7 @@ export default function Payouts() {
                               className="btn-primary flex-1 inline-flex items-center justify-center gap-2"
                             >
                               <Icon name="check" className="w-4 h-4" />
-                              Cairkan {selectedOrderIds.length > 0 ? `${selectedOrderIds.length} order` : ''}
+                              Pay out {selectedOrderIds.length > 0 ? `${selectedOrderIds.length} orders` : ''}
                             </button>
                           </div>
                         </>
@@ -652,7 +652,7 @@ export default function Payouts() {
                           {/* Receipt-style confirmation */}
                           <div className="rounded-xl border border-dashed border-ink-700 divide-y divide-dashed divide-ink-700 text-sm">
                             <div className="flex items-start justify-between gap-4 p-3.5">
-                              <span className="text-ink-400 text-xs pt-0.5">Transfer ke</span>
+                              <span className="text-ink-400 text-xs pt-0.5">Transfer to</span>
                               <div className="text-right min-w-0">
                                 <p className="text-white font-medium truncate">{selectedEo.eo_name}</p>
                                 <p className="text-xs text-ink-300">{eoBank?.bank_name}</p>
@@ -661,11 +661,11 @@ export default function Payouts() {
                               </div>
                             </div>
                             <div className="flex items-center justify-between p-3.5">
-                              <span className="text-ink-400 text-xs">Jumlah order</span>
+                              <span className="text-ink-400 text-xs">Number of orders</span>
                               <span className="text-white font-mono tabular-nums">{selectedOrderIds.length}</span>
                             </div>
                             <div className="flex items-center justify-between gap-3 p-3.5">
-                              <span className="text-ink-400 text-xs">Total transfer</span>
+                              <span className="text-ink-400 text-xs">Transfer total</span>
                               <div className="flex items-center gap-2">
                                 <span className="text-lg font-bold text-flame-400 font-mono tabular-nums">
                                   {formatRupiah(selectedTotal)}
@@ -674,8 +674,8 @@ export default function Payouts() {
                                   type="button"
                                   onClick={() => copyToClipboard(selectedTotal, 'amount')}
                                   className={`p-1 rounded text-ink-400 hover:text-white transition-colors ${focusRing}`}
-                                  aria-label="Salin nominal"
-                                  title="Salin nominal"
+                                  aria-label="Copy amount"
+                                  title="Copy amount"
                                 >
                                   <Icon
                                     name={copiedField === 'amount' ? 'check' : 'copy'}
@@ -687,8 +687,8 @@ export default function Payouts() {
                           </div>
 
                           <p className="text-xs text-ink-400 px-1">
-                            Tandai hanya setelah uang benar-benar sudah kamu transfer. Status order akan berubah menjadi
-                            sudah dicairkan, dan ini tidak bisa dibatalkan dari halaman ini.
+                            Mark this only after you have actually transferred the money. The order status will change to
+                            paid out, and this cannot be undone from this page.
                           </p>
 
                           <div className="flex gap-3">
@@ -698,7 +698,7 @@ export default function Payouts() {
                               disabled={processing}
                               className="btn-secondary"
                             >
-                              Kembali
+                              Back
                             </button>
                             <button
                               type="button"
@@ -709,10 +709,10 @@ export default function Payouts() {
                               {processing ? (
                                 <>
                                   <Spinner />
-                                  Memproses...
+                                  Processing...
                                 </>
                               ) : (
-                                'Tandai sudah dicairkan'
+                                'Mark as paid out'
                               )}
                             </button>
                           </div>

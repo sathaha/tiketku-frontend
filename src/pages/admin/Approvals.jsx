@@ -26,14 +26,14 @@ function Icon({ name, className = 'w-4 h-4' }) {
 }
 
 const QUICK_REASONS = [
-  'Poster tidak jelas',
-  'Deskripsi kurang lengkap',
-  'Jadwal bentrok',
-  'Informasi venue tidak valid',
-  'Harga tiket tidak wajar',
+  'Poster is unclear',
+  'Description is incomplete',
+  'Schedule conflict',
+  'Invalid venue information',
+  'Unreasonable ticket price',
 ];
 
-// Warna chip untuk kategori
+// Chip colors for categories
 const chipColors = [
   'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
   'bg-blue-500/15 text-blue-300 border-blue-500/30',
@@ -73,12 +73,12 @@ export default function Approvals() {
     setProcessing(true);
     try {
       await api.post(`/concerts/${approveTarget.id}/approve`, { approve: true });
-      setSuccessMsg(`"${approveTarget.name}" berhasil disetujui dan dipublikasikan`);
+      setSuccessMsg(`"${approveTarget.name}" has been approved and published`);
       setApproveTarget(null);
       fetchPending();
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
-      alert(err.response?.data?.message || 'Gagal menyetujui konser.');
+      alert(err.response?.data?.message || 'Failed to approve the concert.');
       setApproveTarget(null);
     } finally {
       setProcessing(false);
@@ -87,19 +87,19 @@ export default function Approvals() {
 
   async function handleReject(id, concertName) {
     if (!reason.trim()) {
-      alert('Mohon isi alasan penolakan.');
+      alert('Please provide a rejection reason.');
       return;
     }
     setProcessing(true);
     try {
       await api.post(`/concerts/${id}/approve`, { approve: false, reason });
-      setSuccessMsg(`"${concertName}" telah ditolak`);
+      setSuccessMsg(`"${concertName}" has been rejected`);
       setRejectingId(null);
       setReason('');
       fetchPending();
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
-      alert(err.response?.data?.message || 'Gagal menolak konser.');
+      alert(err.response?.data?.message || 'Failed to reject the concert.');
     } finally {
       setProcessing(false);
     }
@@ -115,9 +115,9 @@ export default function Approvals() {
             <Icon name="check" className="w-5 h-5 text-yellow-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Approval Konser</h1>
+            <h1 className="text-2xl font-bold text-white">Concert Approvals</h1>
             <p className="text-sm text-ink-400 mt-0.5">
-              Review event dari EO sebelum tayang
+              Review events from organizers before they go live
             </p>
           </div>
         </div>
@@ -127,7 +127,7 @@ export default function Approvals() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-60" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500" />
             </span>
-            {pending.length} menunggu
+            {pending.length} pending
           </span>
         )}
       </div>
@@ -154,8 +154,8 @@ export default function Approvals() {
           <div className="w-16 h-16 mx-auto rounded-full bg-ink-800 flex items-center justify-center mb-4">
             <Icon name="check" className="w-7 h-7 text-emerald-400" />
           </div>
-          <h3 className="font-semibold text-white text-lg mb-1">Semua beres</h3>
-          <p className="text-ink-400 text-sm">Tidak ada konser yang menunggu persetujuan.</p>
+          <h3 className="font-semibold text-white text-lg mb-1">All caught up</h3>
+          <p className="text-ink-400 text-sm">There are no concerts waiting for approval.</p>
         </div>
       ) : (
         <>
@@ -165,11 +165,11 @@ export default function Approvals() {
             <div className="col-span-1 flex items-center gap-2">
               <div className="w-4 h-4 rounded border border-ink-600" />
             </div>
-            <div className="col-span-3">Konser</div>
-            <div className="col-span-2">Penyelenggara</div>
-            <div className="col-span-3">Info Event</div>
+            <div className="col-span-3">Concert</div>
+            <div className="col-span-2">Organizer</div>
+            <div className="col-span-3">Event Info</div>
             <div className="col-span-2">Venue</div>
-            <div className="col-span-1 text-right">Aksi</div>
+            <div className="col-span-1 text-right">Actions</div>
           </div>
 
           {/* ===== TABLE ROWS ===== */}
@@ -195,7 +195,7 @@ export default function Approvals() {
                       <div className="w-4 h-4 rounded border border-ink-600" />
                     </div>
 
-                    {/* Poster + Nama */}
+                    {/* Poster + Name */}
                     <div className="lg:col-span-3 flex items-center gap-3 min-w-0">
                       <div className="w-12 h-12 rounded-lg bg-ink-700 overflow-hidden shrink-0 relative">
                         {concert.poster ? (
@@ -211,7 +211,7 @@ export default function Approvals() {
                           {concert.name}
                         </h3>
                         <p className="text-xs text-ink-400 truncate mt-0.5">
-                          {concert.artist || 'Artis belum diisi'}
+                          {concert.artist || 'Artist not provided'}
                         </p>
                       </div>
                     </div>
@@ -219,7 +219,7 @@ export default function Approvals() {
                     {/* Organizer */}
                     <div className="lg:col-span-2 min-w-0">
                       <div className="lg:hidden text-[10px] uppercase tracking-wider text-ink-500 mb-1">
-                        Penyelenggara
+                        Organizer
                       </div>
                       <div className="flex items-center gap-2 text-xs text-ink-300 truncate">
                         <div className="w-6 h-6 rounded-full bg-ink-700 flex items-center justify-center text-[10px] text-ink-300 font-semibold shrink-0">
@@ -229,10 +229,10 @@ export default function Approvals() {
                       </div>
                     </div>
 
-                    {/* Info Event (chips) */}
+                    {/* Event Info (chips) */}
                     <div className="lg:col-span-3 min-w-0">
                       <div className="lg:hidden text-[10px] uppercase tracking-wider text-ink-500 mb-1">
-                        Info Event
+                        Event Info
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {concert.category_name && (
@@ -276,7 +276,7 @@ export default function Approvals() {
                         disabled={processing || isRejecting}
                         onClick={() => setApproveTarget(concert)}
                         className="w-8 h-8 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 flex items-center justify-center transition-colors disabled:opacity-40"
-                        title="Setujui"
+                        title="Approve"
                       >
                         <Icon name="check" className="w-4 h-4" />
                       </button>
@@ -287,7 +287,7 @@ export default function Approvals() {
                           setReason('');
                         }}
                         className="w-8 h-8 rounded-lg bg-red-500/15 hover:bg-red-500/30 border border-red-500/30 text-red-400 flex items-center justify-center transition-colors disabled:opacity-40"
-                        title="Tolak"
+                        title="Reject"
                       >
                         <Icon name="close" className="w-4 h-4" />
                       </button>
@@ -310,7 +310,7 @@ export default function Approvals() {
                               <Icon name="alert" className="w-3.5 h-3.5 text-red-400" />
                             </div>
                             <span className="text-sm font-medium text-red-300">
-                              Alasan Penolakan
+                              Rejection Reason
                             </span>
                           </div>
 
@@ -335,7 +335,7 @@ export default function Approvals() {
                           <textarea
                             className="w-full px-3 py-2.5 bg-ink-900/50 border border-ink-700 rounded-lg text-sm text-white placeholder-ink-500 focus:outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 transition-all mb-3 resize-none"
                             rows={2}
-                            placeholder="Detail tambahan (opsional)..."
+                            placeholder="Additional details (optional)..."
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
                           />
@@ -348,7 +348,7 @@ export default function Approvals() {
                               }}
                               className="px-4 py-2 rounded-lg bg-ink-700 hover:bg-ink-600 text-white text-sm font-medium transition-colors"
                             >
-                              Batal
+                              Cancel
                             </button>
                             <button
                               disabled={processing}
@@ -361,12 +361,12 @@ export default function Approvals() {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                   </svg>
-                                  Mengirim...
+                                  Sending...
                                 </>
                               ) : (
                                 <>
                                   <Icon name="close" className="w-4 h-4" />
-                                  Kirim Penolakan
+                                  Send Rejection
                                 </>
                               )}
                             </button>
@@ -383,11 +383,11 @@ export default function Approvals() {
           {/* ===== TABLE FOOTER ===== */}
           <div className="hidden lg:flex items-center justify-between px-5 py-3 bg-ink-800/60 border border-t-0 border-ink-700/60 rounded-b-xl text-xs text-ink-400">
             <span>
-              <span className="text-white font-medium">{pending.length}</span> konser menunggu approval
+              <span className="text-white font-medium">{pending.length}</span> concerts awaiting approval
             </span>
             <span className="flex items-center gap-1.5">
               <Icon name="clock" className="w-3.5 h-3.5 text-yellow-500" />
-              Perlu review segera
+              Needs review soon
             </span>
           </div>
         </>
@@ -416,11 +416,11 @@ export default function Approvals() {
                 <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
                   <Icon name="check" className="w-5 h-5 text-emerald-400" />
                 </div>
-                <h3 className="font-semibold text-white text-lg">Setujui Konser</h3>
+                <h3 className="font-semibold text-white text-lg">Approve Concert</h3>
               </div>
 
               <p className="text-ink-300 text-sm mb-2">
-                Konser ini akan dipublikasikan:
+                This concert will be published:
               </p>
               <p className="text-white font-medium mb-4">
                 {approveTarget.name}
@@ -453,10 +453,10 @@ export default function Approvals() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Memproses...
+                      Processing...
                     </>
                   ) : (
-                    'Ya, Setujui'
+                    'Yes, Approve'
                   )}
                 </button>
                 <button
@@ -464,7 +464,7 @@ export default function Approvals() {
                   disabled={processing}
                   className="flex-1 py-2.5 bg-ink-700 hover:bg-ink-600 text-white rounded-xl text-sm font-semibold transition-colors"
                 >
-                  Batal
+                  Cancel
                 </button>
               </div>
             </motion.div>

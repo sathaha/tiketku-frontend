@@ -63,7 +63,7 @@ export default function Register() {
     setError('');
 
     if (form.password.length < 6) {
-      setError('Password minimal 6 karakter.');
+      setError('Password must be at least 6 characters.');
       return;
     }
 
@@ -74,7 +74,7 @@ export default function Register() {
       login(data.token, data.user);
       redirectAfterAuth(data.user);
     } catch (err) {
-      setError(err.response?.data?.message || 'Gagal mendaftar.');
+      setError(err.response?.data?.message || 'Registration failed.');
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ export default function Register() {
       login(data.token, data.user);
       redirectAfterAuth(data.user);
     } catch (err) {
-      setError(err.response?.data?.message || 'Gagal daftar dengan Google.');
+      setError(err.response?.data?.message || 'Failed to sign up with Google.');
     } finally {
       setLoading(false);
     }
@@ -163,9 +163,9 @@ export default function Register() {
             <div className="absolute bottom-2.5 left-2.5 w-2 h-2 rounded-full bg-[#f5ede4] border border-amber-300/50 shadow-inner" />
             <div className="absolute bottom-2.5 right-2.5 w-2 h-2 rounded-full bg-[#f5ede4] border border-amber-300/50 shadow-inner" />
 
-            {/* ===== 2 KOLOM + PEMBATAS ===== */}
+            {/* ===== 2 COLUMNS + DIVIDER ===== */}
             <div className="grid md:grid-cols-2 relative">
-              {/* ===== PEMBATAS TIKET ===== */}
+              {/* ===== TICKET DIVIDER ===== */}
               <div className="hidden md:block absolute left-1/2 top-8 bottom-8 -translate-x-1/2 z-10 w-6">
                 <div
                   className="absolute inset-0 bg-amber-700/[0.06]"
@@ -396,7 +396,7 @@ export default function Register() {
                   <div className="border-t border-amber-200/40" />
                   <div className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-[#faf6ef] px-3">
                     <span className="text-[9px] font-serif tracking-[0.3em] text-amber-400/60 uppercase">
-                      atau
+                      or
                     </span>
                   </div>
                 </div>
@@ -405,7 +405,7 @@ export default function Register() {
                 <div className="flex justify-center">
                   <GoogleLogin
                     onSuccess={handleGoogleSuccess}
-                    onError={() => setError('Daftar Google dibatalkan.')}
+                    onError={() => setError('Google sign-up was cancelled.')}
                     theme="outline"
                     size="large"
                     text="signup_with"

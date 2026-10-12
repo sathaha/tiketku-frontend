@@ -23,10 +23,10 @@ function Icon({ name, className = 'w-4 h-4' }) {
 }
 
 const steps = [
-  'Pilih event yang ingin kamu tonton',
-  'Di halaman Checkout, klik "Have a promo code?"',
-  'Paste kode promo di atas, klik Apply',
-  'Diskon otomatis terpotong dari total pembayaran',
+  'Choose the event you want to watch',
+  'On the Checkout page, click "Have a promo code?"',
+  'Paste the promo code above, click Apply',
+  'The discount is automatically deducted from your total payment',
 ];
 
 export default function Promos() {
@@ -87,25 +87,25 @@ export default function Promos() {
             <div className="inline-flex items-center gap-2 border border-amber-500/30 rounded-full px-3 py-1 mb-4">
               <Icon name="sparkle" className="w-3 h-3 text-amber-400" />
               <span className="text-[10px] font-serif tracking-[0.3em] text-amber-400 uppercase">
-                Promo & Voucher
+                Promos & Vouchers
               </span>
             </div>
 
             <h1 className="font-serif text-4xl md:text-5xl text-white leading-tight">
-              Hemat lebih banyak
+              Save more
               <br />
-              <span className="text-amber-400 italic">untuk setiap tiket.</span>
+              <span className="text-amber-400 italic">on every ticket.</span>
             </h1>
 
             <p className="text-amber-200/60 text-sm md:text-base font-serif mt-3 max-w-lg">
-              Kumpulan promo aktif dengan diskon spesial. Sobek, salin kodenya, pakai saat checkout.
+              A collection of active promos with special discounts. Tear, copy the code, use it at checkout.
             </p>
 
             {!loading && promos.length > 0 && (
               <div className="flex items-center gap-2 mt-6">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="text-xs font-serif text-amber-300/70">
-                  {promos.length} promo sedang aktif
+                  {promos.length} promos currently active
                 </span>
               </div>
             )}
@@ -120,12 +120,12 @@ export default function Promos() {
         {loading ? (
           <Loading />
         ) : promos.length === 0 ? (
-          <EmptyState text="Belum ada promo aktif saat ini. Cek lagi nanti ya!" />
+          <EmptyState text="No active promos right now. Check back later!" />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {promos.map((p, i) => {
               const isCopied = copiedCode === p.code;
-              const sisa = p.quota - p.used;
+              const remaining = p.quota - p.used;
               const usagePercentage = Math.min(
                 Math.round(((p.used || 0) / p.quota) * 100),
                 100
@@ -145,7 +145,7 @@ export default function Promos() {
                   {almostGone && (
                     <div className="absolute -top-2.5 left-6 z-10 flex items-center gap-1 bg-orange-500 text-white text-[9px] font-serif tracking-[0.15em] uppercase px-2.5 py-1 rounded-full shadow-sm">
                       <Icon name="flame" className="w-3 h-3" />
-                      Hampir habis
+                      Almost gone
                     </div>
                   )}
 
@@ -157,7 +157,7 @@ export default function Promos() {
                         <div className="flex items-start justify-between mb-3">
                           <div>
                             <span className="font-serif text-[9px] tracking-[0.3em] text-amber-600/60 uppercase">
-                              Diskon spesial
+                              Special discount
                             </span>
                             <div className="flex items-baseline gap-2 mt-1">
                               <span className="font-serif text-3xl md:text-4xl text-amber-800 font-bold">
@@ -180,11 +180,11 @@ export default function Promos() {
                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-serif text-amber-700/60 mb-3">
                           <span className="flex items-center gap-1">
                             <Icon name="calendar" className="w-3 h-3" />
-                            s/d {formatDate(p.valid_until)}
+                            until {formatDate(p.valid_until)}
                           </span>
                           <span className="flex items-center gap-1">
                             <Icon name="users" className="w-3 h-3" />
-                            Sisa {sisa} kuota
+                            {remaining} quota left
                           </span>
                         </div>
 
@@ -206,7 +206,7 @@ export default function Promos() {
                           to="/"
                           className="inline-flex items-center gap-2 text-sm font-serif text-amber-700 hover:text-amber-900 transition-colors group/link"
                         >
-                          Pakai promo sekarang
+                          Use this promo now
                           <Icon name="arrow" className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
                         </Link>
                       </div>
@@ -229,7 +229,7 @@ export default function Promos() {
                       <div className="sm:w-40 flex flex-row sm:flex-col items-center justify-center gap-3 p-5 bg-amber-50/50">
                         <div className="text-center">
                           <div className="text-[9px] font-serif tracking-[0.2em] text-amber-600/60 uppercase mb-0.5">
-                            Kode
+                            Code
                           </div>
                           <span className="font-mono font-bold text-base text-amber-900 tracking-wider">
                             {p.code}
@@ -264,7 +264,7 @@ export default function Promos() {
               <Icon name="sparkle" className="w-4 h-4 text-amber-700" />
             </div>
             <h3 className="font-serif text-amber-900 font-semibold">
-              Cara pakai kode promo
+              How to use a promo code
             </h3>
           </div>
 
@@ -280,7 +280,7 @@ export default function Promos() {
           </div>
 
           <p className="text-xs font-serif text-amber-600/60 mt-4 italic">
-            * Pembayaran bisa via GoPay, OVO, Dana, ShopeePay, QRIS, Virtual Account, dan kartu kredit.
+            * Payment can be made via GoPay, OVO, Dana, ShopeePay, QRIS, Virtual Account, and credit card.
           </p>
         </div>
       </div>

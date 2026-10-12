@@ -46,7 +46,7 @@ function StatusBadge({ status }) {
   );
 }
 
-// ===== ORDER CARD (layout referensi — wide horizontal) =====
+// ===== ORDER CARD (reference layout — wide horizontal) =====
 function OrderCard({ order }) {
   const isPending = order.status === 'menunggu_pembayaran';
   const isPaid = order.status === 'lunas';
@@ -56,7 +56,7 @@ function OrderCard({ order }) {
       to={`/orders/${order.id}`}
       className="group block bg-white/90 hover:bg-white border border-amber-200/40 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(120,72,20,0.15)] hover:border-amber-300/60"
     >
-      {/* ===== TOP BAR: Info order (Order Date, Total, Venue, Order #) ===== */}
+      {/* ===== TOP BAR: Order info (Order Date, Total, Venue, Order #) ===== */}
       <div className="px-5 md:px-6 py-4 border-b border-amber-200/30 bg-amber-50/30">
         <div className="flex flex-wrap items-start gap-x-8 gap-y-3">
           {/* Order Date */}
@@ -89,7 +89,7 @@ function OrderCard({ order }) {
             </div>
           </div>
 
-          {/* Order # + View Order (kanan) */}
+          {/* Order # + View Order (right) */}
           <div className="flex items-center gap-3 ml-auto">
             <div className="text-right hidden sm:block">
               <div className="text-[10px] font-serif tracking-[0.15em] text-amber-700/50 uppercase mb-0.5">
@@ -114,7 +114,7 @@ function OrderCard({ order }) {
           <div className="flex items-center gap-2">
             <Icon name="info" className="w-3.5 h-3.5 text-amber-600" />
             <span className="text-[11px] font-serif text-amber-800">
-              Selesaikan pembayaran sebelum tiket dilepas kembali
+              Complete the payment before the ticket is released back
             </span>
           </div>
           <button className="text-amber-600 hover:text-amber-900 transition-colors">
@@ -128,12 +128,12 @@ function OrderCard({ order }) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-serif font-semibold text-amber-950">
             {isPaid
-              ? 'Tiket Aktif'
+              ? 'Active Ticket'
               : isPending
-              ? 'Menunggu Pembayaran'
+              ? 'Awaiting Payment'
               : order.status === 'kadaluarsa'
-              ? 'Kedaluwarsa'
-              : 'Dibatalkan'}
+              ? 'Expired'
+              : 'Cancelled'}
           </span>
           <span className="text-amber-400/50">·</span>
           <span className="text-xs font-serif text-amber-700/50">
@@ -168,32 +168,32 @@ function OrderCard({ order }) {
               {order.concert_name}
             </h4>
             <p className="text-sm font-serif text-amber-700/60 mt-1">
-              {order.ticket_category_name} · {order.qty}× tiket
+              {order.ticket_category_name} · {order.qty}× tickets
             </p>
             <p className="text-[11px] font-serif text-amber-600/50 mt-1.5">
               {isPaid
-                ? 'Tiket elektronik tersedia'
+                ? 'E-ticket is available'
                 : isPending
-                ? 'Bayar dalam 15 menit'
+                ? 'Pay within 15 minutes'
                 : order.status === 'kadaluarsa'
-                ? 'Melewati batas waktu pembayaran'
-                : 'Pesanan dibatalkan'}
+                ? 'Payment deadline has passed'
+                : 'Order has been cancelled'}
             </p>
           </div>
 
-          {/* Action row — cuma Lihat E-Tiket / Bayar Sekarang */}
+          {/* Action row — only View E-Ticket / Pay Now */}
           {(isPaid || isPending) && (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-dashed border-amber-200/50">
               {isPaid && (
                 <span className="flex items-center gap-1.5 text-xs font-serif text-amber-800">
                   <Icon name="qr" className="w-3.5 h-3.5" />
-                  Lihat E-Tiket
+                  View E-Ticket
                 </span>
               )}
               {isPending && (
                 <span className="flex items-center gap-1.5 text-xs font-serif text-amber-800">
                   <Icon name="clock" className="w-3.5 h-3.5" />
-                  Bayar Sekarang
+                  Pay Now
                 </span>
               )}
             </div>
@@ -291,20 +291,20 @@ export default function MyOrders() {
             <div>
               <div className="flex items-center gap-2 text-amber-700/40 mb-1">
                 <Icon name="sparkle" className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-serif uppercase tracking-[0.3em]">Riwayat Pembelian</span>
+                <span className="text-[10px] font-serif uppercase tracking-[0.3em]">Purchase History</span>
               </div>
               <h1 className="font-serif text-3xl md:text-4xl text-amber-950 tracking-wide">
                 Your Orders
               </h1>
               <p className="font-serif text-amber-700/50 text-sm mt-1">
-                Kelola semua tiket konser kamu di sini
+                Manage all your concert tickets here
               </p>
             </div>
 
             {orders.length > 0 && (
               <div className="flex items-center gap-2">
                 <span className="font-serif text-[10px] tracking-[0.25em] text-amber-700/70 bg-white/60 border border-amber-200/50 rounded-full px-4 py-2 uppercase shadow-sm">
-                  {orders.length} order
+                  {orders.length} orders
                 </span>
               </div>
             )}
@@ -312,7 +312,7 @@ export default function MyOrders() {
 
           {/* Tab row + Sort */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            {/* Tabs kiri */}
+            {/* Left tabs */}
             <div className="flex gap-1 bg-white/60 border border-amber-200/40 rounded-full p-1 shadow-sm overflow-x-auto">
               {tabs.map((tab) => {
                 const count = orders.filter((o) => tab.id === 'all' || o.status === tab.id).length;
@@ -337,9 +337,9 @@ export default function MyOrders() {
               })}
             </div>
 
-            {/* Sort dropdown kanan */}
+            {/* Right sort dropdown */}
             <button className="flex items-center gap-2 px-4 py-2 bg-white/60 border border-amber-200/40 rounded-lg text-sm font-serif text-amber-800 hover:border-amber-400/60 transition-colors shadow-sm">
-              Past 1 Years
+              Past 1 Year
               <Icon name="chevronDown" className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -349,7 +349,7 @@ export default function MyOrders() {
             <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400/40" />
             <input
               className="w-full pl-10 pr-10 py-2.5 bg-white/60 border border-amber-200/40 text-amber-950 placeholder-amber-400/50 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/20 transition-all font-serif text-sm rounded-xl shadow-sm focus:shadow-md"
-              placeholder="Cari nama konser atau kode pesanan..."
+              placeholder="Search by concert name or order code..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -378,8 +378,8 @@ export default function MyOrders() {
             <EmptyState
               text={
                 searchQuery
-                  ? 'Tidak ada pesanan yang ditemukan.'
-                  : 'Kamu belum membeli tiket apapun.'
+                  ? 'No orders found.'
+                  : 'You have not purchased any tickets yet.'
               }
             />
           </motion.div>
@@ -399,7 +399,7 @@ export default function MyOrders() {
                     </h3>
                     <div className="flex-1 h-px bg-amber-200/30" />
                     <span className="text-[10px] font-serif text-amber-400/50">
-                      {groupOrders.length} transaksi
+                      {groupOrders.length} transactions
                     </span>
                   </div>
 

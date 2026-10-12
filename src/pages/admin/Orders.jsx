@@ -26,17 +26,17 @@ const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible
 const PAGE_SIZE = 20;
 
 const statusTabs = [
-  { value: '', label: 'Semua' },
-  { value: 'menunggu_pembayaran', label: 'Menunggu' },
-  { value: 'lunas', label: 'Lunas' },
-  { value: 'kadaluarsa', label: 'Kadaluarsa' },
-  { value: 'dibatalkan', label: 'Dibatalkan' },
+  { value: '', label: 'All' },
+  { value: 'menunggu_pembayaran', label: 'Pending' },
+  { value: 'lunas', label: 'Paid' },
+  { value: 'kadaluarsa', label: 'Expired' },
+  { value: 'dibatalkan', label: 'Cancelled' },
 ];
 
 const tableCols = 'lg:grid-cols-[9.5rem_minmax(0,1fr)_minmax(0,1.2fr)_8.5rem_7.5rem_6.5rem]';
 
 function formatTime(d) {
-  return d ? new Date(d).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
+  return d ? new Date(d).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '';
 }
 
 function SkeletonRows() {
@@ -140,7 +140,7 @@ export default function Orders() {
     } catch (err) {
       if (requestId !== requestRef.current) return;
       console.error('Failed to fetch order detail:', err);
-      setToast({ message: 'Gagal memuat detail transaksi.', id: Date.now() });
+      setToast({ message: 'Failed to load transaction detail.', id: Date.now() });
       setSelectedId(null);
     } finally {
       if (requestId === requestRef.current) setDetailLoading(false);
@@ -192,9 +192,9 @@ export default function Orders() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <header className="mb-6">
-          <h1 className="text-2xl font-bold text-white">Transaksi</h1>
+          <h1 className="text-2xl font-bold text-white">Transactions</h1>
           <p className="text-sm text-ink-400 mt-1">
-            Status berubah otomatis saat customer membayar lewat Xendit, tanpa verifikasi manual.
+            Status updates automatically when the customer pays via Xendit, with no manual verification.
           </p>
         </header>
 
@@ -202,13 +202,13 @@ export default function Orders() {
         {!loading && orders.length > 0 && (
           <div className="card grid grid-cols-2 divide-x divide-ink-700 mb-6">
             <div className="p-4">
-              <p className="text-xs text-ink-400">Transaksi ditemukan</p>
+              <p className="text-xs text-ink-400">Transactions found</p>
               <p className="text-xl font-bold text-white font-mono tabular-nums mt-1.5 leading-none">
                 {filteredOrders.length}
               </p>
             </div>
             <div className="p-4">
-              <p className="text-xs text-ink-400">Pendapatan lunas</p>
+              <p className="text-xs text-ink-400">Paid revenue</p>
               <p className="text-xl font-bold text-flame-400 font-mono tabular-nums mt-1.5 leading-none">
                 {formatRupiah(paidRevenue)}
               </p>
@@ -238,9 +238,9 @@ export default function Orders() {
             <input
               ref={searchRef}
               type="text"
-              aria-label="Cari transaksi"
+              aria-label="Search transactions"
               className="w-full input-field pl-10 bg-ink-800/40"
-              placeholder="Cari kode order, nama, email, atau konser"
+              placeholder="Search order code, name, email, or concert"
               value={search}
               onChange={(e) => updateParams({ q: e.target.value }, true)}
             />
@@ -257,28 +257,28 @@ export default function Orders() {
             </div>
             {isFiltering ? (
               <>
-                <h3 className="font-semibold text-white mb-1">Tidak ada transaksi yang cocok</h3>
-                <p className="text-sm text-ink-400 mb-5">Ubah kata kunci atau filter status.</p>
+                <h3 className="font-semibold text-white mb-1">No transactions match</h3>
+                <p className="text-sm text-ink-400 mb-5">Change the keyword or status filter.</p>
                 <button onClick={() => setSearchParams({})} className="btn-secondary">
                   Reset filter
                 </button>
               </>
             ) : (
               <>
-                <h3 className="font-semibold text-white mb-1">Belum ada transaksi</h3>
-                <p className="text-sm text-ink-400">Transaksi muncul di sini setelah tiket pertama dipesan.</p>
+                <h3 className="font-semibold text-white mb-1">No transactions yet</h3>
+                <p className="text-sm text-ink-400">Transactions will appear here after the first ticket is ordered.</p>
               </>
             )}
           </div>
         ) : (
           <div className="card overflow-hidden">
             <div className={`hidden lg:grid ${tableCols} gap-4 px-5 py-3 border-b border-ink-700 text-xs text-ink-400`}>
-              <span>Kode order</span>
+              <span>Order code</span>
               <span>Customer</span>
-              <span>Konser</span>
+              <span>Concert</span>
               <span className="text-right">Total</span>
               <span>Status</span>
-              <span className="text-right">Dibuat</span>
+              <span className="text-right">Created</span>
             </div>
 
             <ul className="divide-y divide-ink-700">
@@ -291,10 +291,10 @@ export default function Orders() {
                     <button
                       type="button"
                       onClick={() => copyCode(order.order_code)}
-                      title="Salin kode order"
+                      title="Copy order code"
                       className={`relative z-10 inline-flex items-center gap-1.5 text-xs font-mono text-ink-300 hover:text-white transition-colors rounded ${focusRing}`}
                     >
-                      {copiedCode === order.order_code ? 'Disalin' : order.order_code}
+                      {copiedCode === order.order_code ? 'Copied' : order.order_code}
                       <Icon
                         name={copiedCode === order.order_code ? 'check' : 'copy'}
                         className={`w-3 h-3 ${copiedCode === order.order_code ? 'text-emerald-400' : ''}`}
@@ -343,11 +343,11 @@ export default function Orders() {
             {filteredOrders.length > PAGE_SIZE && (
               <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-ink-700 text-xs text-ink-400">
                 <span>
-                  Menampilkan{' '}
+                  Showing{' '}
                   <span className="text-white font-mono tabular-nums">
                     {pageStart + 1}-{Math.min(pageStart + PAGE_SIZE, filteredOrders.length)}
                   </span>{' '}
-                  dari <span className="font-mono tabular-nums">{filteredOrders.length}</span>
+                  of <span className="font-mono tabular-nums">{filteredOrders.length}</span>
                 </span>
                 <div className="flex gap-2">
                   <button
@@ -355,14 +355,14 @@ export default function Orders() {
                     disabled={currentPage === 1}
                     className={`px-3 py-1.5 rounded-md bg-ink-800 hover:bg-ink-700 text-ink-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${focusRing}`}
                   >
-                    Sebelumnya
+                    Previous
                   </button>
                   <button
                     onClick={() => setPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className={`px-3 py-1.5 rounded-md bg-ink-800 hover:bg-ink-700 text-ink-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${focusRing}`}
                   >
-                    Berikutnya
+                    Next
                   </button>
                 </div>
               </div>
@@ -402,10 +402,10 @@ export default function Orders() {
                         <button
                           type="button"
                           onClick={() => copyCode(base.order_code)}
-                          title="Salin kode order"
+                          title="Copy order code"
                           className={`inline-flex items-center gap-1.5 text-xs font-mono text-ink-400 hover:text-white transition-colors rounded ${focusRing}`}
                         >
-                          {copiedCode === base.order_code ? 'Disalin' : base.order_code}
+                          {copiedCode === base.order_code ? 'Copied' : base.order_code}
                           <Icon
                             name={copiedCode === base.order_code ? 'check' : 'copy'}
                             className={`w-3 h-3 ${copiedCode === base.order_code ? 'text-emerald-400' : ''}`}
@@ -413,12 +413,12 @@ export default function Orders() {
                         </button>
                       )}
                       <h2 id="order-title" className="font-semibold text-white mt-1 truncate">
-                        {base?.concert_name || 'Detail transaksi'}
+                        {base?.concert_name || 'Transaction detail'}
                       </h2>
                     </div>
                     <button
                       onClick={closeDrawer}
-                      aria-label="Tutup"
+                      aria-label="Close"
                       className={`p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors ${focusRing}`}
                     >
                       <Icon name="close" className="w-5 h-5" />
@@ -430,7 +430,7 @@ export default function Orders() {
                       <div className="flex items-center gap-3">
                         <StatusBadge status={base.status} />
                         <span className="text-xs text-ink-400">
-                          Dibuat {formatDate(base.created_at)}, {formatTime(base.created_at)}
+                          Created {formatDate(base.created_at)}, {formatTime(base.created_at)}
                         </span>
                       </div>
                     )}
@@ -466,30 +466,30 @@ export default function Orders() {
                         <div className="rounded-xl border border-dashed border-ink-700 divide-y divide-dashed divide-ink-700 text-sm">
                           <div className="p-4 space-y-2">
                             <div className="flex justify-between text-ink-300">
-                              <span>Subtotal tiket</span>
+                              <span>Ticket subtotal</span>
                               <span className="font-mono tabular-nums">
                                 {formatRupiah(detail.unit_price * detail.qty)}
                               </span>
                             </div>
                             <div className="flex justify-between text-ink-300">
-                              <span>Biaya layanan</span>
+                              <span>Service fee</span>
                               <span className="font-mono tabular-nums">{formatRupiah(detail.platform_fee_amount)}</span>
                             </div>
                             {detail.discount_amount > 0 && (
                               <div className="flex justify-between text-emerald-400">
-                                <span>Diskon</span>
+                                <span>Discount</span>
                                 <span className="font-mono tabular-nums">-{formatRupiah(detail.discount_amount)}</span>
                               </div>
                             )}
                           </div>
                           <div className="flex items-center justify-between p-4">
-                            <span className="font-semibold text-white">Total dibayar</span>
+                            <span className="font-semibold text-white">Total paid</span>
                             <span className="text-lg font-bold text-flame-400 font-mono tabular-nums">
                               {formatRupiah(detail.total_price)}
                             </span>
                           </div>
                           <div className="flex items-center justify-between px-4 py-3 text-xs text-ink-400">
-                            <span>Bagian EO</span>
+                            <span>EO share</span>
                             <span className="font-mono tabular-nums">{formatRupiah(detail.eo_payout_amount)}</span>
                           </div>
                         </div>
@@ -500,7 +500,7 @@ export default function Orders() {
                               <Icon name="bank" className="w-[18px] h-[18px]" />
                             </span>
                             <div>
-                              <p className="text-xs text-ink-400">Dibayar lewat</p>
+                              <p className="text-xs text-ink-400">Paid via</p>
                               <p className="text-sm font-medium text-white mt-0.5">{detail.xendit_payment_channel}</p>
                               <p className="text-xs text-ink-400 mt-0.5">
                                 {formatDate(detail.paid_at)}, {formatTime(detail.paid_at)}
@@ -511,7 +511,7 @@ export default function Orders() {
 
                         {detail.status === 'lunas' && (
                           <div className="flex items-center justify-between p-4 rounded-xl border border-ink-700">
-                            <span className="text-sm text-ink-300">Pencairan ke EO</span>
+                            <span className="text-sm text-ink-300">Payout to EO</span>
                             <StatusBadge status={detail.payout_status} />
                           </div>
                         )}
@@ -521,7 +521,7 @@ export default function Orders() {
 
                   <div className="p-4 border-t border-ink-700">
                     <button onClick={closeDrawer} className="btn-secondary w-full">
-                      Tutup
+                      Close
                     </button>
                   </div>
                 </div>

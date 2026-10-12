@@ -56,7 +56,7 @@ export default function ContactMessages() {
   async function viewMessage(message) {
     setSelectedMessage(message);
     setReplyText('');
-    
+
     // Mark as read if unread
     if (message.status === 'unread') {
       try {
@@ -69,21 +69,21 @@ export default function ContactMessages() {
   }
 
   async function handleDelete(id) {
-    if (!confirm('Hapus pesan ini?')) return;
+    if (!confirm('Delete this message?')) return;
     try {
       await api.delete(`/contact-messages/${id}`);
       setSelectedMessage(null);
       fetchMessages();
-      setSuccessMsg('Pesan berhasil dihapus');
+      setSuccessMsg('Message deleted successfully');
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
-      alert('Gagal menghapus pesan.');
+      alert('Failed to delete message.');
     }
   }
 
   async function handleSendReply() {
     if (!replyText.trim() || !selectedMessage) return;
-    
+
     setSendingReply(true);
     try {
       await api.post(`/contact-messages/${selectedMessage.id}/reply`, {
@@ -91,22 +91,22 @@ export default function ContactMessages() {
       });
       setReplyText('');
       setSelectedMessage(null);
-      setSuccessMsg('Balasan berhasil dikirim');
+      setSuccessMsg('Reply sent successfully');
       fetchMessages();
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
-      alert('Gagal mengirim balasan.');
+      alert('Failed to send reply.');
     } finally {
       setSendingReply(false);
     }
   }
 
   const filteredMessages = messages.filter((msg) => {
-    const matchesSearch = 
+    const matchesSearch =
       msg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       msg.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       msg.subject.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     if (statusFilter === 'all') return matchesSearch;
     return matchesSearch && msg.status === statusFilter;
   });
@@ -114,16 +114,16 @@ export default function ContactMessages() {
   const unreadCount = messages.filter(m => m.status === 'unread').length;
 
   const statusTabs = [
-    { value: 'all', label: 'Semua' },
-    { value: 'unread', label: 'Belum Dibaca' },
-    { value: 'read', label: 'Sudah Dibaca' },
-    { value: 'replied', label: 'Dibalas' },
+    { value: 'all', label: 'All' },
+    { value: 'unread', label: 'Unread' },
+    { value: 'read', label: 'Read' },
+    { value: 'replied', label: 'Replied' },
   ];
 
   const statusConfig = {
-    unread: { label: 'Belum Dibaca', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', dot: 'bg-amber-400' },
-    read: { label: 'Sudah Dibaca', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', dot: 'bg-blue-400' },
-    replied: { label: 'Dibalas', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', dot: 'bg-emerald-400' },
+    unread: { label: 'Unread', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', dot: 'bg-amber-400' },
+    read: { label: 'Read', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', dot: 'bg-blue-400' },
+    replied: { label: 'Replied', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', dot: 'bg-emerald-400' },
   };
 
   return (
@@ -142,9 +142,9 @@ export default function ContactMessages() {
               )}
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-white tracking-tight">Pesan Masuk</h1>
+              <h1 className="text-2xl font-semibold text-white tracking-tight">Inbox</h1>
               <p className="text-sm text-ink-400 mt-0.5">
-                {messages.length} pesan total • {unreadCount} belum dibaca
+                {messages.length} total messages • {unreadCount} unread
               </p>
             </div>
           </div>
@@ -172,7 +172,7 @@ export default function ContactMessages() {
           <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
           <input
             type="text"
-            placeholder="Cari nama, email, atau subjek..."
+            placeholder="Search by name, email, or subject..."
             className="w-full input-field pl-10 bg-ink-800/40"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -199,19 +199,19 @@ export default function ContactMessages() {
       {loading ? (
         <Loading />
       ) : filteredMessages.length === 0 ? (
-        <EmptyState 
+        <EmptyState
           text={
             searchQuery || statusFilter !== 'all'
-              ? "Tidak ada pesan yang sesuai filter."
-              : "Belum ada pesan masuk."
-          } 
+              ? "No messages match the filter."
+              : "No incoming messages yet."
+          }
         />
       ) : (
         <div className="space-y-2">
           {filteredMessages.map((message, index) => {
             const config = statusConfig[message.status] || statusConfig.unread;
             const isUnread = message.status === 'unread';
-            
+
             return (
               <motion.div
                 key={message.id}
@@ -220,8 +220,8 @@ export default function ContactMessages() {
                 transition={{ delay: index * 0.03 }}
                 onClick={() => viewMessage(message)}
                 className={`group card p-4 cursor-pointer transition-all ${
-                  isUnread 
-                    ? 'border-flame-500/30 bg-flame-500/5 hover:bg-flame-500/10' 
+                  isUnread
+                    ? 'border-flame-500/30 bg-flame-500/5 hover:bg-flame-500/10'
                     : 'hover:border-ink-600'
                 }`}
               >
@@ -246,13 +246,13 @@ export default function ContactMessages() {
                         {config.label}
                       </span>
                     </div>
-                    
+
                     <p className={`text-sm truncate ${
                       isUnread ? 'text-white font-medium' : 'text-ink-300'
                     }`}>
                       {message.subject}
                     </p>
-                    
+
                     <div className="flex items-center gap-3 mt-1 text-xs text-ink-400">
                       <span className="flex items-center gap-1">
                         <Icon name="mail" className="w-3 h-3" />
@@ -273,7 +273,7 @@ export default function ContactMessages() {
                         viewMessage(message);
                       }}
                       className="p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors"
-                      title="Lihat pesan"
+                      title="View message"
                     >
                       <Icon name="eye" className="w-4 h-4" />
                     </button>
@@ -283,7 +283,7 @@ export default function ContactMessages() {
                         handleDelete(message.id);
                       }}
                       className="p-2 rounded-lg text-ink-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                      title="Hapus pesan"
+                      title="Delete message"
                     >
                       <Icon name="trash" className="w-4 h-4" />
                     </button>
@@ -320,7 +320,7 @@ export default function ContactMessages() {
                     <h2 className="font-bold text-white">{selectedMessage.subject}</h2>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-ink-400">
-                    <span>Dari:</span>
+                    <span>From:</span>
                     <span className="text-ink-200 font-medium">{selectedMessage.name}</span>
                     <span>•</span>
                     <span>{selectedMessage.email}</span>
@@ -349,7 +349,7 @@ export default function ContactMessages() {
                 {/* Reply Section */}
                 {selectedMessage.reply && (
                   <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
-                    <p className="text-xs text-emerald-400 font-medium mb-2">Balasan Anda:</p>
+                    <p className="text-xs text-emerald-400 font-medium mb-2">Your Reply:</p>
                     <p className="text-sm text-ink-200 leading-relaxed">
                       {selectedMessage.reply}
                     </p>
@@ -360,12 +360,12 @@ export default function ContactMessages() {
                 {!selectedMessage.reply && (
                   <div className="mt-4">
                     <label className="block text-xs font-semibold text-ink-300 uppercase tracking-wider mb-2">
-                      Balas Pesan
+                      Reply to Message
                     </label>
                     <textarea
                       rows={4}
                       className="w-full bg-ink-950 border border-ink-800 rounded-xl p-3.5 text-sm text-white placeholder-ink-600 focus:outline-none focus:border-flame-500 transition-colors resize-none"
-                      placeholder="Tulis balasan..."
+                      placeholder="Write your reply..."
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
                     />
@@ -380,9 +380,9 @@ export default function ContactMessages() {
                     onClick={() => setSelectedMessage(null)}
                     className="flex-1 py-2.5 px-4 rounded-xl text-xs font-semibold bg-ink-800 hover:bg-ink-700 text-ink-300 transition-colors"
                   >
-                    Tutup
+                    Close
                   </button>
-                  
+
                   {!selectedMessage.reply && (
                     <button
                       onClick={handleSendReply}
@@ -395,12 +395,12 @@ export default function ContactMessages() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                           </svg>
-                          Mengirim...
+                          Sending...
                         </>
                       ) : (
                         <>
                           <Icon name="reply" className="w-4 h-4" />
-                          Kirim Balasan
+                          Send Reply
                         </>
                       )}
                     </button>

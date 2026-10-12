@@ -664,25 +664,25 @@ const getStyle = (role) => {
       textMuted: 'text-ink-400',
       textSecondary: 'text-ink-300',
       accent: role === 'admin' ? 'from-blue-500 to-indigo-600' : 'from-purple-500 to-pink-600',
-      badge: role === 'admin' 
-        ? 'bg-blue-500/20 text-blue-400' 
+      badge: role === 'admin'
+        ? 'bg-blue-500/20 text-blue-400'
         : 'bg-purple-500/20 text-purple-400',
       statBg: 'bg-ink-800/40 border-ink-700',
       statIcon: role === 'admin' ? 'text-blue-400' : 'text-purple-400',
       input: 'bg-ink-800 border-ink-700 text-white placeholder-ink-500 focus:border-ink-500',
-      button: role === 'admin' 
-        ? 'bg-blue-600 hover:bg-blue-700' 
+      button: role === 'admin'
+        ? 'bg-blue-600 hover:bg-blue-700'
         : 'bg-purple-600 hover:bg-purple-700',
       modal: 'bg-ink-900 border-ink-700',
-      avatarBg: role === 'admin' 
-        ? 'bg-gradient-to-br from-blue-500 to-indigo-600' 
+      avatarBg: role === 'admin'
+        ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
         : 'bg-gradient-to-br from-purple-500 to-pink-600',
       divider: 'border-ink-700',
-      adminBadge: role === 'admin' 
-        ? 'bg-blue-500/20 text-blue-300' 
+      adminBadge: role === 'admin'
+        ? 'bg-blue-500/20 text-blue-300'
         : 'bg-purple-500/20 text-purple-300',
-      roleChip: role === 'admin' 
-        ? 'bg-blue-500/10 text-blue-400' 
+      roleChip: role === 'admin'
+        ? 'bg-blue-500/10 text-blue-400'
         : 'bg-purple-500/10 text-purple-400',
     };
   }
@@ -734,11 +734,11 @@ export default function Profile() {
   const { id } = useParams();
   const { user, updateUser, logout } = useAuth();
   const navigate = useNavigate();
-  
+
   const [profileUser, setProfileUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   const [form, setForm] = useState({ name: '', phone: '' });
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
@@ -799,8 +799,8 @@ export default function Profile() {
       formData.append('phone', form.phone);
       if (file) formData.append('profile_picture', file);
 
-      const res = await api.put('/auth/profile', formData, { 
-        headers: { 'Content-Type': 'multipart/form-data' } 
+      const res = await api.put('/auth/profile', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       updateUser(res.data.user);
       setMessage('Profile updated successfully.');
@@ -823,9 +823,9 @@ export default function Profile() {
     }
     setPwLoading(true);
     try {
-      await api.put('/auth/change-password', { 
-        old_password: pwForm.old_password, 
-        new_password: pwForm.new_password 
+      await api.put('/auth/change-password', {
+        old_password: pwForm.old_password,
+        new_password: pwForm.new_password
       });
       setPwMessage('Password changed successfully.');
       setPwForm({ old_password: '', new_password: '', confirm: '' });
@@ -863,8 +863,8 @@ export default function Profile() {
       <div className={`min-h-screen ${style.bg} flex items-center justify-center px-5`}>
         <div className={`${style.card} border p-8 max-w-sm w-full text-center rounded-xl`}>
           <p className={style.textSecondary}>{error}</p>
-          <button 
-            onClick={() => navigate(-1)} 
+          <button
+            onClick={() => navigate(-1)}
             className={`mt-4 px-6 py-2 ${style.button} rounded-xl transition-colors text-sm`}
           >
             Go Back
@@ -920,15 +920,15 @@ export default function Profile() {
 
           {/* Avatar */}
           <div className="flex flex-col items-center">
-            <div 
+            <div
               onClick={() => canEdit && fileInputRef.current?.click()}
               className={`relative w-20 h-20 ${style.avatarBg} border-2 ${style.divider} overflow-hidden rounded-full ${canEdit ? 'cursor-pointer group' : ''}`}
             >
               {preview || profileUser.profile_picture ? (
-                <img 
-                  src={preview || profileUser.profile_picture} 
-                  className="w-full h-full object-cover" 
-                  alt="Profile" 
+                <img
+                  src={preview || profileUser.profile_picture}
+                  className="w-full h-full object-cover"
+                  alt="Profile"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-white/60">
@@ -948,8 +948,8 @@ export default function Profile() {
                 {role}
               </span>
               <span className={`text-xs px-3 py-1 border rounded-full ${
-                profileUser.is_active 
-                  ? 'text-emerald-700 bg-emerald-100/60 border-emerald-200/50' 
+                profileUser.is_active
+                  ? 'text-emerald-700 bg-emerald-100/60 border-emerald-200/50'
                   : 'text-red-600 bg-red-100/60 border-red-200/50'
               }`}>
                 {profileUser.is_active ? 'Active' : 'Inactive'}
@@ -986,7 +986,7 @@ export default function Profile() {
           className={`mt-4 ${style.card} border rounded-2xl p-4 ${style.cardHover} transition-all`}
         >
           <h2 className={`text-xs font-medium ${style.textMuted} uppercase tracking-wider mb-3`}>Information</h2>
-          
+
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <Icon name="mail" className={`w-4 h-4 ${style.textMuted}`} />
@@ -995,7 +995,7 @@ export default function Profile() {
                 <p className={`text-sm ${style.text}`}>{profileUser.email}</p>
               </div>
             </div>
-            
+
             {profileUser.phone && (
               <div className="flex items-center gap-3">
                 <Icon name="phone" className={`w-4 h-4 ${style.textMuted}`} />
@@ -1005,7 +1005,7 @@ export default function Profile() {
                 </div>
               </div>
             )}
-            
+
             <div className="flex items-center gap-3">
               <Icon name="calendar" className={`w-4 h-4 ${style.textMuted}`} />
               <div>
@@ -1111,9 +1111,9 @@ export default function Profile() {
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     />
                   </div>
-                  <button 
-                    type="submit" 
-                    disabled={saving} 
+                  <button
+                    type="submit"
+                    disabled={saving}
                     className={`w-full py-3 ${style.button} font-medium rounded-xl transition-colors disabled:opacity-50 text-sm`}
                   >
                     {saving ? 'Saving...' : 'Save Changes'}
@@ -1190,9 +1190,9 @@ export default function Profile() {
                       onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
                     />
                   </div>
-                  <button 
-                    type="submit" 
-                    disabled={pwLoading} 
+                  <button
+                    type="submit"
+                    disabled={pwLoading}
                     className={`w-full py-3 ${style.button} font-medium rounded-xl transition-colors disabled:opacity-50 text-sm`}
                   >
                     {pwLoading ? 'Saving...' : 'Change Password'}

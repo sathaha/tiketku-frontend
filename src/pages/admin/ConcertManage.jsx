@@ -32,7 +32,7 @@ function Icon({ name, className = 'w-4 h-4' }) {
   );
 }
 
-// "2026-03-14" / "2026-03-14T00:00:00Z" -> tanggal lokal (hindari geser hari karena timezone)
+// "2026-03-14" / "2026-03-14T00:00:00Z" -> local date (avoid day shifting due to timezone)
 function parseLocalDate(value) {
   const [y, m, d] = String(value).slice(0, 10).split('-').map(Number);
   return new Date(y, (m || 1) - 1, d || 1);
@@ -52,7 +52,7 @@ function formatDuration(start, end) {
   if (mins <= 0) return '';
   const h = Math.floor(mins / 60);
   const m = mins % 60;
-  return [h > 0 && `${h} jam`, m > 0 && `${m} menit`].filter(Boolean).join(' ');
+  return [h > 0 && `${h}h`, m > 0 && `${m}m`].filter(Boolean).join(' ');
 }
 
 const focusRing =
@@ -131,7 +131,7 @@ function FormModal({ open, title, subtitle, onClose, onSubmit, saving, submitLab
         <button
           type="button"
           onClick={onClose}
-          aria-label="Tutup"
+          aria-label="Close"
           className={`-mr-1.5 -mt-1 p-1.5 rounded-md text-ink-400 hover:text-white hover:bg-ink-700 transition-colors ${focusRing}`}
         >
           <Icon name="close" />
@@ -155,18 +155,18 @@ function FormModal({ open, title, subtitle, onClose, onSubmit, saving, submitLab
             onClick={onClose}
             className={`px-4 py-2 text-sm text-ink-400 hover:text-white rounded-md transition-colors ${focusRing}`}
           >
-            Batal
+            Cancel
           </button>
           <button type="submit" disabled={saving} className={btnPrimary}>
             {saving ? (
               <>
                 <Spinner />
-                Menyimpan...
+                Saving...
               </>
             ) : (
               <>
                 <Icon name="check" />
-                {submitLabel || 'Simpan'}
+                {submitLabel || 'Save'}
               </>
             )}
           </button>
@@ -182,7 +182,7 @@ function Field({ label, required, optional, children }) {
       <span className="block text-sm font-medium text-ink-200 mb-1.5">
         {label}
         {required && <span className="text-flame-400"> *</span>}
-        {optional && <span className="text-ink-500 font-normal"> (opsional)</span>}
+        {optional && <span className="text-ink-500 font-normal"> (optional)</span>}
       </span>
       {children}
     </label>
@@ -190,7 +190,7 @@ function Field({ label, required, optional, children }) {
 }
 
 function ConfirmDialog({ state, deleting, onCancel, onConfirm }) {
-  // simpan state terakhir supaya teks tidak hilang saat animasi tutup
+  // keep the last state so the text doesn't disappear during the close animation
   const last = useRef(state);
   if (state) last.current = state;
   const s = last.current;
@@ -208,7 +208,7 @@ function ConfirmDialog({ state, deleting, onCancel, onConfirm }) {
           disabled={deleting}
           className={`px-4 py-2 text-sm text-ink-400 hover:text-white rounded-md transition-colors disabled:opacity-50 ${focusRing}`}
         >
-          Batal
+          Cancel
         </button>
         <button
           type="button"
@@ -219,12 +219,12 @@ function ConfirmDialog({ state, deleting, onCancel, onConfirm }) {
           {deleting ? (
             <>
               <Spinner />
-              Menghapus...
+              Deleting...
             </>
           ) : (
             <>
               <Icon name="trash" />
-              Hapus
+              Delete
             </>
           )}
         </button>
@@ -234,7 +234,7 @@ function ConfirmDialog({ state, deleting, onCancel, onConfirm }) {
 }
 
 // ============================================================
-// Jadwal
+// Schedule
 // ============================================================
 
 function ScheduleRow({ schedule, onDelete }) {
@@ -243,14 +243,14 @@ function ScheduleRow({ schedule, onDelete }) {
   const isToday = diff === 0;
   const isPast = diff < 0;
 
-  const dayName = date.toLocaleDateString('id-ID', { weekday: 'long' });
-  const monthName = date.toLocaleDateString('id-ID', { month: 'short' });
+  const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+  const monthName = date.toLocaleDateString('en-US', { month: 'short' });
   const duration = formatDuration(schedule.start_time, schedule.end_time);
 
-  let relative = 'Selesai';
-  if (isToday) relative = 'Hari ini';
-  else if (diff === 1) relative = 'Besok';
-  else if (diff > 1) relative = `${diff} hari lagi`;
+  let relative = 'Finished';
+  if (isToday) relative = 'Today';
+  else if (diff === 1) relative = 'Tomorrow';
+  else if (diff > 1) relative = `In ${diff} days`;
 
   return (
     <motion.div
@@ -260,7 +260,7 @@ function ScheduleRow({ schedule, onDelete }) {
       exit={{ opacity: 0 }}
       className="group flex items-center gap-4 sm:gap-5 px-4 sm:px-5 py-4"
     >
-      {/* Lembar kalender */}
+      {/* Calendar leaf */}
       <div
         className={`w-14 shrink-0 rounded-lg py-2 text-center border ${
           isToday
@@ -297,7 +297,7 @@ function ScheduleRow({ schedule, onDelete }) {
           <span className="inline-flex items-center gap-1.5 tabular-nums">
             <Icon name="clock" className="w-3.5 h-3.5 text-ink-500" />
             {schedule.start_time?.slice(0, 5)}
-            {schedule.end_time ? ` – ${schedule.end_time.slice(0, 5)}` : ' – selesai'}
+            {schedule.end_time ? ` – ${schedule.end_time.slice(0, 5)}` : ' – until finished'}
           </span>
           {duration && <span className="text-xs text-ink-500">{duration}</span>}
         </div>
@@ -306,8 +306,8 @@ function ScheduleRow({ schedule, onDelete }) {
       <button
         type="button"
         onClick={() => onDelete(schedule)}
-        aria-label={`Hapus jadwal ${dayName}`}
-        title="Hapus jadwal"
+        aria-label={`Delete schedule for ${dayName}`}
+        title="Delete schedule"
         className={`shrink-0 p-2 rounded-md text-ink-500 hover:text-red-400 hover:bg-red-500/10 transition-all sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 ${focusRing}`}
       >
         <Icon name="trash" />
@@ -317,10 +317,10 @@ function ScheduleRow({ schedule, onDelete }) {
 }
 
 // ============================================================
-// Tiket — dibuat seperti tiket asli: bagian utama + potongan sobekan di kanan
+// Ticket — built like a real ticket: main section + tear-off stub on the right
 // ============================================================
 
-const STUB_WIDTH = 96; // px, lebar potongan kanan
+const STUB_WIDTH = 96; // px, width of the right stub
 
 const notchMask = {
   WebkitMaskImage: `radial-gradient(circle at calc(100% - ${STUB_WIDTH}px) 0, #0000 9px, #000 9.5px), radial-gradient(circle at calc(100% - ${STUB_WIDTH}px) 100%, #0000 9px, #000 9.5px)`,
@@ -337,16 +337,16 @@ function TicketCard({ ticket, onDelete }) {
   const soldPct = quota > 0 ? Math.min((sold / quota) * 100, 100) : 0;
 
   let statusColor = 'emerald';
-  let statusLabel = 'Tersedia';
+  let statusLabel = 'Available';
   if (soldPct >= 100) {
     statusColor = 'red';
-    statusLabel = 'Habis';
+    statusLabel = 'Sold out';
   } else if (soldPct >= 80) {
     statusColor = 'orange';
-    statusLabel = 'Hampir habis';
+    statusLabel = 'Almost sold out';
   } else if (soldPct >= 50) {
     statusColor = 'yellow';
-    statusLabel = 'Terjual separuh';
+    statusLabel = 'Half sold';
   }
 
   const colorMap = {
@@ -366,7 +366,7 @@ function TicketCard({ ticket, onDelete }) {
       style={notchMask}
       className="group flex bg-ink-800/40 border border-ink-700/60 hover:border-flame-500/30 rounded-xl transition-colors"
     >
-      {/* Bagian utama */}
+      {/* Main section */}
       <div className="flex-1 min-w-0 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -379,8 +379,8 @@ function TicketCard({ ticket, onDelete }) {
           <button
             type="button"
             onClick={() => onDelete(ticket)}
-            aria-label={`Hapus kategori ${ticket.name}`}
-            title="Hapus kategori"
+            aria-label={`Delete category ${ticket.name}`}
+            title="Delete category"
             className={`-mr-1 -mt-1 shrink-0 p-1.5 rounded-md text-ink-500 hover:text-red-400 hover:bg-red-500/10 transition-all sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 ${focusRing}`}
           >
             <Icon name="trash" className="w-3.5 h-3.5" />
@@ -400,30 +400,30 @@ function TicketCard({ ticket, onDelete }) {
           </div>
           <div className="mt-1.5 flex items-center justify-between text-xs text-ink-400 tabular-nums">
             <span>
-              Terjual <span className="text-white font-medium">{sold}</span> dari {quota}
+              Sold <span className="text-white font-medium">{sold}</span> of {quota}
             </span>
             {sold > 0 && <span>{formatRupiah(sold * price)}</span>}
           </div>
         </div>
       </div>
 
-      {/* Potongan tiket */}
+      {/* Ticket stub */}
       <div
         style={{ width: STUB_WIDTH }}
         className="shrink-0 flex flex-col items-center justify-center text-center border-l border-dashed border-ink-600 px-2"
       >
-        <span className="text-xs text-ink-500">Sisa</span>
+        <span className="text-xs text-ink-500">Left</span>
         <span className={`text-3xl font-bold leading-none my-1 tabular-nums ${remaining > 0 ? 'text-white' : 'text-red-400'}`}>
           {remaining}
         </span>
-        <span className="text-xs text-ink-500">tiket</span>
+        <span className="text-xs text-ink-500">tickets</span>
       </div>
     </motion.div>
   );
 }
 
 // ============================================================
-// Potongan kecil UI
+// Small UI pieces
 // ============================================================
 
 function Stat({ icon, label, hint, children }) {
@@ -462,14 +462,14 @@ function SectionHeader({ title, subtitle, onAdd }) {
       </div>
       <button type="button" onClick={onAdd} className={btnPrimary}>
         <Icon name="plus" />
-        Tambah
+        Add
       </button>
     </div>
   );
 }
 
 // ============================================================
-// Halaman utama
+// Main page
 // ============================================================
 
 const EMPTY_SCHEDULE = { event_date: '', start_time: '', end_time: '' };
@@ -501,7 +501,7 @@ export default function ConcertManage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // silent = refresh data tanpa menampilkan layar loading penuh
+  // silent = refresh data without showing the full loading screen
   async function fetchConcert({ silent = false } = {}) {
     if (!silent) setLoading(true);
     try {
@@ -535,7 +535,7 @@ export default function ConcertManage() {
       closeScheduleModal();
       fetchConcert({ silent: true });
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Gagal menambah jadwal.');
+      setModalError(err.response?.data?.message || 'Failed to add schedule.');
     } finally {
       setAddingSchedule(false);
     }
@@ -550,14 +550,14 @@ export default function ConcertManage() {
       closeTicketModal();
       fetchConcert({ silent: true });
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Gagal menambah kategori tiket.');
+      setModalError(err.response?.data?.message || 'Failed to add ticket category.');
     } finally {
       setAddingTicket(false);
     }
   }
 
   function requestDeleteSchedule(s) {
-    const label = parseLocalDate(s.event_date).toLocaleDateString('id-ID', {
+    const label = parseLocalDate(s.event_date).toLocaleDateString('en-US', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
@@ -567,8 +567,8 @@ export default function ConcertManage() {
     setConfirmState({
       type: 'schedule',
       id: s.id,
-      title: 'Hapus jadwal ini?',
-      message: `Jadwal ${label} akan dihapus dari konser. Tindakan ini tidak bisa dibatalkan.`,
+      title: 'Delete this schedule?',
+      message: `The schedule on ${label} will be removed from the concert. This action cannot be undone.`,
     });
   }
 
@@ -578,11 +578,11 @@ export default function ConcertManage() {
     setConfirmState({
       type: 'ticket',
       id: t.id,
-      title: `Hapus kategori ${t.name}?`,
+      title: `Delete category ${t.name}?`,
       message:
         sold > 0
-          ? `Kategori ini sudah terjual ${sold} tiket. Tindakan ini tidak bisa dibatalkan.`
-          : 'Kategori akan dihapus dari konser. Tindakan ini tidak bisa dibatalkan.',
+          ? `This category has already sold ${sold} tickets. This action cannot be undone.`
+          : 'The category will be removed from the concert. This action cannot be undone.',
     });
   }
 
@@ -598,7 +598,7 @@ export default function ConcertManage() {
       setConfirmState(null);
       setError(
         err.response?.data?.message ||
-          (type === 'schedule' ? 'Gagal menghapus jadwal.' : 'Gagal menghapus kategori tiket.')
+          (type === 'schedule' ? 'Failed to delete schedule.' : 'Failed to delete ticket category.')
       );
     } finally {
       setDeleting(false);
@@ -610,15 +610,15 @@ export default function ConcertManage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
         <Icon name="ticket" className="w-10 h-10 text-ink-500 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">Konser tidak ditemukan</h2>
-        <p className="text-ink-300 mb-6">Konser yang kamu cari mungkin sudah dihapus.</p>
+        <h2 className="text-xl font-bold text-white mb-2">Concert not found</h2>
+        <p className="text-ink-300 mb-6">The concert you are looking for may have been deleted.</p>
         <Link to={backTo} className="btn-primary inline-block">
-          Kembali
+          Go Back
         </Link>
       </div>
     );
 
-  // ===== Data turunan =====
+  // ===== Derived data =====
   const schedules = [...(concert.schedules || [])].sort(
     (a, b) =>
       String(a.event_date).slice(0, 10).localeCompare(String(b.event_date).slice(0, 10)) ||
@@ -642,8 +642,8 @@ export default function ConcertManage() {
   );
 
   const tabs = [
-    { key: 'schedule', label: 'Jadwal', icon: 'calendar', count: totalSchedules },
-    { key: 'ticket', label: 'Tiket', icon: 'ticket', count: totalCategories },
+    { key: 'schedule', label: 'Schedule', icon: 'calendar', count: totalSchedules },
+    { key: 'ticket', label: 'Tickets', icon: 'ticket', count: totalCategories },
   ];
 
   return (
@@ -655,10 +655,10 @@ export default function ConcertManage() {
           className={`group inline-flex items-center gap-2 text-sm text-ink-300 hover:text-flame-400 transition-colors mb-5 rounded-md ${focusRing}`}
         >
           <Icon name="back" className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          Kelola Konser
+          Manage Concerts
         </Link>
 
-        {/* ===== Header konser ===== */}
+        {/* ===== Concert header ===== */}
         <header className="relative overflow-hidden bg-ink-900 border border-ink-700 rounded-xl mb-4">
           {concert.poster && (
             <div className="absolute inset-0" aria-hidden="true">
@@ -699,7 +699,7 @@ export default function ConcertManage() {
               <h1 className="font-bold text-white text-2xl sm:text-3xl leading-tight tracking-tight">
                 {concert.name}
               </h1>
-              <p className="text-ink-300 mt-1 truncate">{concert.artist || 'Artis belum diisi'}</p>
+              <p className="text-ink-300 mt-1 truncate">{concert.artist || 'Artist not provided'}</p>
 
               <div className="mt-auto pt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm text-ink-300">
                 {concert.venue_name && (
@@ -719,19 +719,19 @@ export default function ConcertManage() {
           </div>
         </header>
 
-        {/* ===== Ringkasan ===== */}
+        {/* ===== Summary ===== */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-ink-700/60 border border-ink-700/60 rounded-xl overflow-hidden mb-6">
-          <Stat icon="calendar" label="Jadwal" hint="tanggal pertunjukan">
+          <Stat icon="calendar" label="Schedules" hint="performance dates">
             <p className="text-2xl font-bold text-white tabular-nums leading-none">{totalSchedules}</p>
           </Stat>
 
-          <Stat icon="ticket" label="Harga mulai dari" hint={`${totalCategories} kategori tiket`}>
+          <Stat icon="ticket" label="Starting price" hint={`${totalCategories} ticket categories`}>
             <p className="text-lg sm:text-xl font-bold text-flame-400 tabular-nums leading-none">
               {minPrice !== null ? formatRupiah(minPrice) : '—'}
             </p>
           </Stat>
 
-          <Stat icon="users" label="Tiket terjual">
+          <Stat icon="users" label="Tickets sold">
             <p className="text-2xl font-bold text-emerald-400 tabular-nums leading-none">
               {totalSold}
               <span className="text-sm font-normal text-ink-500"> / {totalQuota}</span>
@@ -746,14 +746,14 @@ export default function ConcertManage() {
             </div>
           </Stat>
 
-          <Stat icon="ticket" label="Pendapatan" hint={totalSold > 0 ? `dari ${totalSold} tiket` : 'belum ada penjualan'}>
+          <Stat icon="ticket" label="Revenue" hint={totalSold > 0 ? `from ${totalSold} tickets` : 'no sales yet'}>
             <p className="text-lg sm:text-xl font-bold text-flame-400 tabular-nums leading-none break-words">
               {formatRupiah(totalRevenue)}
             </p>
           </Stat>
         </div>
 
-        {/* ===== Error (hapus gagal, dll) ===== */}
+        {/* ===== Error (delete failed, etc) ===== */}
         <AnimatePresence>
           {error && (
             <motion.div
@@ -769,7 +769,7 @@ export default function ConcertManage() {
                 <button
                   type="button"
                   onClick={() => setError('')}
-                  aria-label="Tutup pesan"
+                  aria-label="Dismiss message"
                   className="text-red-400/70 hover:text-red-400"
                 >
                   <Icon name="close" />
@@ -779,7 +779,7 @@ export default function ConcertManage() {
           )}
         </AnimatePresence>
 
-        {/* ===== Tab ===== */}
+        {/* ===== Tabs ===== */}
         <div role="tablist" className="flex items-center gap-7 border-b border-ink-700/60 mb-6">
           {tabs.map((t) => {
             const active = activeTab === t.key;
@@ -809,7 +809,7 @@ export default function ConcertManage() {
           })}
         </div>
 
-        {/* ===== Isi tab ===== */}
+        {/* ===== Tab content ===== */}
         <AnimatePresence mode="wait" initial={false}>
           {activeTab === 'schedule' && (
             <motion.div
@@ -820,17 +820,17 @@ export default function ConcertManage() {
               transition={{ duration: 0.15 }}
             >
               <SectionHeader
-                title="Jadwal konser"
-                subtitle={totalSchedules > 0 ? `${totalSchedules} tanggal, diurutkan dari yang terdekat` : 'Belum ada jadwal'}
+                title="Concert schedule"
+                subtitle={totalSchedules > 0 ? `${totalSchedules} dates, sorted from the nearest` : 'No schedule yet'}
                 onAdd={() => setShowScheduleModal(true)}
               />
 
               {totalSchedules === 0 ? (
                 <EmptyState
                   icon="calendar"
-                  title="Belum ada jadwal"
-                  hint="Tambahkan tanggal dan jam pertunjukan pertama."
-                  actionLabel="Tambah jadwal"
+                  title="No schedule yet"
+                  hint="Add the first performance date and time."
+                  actionLabel="Add schedule"
                   onAction={() => setShowScheduleModal(true)}
                 />
               ) : (
@@ -854,17 +854,17 @@ export default function ConcertManage() {
               transition={{ duration: 0.15 }}
             >
               <SectionHeader
-                title="Kategori tiket"
-                subtitle={totalCategories > 0 ? `${totalCategories} kategori, ${totalQuota} tiket total` : 'Belum ada kategori'}
+                title="Ticket categories"
+                subtitle={totalCategories > 0 ? `${totalCategories} categories, ${totalQuota} tickets total` : 'No categories yet'}
                 onAdd={() => setShowTicketModal(true)}
               />
 
               {totalCategories === 0 ? (
                 <EmptyState
                   icon="ticket"
-                  title="Belum ada kategori tiket"
-                  hint="Mulai dengan kategori seperti VIP atau Reguler."
-                  actionLabel="Tambah kategori"
+                  title="No ticket categories yet"
+                  hint="Start with categories like VIP or Regular."
+                  actionLabel="Add category"
                   onAction={() => setShowTicketModal(true)}
                 />
               ) : (
@@ -880,18 +880,18 @@ export default function ConcertManage() {
           )}
         </AnimatePresence>
 
-        {/* ===== Modal: tambah jadwal ===== */}
+        {/* ===== Modal: add schedule ===== */}
         <FormModal
           open={showScheduleModal}
-          title="Tambah jadwal"
-          subtitle="Jadwal baru langsung tampil ke pembeli."
+          title="Add schedule"
+          subtitle="The new schedule is immediately visible to buyers."
           onClose={closeScheduleModal}
           onSubmit={addSchedule}
           saving={addingSchedule}
-          submitLabel="Tambah jadwal"
+          submitLabel="Add schedule"
           error={modalError}
         >
-          <Field label="Tanggal" required>
+          <Field label="Date" required>
             <input
               required
               autoFocus
@@ -903,7 +903,7 @@ export default function ConcertManage() {
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Jam mulai" required>
+            <Field label="Start time" required>
               <input
                 required
                 type="time"
@@ -912,7 +912,7 @@ export default function ConcertManage() {
                 className={inputCls}
               />
             </Field>
-            <Field label="Jam selesai" optional>
+            <Field label="End time" optional>
               <input
                 type="time"
                 value={scheduleForm.end_time}
@@ -924,34 +924,34 @@ export default function ConcertManage() {
 
           <p className="flex items-center gap-1.5 text-xs text-ink-500">
             <Icon name="info" className="w-3.5 h-3.5 shrink-0" />
-            Jam selesai boleh dikosongkan dan diisi nanti.
+            The end time can be left empty and filled in later.
           </p>
         </FormModal>
 
-        {/* ===== Modal: tambah kategori tiket ===== */}
+        {/* ===== Modal: add ticket category ===== */}
         <FormModal
           open={showTicketModal}
-          title="Tambah kategori tiket"
-          subtitle="Tentukan harga dan jumlah tiket yang dijual."
+          title="Add ticket category"
+          subtitle="Set the price and the number of tickets to sell."
           onClose={closeTicketModal}
           onSubmit={addTicketCategory}
           saving={addingTicket}
-          submitLabel="Tambah kategori"
+          submitLabel="Add category"
           error={modalError}
         >
-          <Field label="Nama kategori" required>
+          <Field label="Category name" required>
             <input
               required
               autoFocus
               value={ticketForm.name}
               onChange={(e) => setTicketForm({ ...ticketForm, name: e.target.value })}
-              placeholder="Contoh: VIP, Reguler, Early Bird"
+              placeholder="Example: VIP, Regular, Early Bird"
               className={inputCls}
             />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Harga" required>
+            <Field label="Price" required>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-ink-500 pointer-events-none">Rp</span>
                 <input
@@ -966,7 +966,7 @@ export default function ConcertManage() {
                 />
               </div>
             </Field>
-            <Field label="Kuota" required>
+            <Field label="Quota" required>
               <input
                 required
                 type="number"
@@ -982,7 +982,7 @@ export default function ConcertManage() {
 
           {ticketForm.price && ticketForm.quota && (
             <div className="flex items-center justify-between px-3.5 py-3 rounded-lg bg-flame-500/5 border border-flame-500/20">
-              <span className="text-sm text-ink-300">Potensi pendapatan</span>
+              <span className="text-sm text-ink-300">Potential revenue</span>
               <span className="text-sm font-semibold text-flame-400 tabular-nums">
                 {formatRupiah(Number(ticketForm.price) * Number(ticketForm.quota))}
               </span>
@@ -990,7 +990,7 @@ export default function ConcertManage() {
           )}
         </FormModal>
 
-        {/* ===== Konfirmasi hapus ===== */}
+        {/* ===== Delete confirmation ===== */}
         <ConfirmDialog
           state={confirmState}
           deleting={deleting}

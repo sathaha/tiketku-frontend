@@ -45,9 +45,9 @@ export default function ContactHistory() {
   }
 
   const statusConfig = {
-    unread: { label: 'Belum Dibaca', color: 'text-amber-500', bg: 'bg-amber-500/10', icon: 'clock' },
-    read: { label: 'Sudah Dibaca', color: 'text-blue-400', bg: 'bg-blue-500/10', icon: 'eye' },
-    replied: { label: 'Dibalas', color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: 'check' },
+    unread: { label: 'Unread', color: 'text-amber-500', bg: 'bg-amber-500/10', icon: 'clock' },
+    read: { label: 'Read', color: 'text-blue-400', bg: 'bg-blue-500/10', icon: 'eye' },
+    replied: { label: 'Replied', color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: 'check' },
   };
 
   return (
@@ -55,9 +55,9 @@ export default function ContactHistory() {
       {/* Header */}
       <div className="bg-ink-950 py-16 border-b border-amber-500/20">
         <div className="max-w-4xl mx-auto px-4">
-          <h1 className="font-serif text-4xl text-white">Riwayat Pesan</h1>
+          <h1 className="font-serif text-4xl text-white">Message History</h1>
           <p className="text-amber-300/60 font-serif mt-2">
-            Lihat status dan balasan dari pesan yang Anda kirim
+            View the status and replies to messages you have sent
           </p>
         </div>
       </div>
@@ -67,12 +67,12 @@ export default function ContactHistory() {
         {loading ? (
           <Loading />
         ) : messages.length === 0 ? (
-          <EmptyState text="Belum ada pesan. Kirim pesan pertama Anda!" />
+          <EmptyState text="No messages yet. Send your first message!" />
         ) : (
           <div className="space-y-3">
             {messages.map((message, index) => {
               const config = statusConfig[message.status] || statusConfig.unread;
-              
+
               return (
                 <motion.div
                   key={message.id}
@@ -93,11 +93,11 @@ export default function ContactHistory() {
                           {config.label}
                         </span>
                       </div>
-                      
+
                       <p className="text-sm text-amber-700/60 font-serif line-clamp-2 mb-3">
                         {message.message}
                       </p>
-                      
+
                       <div className="flex items-center gap-3 text-xs text-amber-700/40 font-serif">
                         <span className="flex items-center gap-1">
                           <Icon name="clock" className="w-3 h-3" />
@@ -106,7 +106,7 @@ export default function ContactHistory() {
                         {message.reply && (
                           <span className="flex items-center gap-1 text-emerald-600">
                             <Icon name="check" className="w-3 h-3" />
-                            Dibalas
+                            Replied
                           </span>
                         )}
                       </div>
@@ -152,21 +152,21 @@ export default function ContactHistory() {
                 </button>
               </div>
 
-              {/* Pesan Customer */}
+              {/* Customer Message */}
               <div className="bg-amber-50 border border-amber-200/40 rounded-sm p-4 mb-4">
-                <p className="text-xs text-amber-700/50 font-serif mb-2">Pesan Anda:</p>
+                <p className="text-xs text-amber-700/50 font-serif mb-2">Your Message:</p>
                 <p className="text-sm text-amber-900 font-serif whitespace-pre-wrap">
                   {selectedMessage.message}
                 </p>
               </div>
 
-              {/* Balasan Admin */}
+              {/* Admin Reply */}
               {selectedMessage.reply ? (
                 <div className="bg-emerald-50 border border-emerald-200/40 rounded-sm p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Icon name="check" className="w-4 h-4 text-emerald-600" />
                     <p className="text-xs text-emerald-700/70 font-serif">
-                      Balasan dari {selectedMessage.replied_by_name || 'Admin'}:
+                      Reply from {selectedMessage.replied_by_name || 'Admin'}:
                     </p>
                   </div>
                   <p className="text-sm text-emerald-900 font-serif whitespace-pre-wrap">
@@ -182,7 +182,7 @@ export default function ContactHistory() {
                 <div className="bg-amber-50 border border-amber-200/40 rounded-sm p-4 text-center">
                   <Icon name="clock" className="w-8 h-8 text-amber-400/50 mx-auto mb-2" />
                   <p className="text-sm text-amber-700/60 font-serif">
-                    Pesan Anda sedang diproses. Admin akan segera membalas.
+                    Your message is being processed. An admin will reply shortly.
                   </p>
                 </div>
               )}

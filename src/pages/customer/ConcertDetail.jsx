@@ -37,7 +37,7 @@ function Icon({ name, className = 'w-4 h-4' }) {
   );
 }
 
-// ===== TICKET STATUS BADGE (dinamis) =====
+// ===== TICKET STATUS BADGE (dynamic) =====
 function TicketStatusBadge({ concert }) {
   const totalRemaining = (concert.ticket_categories || []).reduce(
     (sum, tc) => sum + (Number(tc.remaining) || 0),
@@ -48,7 +48,7 @@ function TicketStatusBadge({ concert }) {
   const isPastEvent = nearestDate ? new Date(nearestDate) < new Date() : false;
 
   let status = {
-    label: 'Tiket Tersedia',
+    label: 'Tickets Available',
     color: 'text-emerald-700',
     bg: 'bg-emerald-500/10',
     border: 'border-emerald-500/30',
@@ -59,7 +59,7 @@ function TicketStatusBadge({ concert }) {
 
   if (statusLower === 'draft') {
     status = {
-      label: 'Belum Tayang',
+      label: 'Not Published',
       color: 'text-yellow-700',
       bg: 'bg-yellow-500/10',
       border: 'border-yellow-500/30',
@@ -67,7 +67,7 @@ function TicketStatusBadge({ concert }) {
     };
   } else if (statusLower === 'cancelled' || statusLower === 'dibatalkan') {
     status = {
-      label: 'Event Dibatalkan',
+      label: 'Event Cancelled',
       color: 'text-red-700',
       bg: 'bg-red-500/10',
       border: 'border-red-500/30',
@@ -75,7 +75,7 @@ function TicketStatusBadge({ concert }) {
     };
   } else if (statusLower === 'selesai' || statusLower === 'completed' || isPastEvent) {
     status = {
-      label: 'Event Selesai',
+      label: 'Event Ended',
       color: 'text-zinc-600',
       bg: 'bg-zinc-500/10',
       border: 'border-zinc-500/30',
@@ -83,7 +83,7 @@ function TicketStatusBadge({ concert }) {
     };
   } else if (isSoldOut) {
     status = {
-      label: 'Tiket Habis',
+      label: 'Sold Out',
       color: 'text-red-700',
       bg: 'bg-red-500/10',
       border: 'border-red-500/30',
@@ -96,7 +96,7 @@ function TicketStatusBadge({ concert }) {
       );
       if (daysUntil > 0 && daysUntil <= 7) {
         status = {
-          label: 'Segera Hadir',
+          label: 'Coming Soon',
           color: 'text-blue-700',
           bg: 'bg-blue-500/10',
           border: 'border-blue-500/30',
@@ -186,7 +186,7 @@ function TicketPanel({ concert, selectedSchedule, setSelectedSchedule, selectedC
         {concert.schedules?.length > 0 && (
           <div className="mb-4">
             <label className="text-[10px] font-serif tracking-[0.3em] text-amber-600/60 uppercase mb-1.5 block">
-              Jadwal
+              Schedule
             </label>
             <select
               className="w-full px-4 py-2.5 bg-white border border-amber-200/60 text-amber-950 rounded-lg focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/20 transition-all font-serif text-sm"
@@ -204,7 +204,7 @@ function TicketPanel({ concert, selectedSchedule, setSelectedSchedule, selectedC
 
         <div className="space-y-2 mb-4">
           <label className="text-[10px] font-serif tracking-[0.3em] text-amber-600/60 uppercase mb-1.5 block">
-            Kategori Tiket
+            Ticket Category
           </label>
           {concert.ticket_categories.map((tc) => (
             <button
@@ -227,7 +227,7 @@ function TicketPanel({ concert, selectedSchedule, setSelectedSchedule, selectedC
                 <p className="font-serif font-bold text-sm text-amber-800">{formatRupiah(tc.price)}</p>
               </div>
               <p className={`text-xs font-serif ${tc.remaining <= 10 ? 'text-red-600' : 'text-amber-600/60'}`}>
-                {tc.remaining > 0 ? `${tc.remaining} tiket tersisa` : 'Habis'}
+                {tc.remaining > 0 ? `${tc.remaining} tickets left` : 'Sold out'}
               </p>
             </button>
           ))}
@@ -236,7 +236,7 @@ function TicketPanel({ concert, selectedSchedule, setSelectedSchedule, selectedC
         {category && remaining > 0 && (
           <div className="mb-4">
             <label className="text-[10px] font-serif tracking-[0.3em] text-amber-600/60 uppercase mb-1.5 block">
-              Jumlah
+              Quantity
             </label>
             <div className="flex items-center justify-between bg-white border border-amber-200/60 rounded-lg p-1">
               <button
@@ -266,12 +266,12 @@ function TicketPanel({ concert, selectedSchedule, setSelectedSchedule, selectedC
           disabled={!category || remaining <= 0}
           className="w-full py-3.5 bg-amber-800 hover:bg-amber-700 disabled:bg-amber-200/50 disabled:text-amber-400 text-white font-serif tracking-[0.2em] uppercase text-xs rounded-xl transition-colors mt-2"
         >
-          {!user ? 'Login untuk Beli' : remaining <= 0 ? 'Habis' : 'Beli Sekarang'}
+          {!user ? 'Log in to Buy' : remaining <= 0 ? 'Sold Out' : 'Buy Now'}
         </button>
 
         <p className="text-[10px] font-serif text-amber-400/60 text-center mt-3 flex items-center justify-center gap-1">
           <Icon name="info" className="w-3 h-3" />
-          Tiket tidak dapat dikembalikan
+          Tickets are non-refundable
         </p>
       </div>
     </div>
@@ -388,7 +388,7 @@ export default function ConcertDetail() {
             className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/40 backdrop-blur border border-amber-200/40 text-amber-800 hover:border-amber-500/50 transition-colors text-xs font-serif"
           >
             <Icon name="chevronLeft" className="w-4 h-4" />
-            Kembali
+            Back
           </Link>
           <div className="flex gap-2">
             <button
@@ -460,7 +460,7 @@ export default function ConcertDetail() {
             {concert.description && (
               <section className="bg-white border border-amber-200/60 rounded-2xl p-6">
                 <h2 className="font-serif text-base font-semibold text-amber-950 mb-3">
-                  Tentang Event
+                  About the Event
                 </h2>
                 <p className="font-serif text-sm text-amber-800/70 leading-relaxed">
                   {concert.description}
@@ -480,7 +480,7 @@ export default function ConcertDetail() {
                   {concert.sold_count > 0 && (
                     <span className="flex items-center gap-1.5">
                       <Icon name="users" className="w-3.5 h-3.5 text-amber-600" />
-                      {concert.sold_count}+ tiket terjual
+                      {concert.sold_count}+ tickets sold
                     </span>
                   )}
                 </div>
@@ -513,7 +513,7 @@ export default function ConcertDetail() {
                   className="flex items-center gap-1 text-sm font-serif text-amber-700 hover:text-amber-900 transition-colors flex-shrink-0 bg-amber-50 border border-amber-200/60 rounded-lg px-3 py-2"
                 >
                   <Icon name="map" className="w-4 h-4" />
-                  Buka Peta
+                  Open Map
                 </a>
               </div>
 
@@ -530,7 +530,7 @@ export default function ConcertDetail() {
 
             <section className="bg-white border border-amber-200/60 rounded-2xl p-6" id="reviews">
               <SectionHeading
-                label="Rating & Ulasan"
+                label="Ratings & Reviews"
                 action={
                   concert.reviews?.length > 3 && (
                     <button
@@ -547,17 +547,17 @@ export default function ConcertDetail() {
                 <div className="flex items-center gap-4 mb-5 pb-5 border-b border-amber-200/40">
                   <div className="text-center">
                     <div className="text-4xl font-serif font-bold text-amber-800">{concert.avg_rating}</div>
-                    <div className="text-xs font-serif text-amber-600/50">dari 5</div>
+                    <div className="text-xs font-serif text-amber-600/50">out of 5</div>
                   </div>
                   <div className="flex-1">
                     <StarRating value={concert.avg_rating} size="text-xl" />
-                    <p className="text-xs font-serif text-amber-600/50 mt-1">{concert.review_count} ulasan</p>
+                    <p className="text-xs font-serif text-amber-600/50 mt-1">{concert.review_count} reviews</p>
                   </div>
                 </div>
               )}
 
               {concert.reviews?.length === 0 ? (
-                <p className="font-serif text-amber-600/40 text-sm">Belum ada ulasan untuk konser ini.</p>
+                <p className="font-serif text-amber-600/40 text-sm">No reviews yet for this concert.</p>
               ) : (
                 <div className="grid sm:grid-cols-2 gap-3">
                   {reviews?.map((r) => (
@@ -633,25 +633,25 @@ export default function ConcertDetail() {
           >
             <div className="bg-white border border-amber-200/60 rounded-2xl p-5">
               <h3 className="font-serif text-sm font-semibold text-amber-950 mb-4">
-                Ringkasan Harga
+                Price Summary
               </h3>
 
               <div className="flex items-baseline gap-2 mb-1">
                 <span className="font-serif text-3xl font-bold text-amber-800">
-                  {category ? formatRupiah(category.price) : 'Belum dipilih'}
+                  {category ? formatRupiah(category.price) : 'Not selected'}
                 </span>
-                <span className="text-xs font-serif text-amber-700/50">/ tiket</span>
+                <span className="text-xs font-serif text-amber-700/50">/ ticket</span>
               </div>
               {category && (
                 <p className="text-xs font-serif text-amber-700/60 mb-4">
-                  Kategori: {category.name}
+                  Category: {category.name}
                 </p>
               )}
 
               <div className="pt-4 border-t border-amber-200/40 space-y-2 text-sm font-serif">
                 <div className="flex justify-between text-amber-700/70">
-                  <span>Jumlah</span>
-                  <span className="font-mono">{qty} tiket</span>
+                  <span>Quantity</span>
+                  <span className="font-mono">{qty} tickets</span>
                 </div>
                 <div className="flex justify-between text-amber-700/70">
                   <span>Subtotal</span>
@@ -687,9 +687,9 @@ export default function ConcertDetail() {
 
             <div className="bg-white border border-amber-200/60 rounded-2xl p-4 grid grid-cols-3 gap-2">
               {[
-                { icon: 'lock', label: 'Pembayaran\nAman' },
-                { icon: 'shield', label: 'Tiket\nTerjamin' },
-                { icon: 'check', label: 'E-Ticket\nInstan' },
+                { icon: 'lock', label: 'Secure\nPayment' },
+                { icon: 'shield', label: 'Guaranteed\nTickets' },
+                { icon: 'check', label: 'Instant\nE-Ticket' },
               ].map((b) => (
                 <div key={b.label} className="flex flex-col items-center text-center gap-1.5">
                   <div className="w-9 h-9 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200/60">

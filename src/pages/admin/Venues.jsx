@@ -40,7 +40,7 @@ const venueColors = [
 
 const MAX_CAPACITY_FOR_BAR = 100000;
 
-// ===== INPUT dengan icon prefix + helper text =====
+// ===== INPUT with icon prefix + helper text =====
 function FormInput({ label, required, icon, value, onChange, placeholder, type = 'text', helper, autoFocus }) {
   return (
     <div>
@@ -70,7 +70,7 @@ function FormInput({ label, required, icon, value, onChange, placeholder, type =
   );
 }
 
-// ===== MODAL FORM VENUE =====
+// ===== VENUE FORM MODAL =====
 function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmit, onClose }) {
   const nameRef = useRef(null);
 
@@ -96,7 +96,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
       setMapResults(data);
     } catch (err) {
       console.error('Failed to search location:', err);
-      alert('Gagal mencari lokasi. Coba lagi.');
+      alert('Failed to search location. Please try again.');
     } finally {
       setSearchingLocation(false);
     }
@@ -143,10 +143,10 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                     </div>
                     <div>
                       <h2 className="text-lg font-bold text-white leading-tight">
-                        {editingId ? 'Edit Venue' : 'Tambah Venue Baru'}
+                        {editingId ? 'Edit Venue' : 'Add New Venue'}
                       </h2>
                       <p className="text-xs text-ink-400 mt-0.5">
-                        {editingId ? 'Perbarui detail venue' : 'Lengkapi data venue di bawah ini'}
+                        {editingId ? 'Update the venue details' : 'Fill in the venue details below'}
                       </p>
                     </div>
                   </div>
@@ -175,19 +175,19 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                   </motion.div>
                 )}
 
-                {/* ===== SECTION: Info Dasar ===== */}
+                {/* ===== SECTION: Basic Info ===== */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <Icon name="sparkle" className="w-3.5 h-3.5 text-flame-400" />
                     <span className="text-[10px] uppercase tracking-[0.2em] text-ink-500 font-semibold">
-                      Info Dasar
+                      Basic Info
                     </span>
                   </div>
 
                   <div className="space-y-4">
                     <div>
                       <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-                        Nama Venue <span className="text-flame-400">*</span>
+                        Venue Name <span className="text-flame-400">*</span>
                       </label>
                       <div className="relative group">
                         <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
@@ -198,7 +198,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                           required
                           value={form.name}
                           onChange={(e) => setForm({ ...form, name: e.target.value })}
-                          placeholder="Contoh: Gelora Bung Karno"
+                          placeholder="Example: Gelora Bung Karno"
                           className="w-full pl-14 pr-4 py-3 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
                         />
                       </div>
@@ -207,7 +207,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-                          Kota
+                          City
                         </label>
                         <div className="relative group">
                           <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
@@ -224,7 +224,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
 
                       <div>
                         <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-                          Kapasitas
+                          Capacity
                         </label>
                         <div className="relative group">
                           <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-ink-800/60 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-flame-500/10">
@@ -241,7 +241,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                         </div>
                         {form.capacity && Number(form.capacity) > 0 && (
                           <p className="text-[11px] text-ink-500 mt-1.5">
-                            ≈ {Number(form.capacity).toLocaleString('id-ID')} orang
+                            ≈ {Number(form.capacity).toLocaleString('en-US')} people
                           </p>
                         )}
                       </div>
@@ -249,18 +249,18 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                   </div>
                 </div>
 
-                {/* ===== SECTION: Lokasi ===== */}
+                {/* ===== SECTION: Location ===== */}
                 <div className="pt-5 border-t border-ink-700/60">
                   <div className="flex items-center gap-2 mb-3">
                     <Icon name="map" className="w-3.5 h-3.5 text-flame-400" />
                     <span className="text-[10px] uppercase tracking-[0.2em] text-ink-500 font-semibold">
-                      Lokasi & Alamat
+                      Location & Address
                     </span>
                   </div>
 
                   <div>
                     <label className="block text-xs font-medium text-ink-300 mb-2 uppercase tracking-wider">
-                      Alamat
+                      Address
                     </label>
                     <div className="flex gap-2">
                       <div className="relative group flex-1">
@@ -270,7 +270,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                         <input
                           value={form.address}
                           onChange={(e) => setForm({ ...form, address: e.target.value })}
-                          placeholder="Ketik manual atau pilih di map"
+                          placeholder="Type manually or pick on the map"
                           className="w-full pl-14 pr-4 py-3 bg-ink-900/50 border border-ink-700 hover:border-ink-600 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
                         />
                       </div>
@@ -280,7 +280,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                         className="inline-flex items-center gap-2 px-4 py-3 bg-flame-500/10 hover:bg-flame-500/20 border border-flame-500/30 rounded-xl text-xs font-medium text-flame-400 transition-colors whitespace-nowrap shrink-0"
                       >
                         <Icon name="pin" className="w-4 h-4" />
-                        Pilih di Map
+                        Pick on Map
                       </button>
                     </div>
 
@@ -298,13 +298,13 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                         <div className="absolute top-2 right-2 flex items-center gap-1.5">
                           <span className="px-2 py-1 bg-ink-950/80 backdrop-blur-sm border border-ink-700 rounded-md text-[10px] text-emerald-400 flex items-center gap-1">
                             <Icon name="check" className="w-3 h-3" />
-                            Lokasi dipilih
+                            Location selected
                           </span>
                           <button
                             type="button"
                             onClick={() => setForm((prev) => ({ ...prev, latitude: '', longitude: '', address: '' }))}
                             className="p-1.5 bg-red-500/90 text-white rounded-md hover:bg-red-600 transition-colors"
-                            title="Hapus lokasi"
+                            title="Remove location"
                           >
                             <Icon name="close" className="w-3.5 h-3.5" />
                           </button>
@@ -315,7 +315,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                     {!form.latitude && !form.longitude && (
                       <p className="text-[11px] text-ink-500 mt-1.5 flex items-center gap-1">
                         <Icon name="info" className="w-3 h-3" />
-                        Pilih lokasi di map untuk menampilkan peta di halaman event
+                        Pick a location on the map to show a map on the event page
                       </p>
                     )}
                   </div>
@@ -325,7 +325,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
               {/* ===== FOOTER (sticky) ===== */}
               <div className="px-6 py-4 bg-ink-900/80 backdrop-blur-md border-t border-ink-700/60 flex items-center justify-between gap-3 shrink-0">
                 <p className="text-[11px] text-ink-500 hidden sm:block">
-                  <span className="text-flame-400">*</span> Wajib diisi
+                  <span className="text-flame-400">*</span> Required
                 </p>
                 <div className="flex gap-2 ml-auto">
                   <button
@@ -333,7 +333,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                     onClick={onClose}
                     className="px-5 py-2.5 rounded-xl text-sm font-medium text-ink-300 hover:text-white hover:bg-ink-700 transition-colors"
                   >
-                    Batal
+                    Cancel
                   </button>
                   <button
                     type="submit"
@@ -347,12 +347,12 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
-                        Menyimpan...
+                        Saving...
                       </>
                     ) : (
                       <>
                         <Icon name="check" className="w-4 h-4" />
-                        {editingId ? 'Simpan Perubahan' : 'Tambah Venue'}
+                        {editingId ? 'Save Changes' : 'Add Venue'}
                       </>
                     )}
                   </button>
@@ -381,7 +381,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-4 border-b border-ink-700 flex items-center justify-between shrink-0">
-                <h3 className="font-semibold text-white">Pilih Lokasi Venue</h3>
+                <h3 className="font-semibold text-white">Pick Venue Location</h3>
                 <button
                   onClick={() => setShowMapPickerLocal(false)}
                   className="p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors"
@@ -397,7 +397,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                     <input
                       type="text"
                       className="w-full pl-9 pr-4 py-2.5 bg-ink-900/50 border border-ink-700 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/60 focus:ring-2 focus:ring-flame-500/20 transition-all"
-                      placeholder="Cari alamat atau nama tempat..."
+                      placeholder="Search address or place name..."
                       value={mapSearch}
                       onChange={(e) => setMapSearch(e.target.value)}
                       onKeyDown={(e) => {
@@ -413,7 +413,7 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                     disabled={searchingLocation}
                     className="px-4 py-2.5 bg-flame-500 hover:bg-flame-600 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors whitespace-nowrap"
                   >
-                    {searchingLocation ? 'Mencari...' : 'Cari'}
+                    {searchingLocation ? 'Searching...' : 'Search'}
                   </button>
                 </div>
               </div>
@@ -439,9 +439,9 @@ function VenueFormModal({ open, editingId, form, setForm, error, saving, onSubmi
                 ) : (
                   <div className="text-center py-8">
                     <Icon name="pin" className="w-12 h-12 text-ink-600 mx-auto mb-3" />
-                    <p className="text-sm text-ink-300">Cari lokasi venue di atas</p>
+                    <p className="text-sm text-ink-300">Search for a venue location above</p>
                     <p className="text-xs text-ink-500 mt-1">
-                      Gunakan nama tempat atau alamat lengkap
+                      Use the place name or full address
                     </p>
                   </div>
                 )}
@@ -516,7 +516,7 @@ export default function Venues() {
     setError('');
 
     if (form.capacity && Number(form.capacity) <= 0) {
-      setError('Kapasitas harus lebih dari 0.');
+      setError('Capacity must be greater than 0.');
       return;
     }
 
@@ -533,16 +533,16 @@ export default function Venues() {
 
       if (editingId) {
         await api.put(`/venues/${editingId}`, payload);
-        setSuccessMsg(`Venue "${form.name}" berhasil diperbarui`);
+        setSuccessMsg(`Venue "${form.name}" updated successfully`);
       } else {
         await api.post('/venues', payload);
-        setSuccessMsg(`Venue "${form.name}" berhasil ditambahkan`);
+        setSuccessMsg(`Venue "${form.name}" added successfully`);
       }
       setShowForm(false);
       fetchVenues();
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Gagal menyimpan venue.');
+      setError(err.response?.data?.message || 'Failed to save venue.');
     } finally {
       setSaving(false);
     }
@@ -553,12 +553,12 @@ export default function Venues() {
     setDeleting(true);
     try {
       await api.delete(`/venues/${deleteTarget.id}`);
-      setSuccessMsg(`Venue "${deleteTarget.name}" berhasil dihapus`);
+      setSuccessMsg(`Venue "${deleteTarget.name}" deleted successfully`);
       setDeleteTarget(null);
       fetchVenues();
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
-      alert(err.response?.data?.message || 'Gagal menghapus venue.');
+      alert(err.response?.data?.message || 'Failed to delete venue.');
       setDeleteTarget(null);
     } finally {
       setDeleting(false);
@@ -614,9 +614,9 @@ export default function Venues() {
               <Icon name="building" className="w-5 h-5 text-flame-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Kelola Venue</h1>
+              <h1 className="text-2xl font-bold text-white">Manage Venues</h1>
               <p className="text-sm text-ink-400 mt-0.5">
-                {venues.length} venue terdaftar
+                {venues.length} venues registered
               </p>
             </div>
           </div>
@@ -625,7 +625,7 @@ export default function Venues() {
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-flame-500 hover:bg-flame-600 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-flame-500/20 self-start sm:self-auto"
           >
             <Icon name="plus" className="w-4 h-4" />
-            Tambah Venue
+            Add Venue
           </button>
         </div>
       </div>
@@ -635,24 +635,24 @@ export default function Venues() {
         <div className="bg-ink-800/40 border border-ink-700 rounded-xl px-4 py-3">
           <div className="flex items-center gap-2 mb-1">
             <Icon name="building" className="w-3.5 h-3.5 text-flame-400" />
-            <p className="text-xs text-ink-400">Total Venue</p>
+            <p className="text-xs text-ink-400">Total Venues</p>
           </div>
           <p className="text-lg font-semibold text-white font-mono tabular-nums">{stats.total}</p>
         </div>
         <div className="bg-ink-800/40 border border-ink-700 rounded-xl px-4 py-3">
           <div className="flex items-center gap-2 mb-1">
             <Icon name="map" className="w-3.5 h-3.5 text-emerald-400" />
-            <p className="text-xs text-ink-400">Punya Map</p>
+            <p className="text-xs text-ink-400">With Map</p>
           </div>
           <p className="text-lg font-semibold text-emerald-400 font-mono tabular-nums">{stats.withMap}</p>
         </div>
         <div className="bg-ink-800/40 border border-ink-700 rounded-xl px-4 py-3">
           <div className="flex items-center gap-2 mb-1">
             <Icon name="users" className="w-3.5 h-3.5 text-purple-400" />
-            <p className="text-xs text-ink-400">Total Kapasitas</p>
+            <p className="text-xs text-ink-400">Total Capacity</p>
           </div>
           <p className="text-lg font-semibold text-purple-400 font-mono tabular-nums">
-            {stats.totalCapacity.toLocaleString('id-ID')}
+            {stats.totalCapacity.toLocaleString('en-US')}
           </p>
         </div>
       </div>
@@ -663,7 +663,7 @@ export default function Venues() {
           <Icon name="search" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-500" />
           <input
             type="text"
-            placeholder="Cari nama, kota, atau alamat..."
+            placeholder="Search name, city, or address..."
             className="w-full pl-10 pr-4 py-2.5 bg-ink-800/40 border border-ink-700 rounded-xl text-sm text-white placeholder-ink-500 focus:outline-none focus:border-flame-500/50 transition-colors"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -674,10 +674,10 @@ export default function Venues() {
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
         >
-          <option value="name">Nama A-Z</option>
-          <option value="capacity-high">Kapasitas Terbesar</option>
-          <option value="capacity-low">Kapasitas Terkecil</option>
-          <option value="city">Kota A-Z</option>
+          <option value="name">Name A-Z</option>
+          <option value="capacity-high">Largest Capacity</option>
+          <option value="capacity-low">Smallest Capacity</option>
+          <option value="city">City A-Z</option>
         </select>
       </div>
 
@@ -712,7 +712,7 @@ export default function Venues() {
       {loading ? (
         <Loading />
       ) : filteredVenues.length === 0 ? (
-        <EmptyState text="Tidak ada venue yang ditemukan." />
+        <EmptyState text="No venues found." />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredVenues.map((venue, index) => {
@@ -763,10 +763,10 @@ export default function Venues() {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5 text-xs text-ink-400">
                       <Icon name="users" className="w-3.5 h-3.5" />
-                      Kapasitas
+                      Capacity
                     </div>
                     <span className={`text-xs font-mono font-semibold ${capacity > 0 ? color.text : 'text-ink-500'}`}>
-                      {capacity > 0 ? `${capacity.toLocaleString('id-ID')} orang` : 'Belum diatur'}
+                      {capacity > 0 ? `${capacity.toLocaleString('en-US')} people` : 'Not set'}
                     </span>
                   </div>
                   <div className="h-1.5 w-full bg-ink-800 rounded-full overflow-hidden">
@@ -790,7 +790,7 @@ export default function Venues() {
                   <button
                     onClick={() => setDeleteTarget(venue)}
                     className="p-2 rounded-lg text-ink-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                    title="Hapus"
+                    title="Delete"
                   >
                     <Icon name="trash" className="w-4 h-4" />
                   </button>
@@ -822,11 +822,11 @@ export default function Venues() {
                 <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
                   <Icon name="trash" className="w-5 h-5 text-red-400" />
                 </div>
-                <h3 className="font-semibold text-white text-lg">Hapus Venue</h3>
+                <h3 className="font-semibold text-white text-lg">Delete Venue</h3>
               </div>
 
               <p className="text-ink-300 text-sm mb-4">
-                Kamu akan menghapus: <span className="text-white font-medium">{deleteTarget.name}</span>
+                You are about to delete: <span className="text-white font-medium">{deleteTarget.name}</span>
               </p>
 
               <div className="flex gap-3">
@@ -835,13 +835,13 @@ export default function Venues() {
                   disabled={deleting}
                   className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
                 >
-                  {deleting ? 'Menghapus...' : 'Hapus'}
+                  {deleting ? 'Deleting...' : 'Delete'}
                 </button>
                 <button
                   onClick={() => setDeleteTarget(null)}
                   className="flex-1 py-2.5 bg-ink-700 hover:bg-ink-600 text-white rounded-xl text-sm font-semibold transition-colors"
                 >
-                  Batal
+                  Cancel
                 </button>
               </div>
             </motion.div>

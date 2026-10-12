@@ -39,13 +39,13 @@ const emptyForm = { name: '', email: '', password: '', phone: '', role: 'petugas
 
 const roleConfig = {
   admin: { label: 'Admin', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', icon: 'shield' },
-  petugas: { label: 'Petugas', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', icon: 'check' },
+  petugas: { label: 'Staff', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', icon: 'check' },
   eo: { label: 'EO', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20', icon: 'user' },
   customer: { label: 'Customer', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: 'user' },
 };
 
 const roleOptions = [
-  { value: 'petugas', label: 'Petugas' },
+  { value: 'petugas', label: 'Staff' },
   { value: 'eo', label: 'Event organizer' },
   { value: 'admin', label: 'Admin' },
   { value: 'customer', label: 'Customer' },
@@ -131,7 +131,7 @@ function RoleSummaryCard({ roleKey, count, allUsers, activeCount, isActiveFilter
     <motion.button
       type="button"
       aria-pressed={isActiveFilter}
-      aria-label={`Filter ${role.label}, ${count} pengguna`}
+      aria-label={`Filter ${role.label}, ${count} users`}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -3 }}
@@ -188,7 +188,7 @@ function RoleSummaryCard({ roleKey, count, allUsers, activeCount, isActiveFilter
             <div className={`text-xl font-bold font-mono tabular-nums leading-none ${theme.accent}`}>{count}</div>
           </div>
           <div className="text-right">
-            <div className={`text-xs ${theme.label}`}>Aktif</div>
+            <div className={`text-xs ${theme.label}`}>Active</div>
             <div className={`text-sm font-mono font-semibold ${theme.text}`}>{activeCount}</div>
           </div>
         </div>
@@ -354,7 +354,7 @@ export default function Users() {
     e.preventDefault();
     setError('');
     if (form.password.length < 6) {
-      setError('Password minimal 6 karakter.');
+      setError('Password must be at least 6 characters.');
       return;
     }
     const createdName = form.name;
@@ -362,10 +362,10 @@ export default function Users() {
     try {
       await api.post('/users', form);
       closeForm();
-      notify('success', `${createdName} berhasil dibuat`);
+      notify('success', `${createdName} created successfully`);
       refreshAll();
     } catch (err) {
-      setError(err.response?.data?.message || 'Gagal membuat pengguna.');
+      setError(err.response?.data?.message || 'Failed to create user.');
     } finally {
       setSaving(false);
     }
@@ -375,10 +375,10 @@ export default function Users() {
     setProcessingId(user.id);
     try {
       await updateUserStatus(user.id, !user.is_active);
-      notify('success', `${user.name} ${user.is_active ? 'dinonaktifkan' : 'diaktifkan'}`);
+      notify('success', `${user.name} ${user.is_active ? 'deactivated' : 'activated'}`);
       refreshAll();
     } catch (err) {
-      notify('error', err.response?.data?.message || 'Gagal mengubah status.');
+      notify('error', err.response?.data?.message || 'Failed to change status.');
     } finally {
       setProcessingId(null);
     }
@@ -389,10 +389,10 @@ export default function Users() {
     try {
       await api.delete(`/users/${user.id}`);
       setConfirmId(null);
-      notify('success', `${user.name} dihapus`);
+      notify('success', `${user.name} deleted`);
       refreshAll();
     } catch (err) {
-      notify('error', err.response?.data?.message || 'Gagal menghapus.');
+      notify('error', err.response?.data?.message || 'Failed to delete.');
     } finally {
       setDeletingId(null);
     }
@@ -446,20 +446,20 @@ export default function Users() {
         {/* Header */}
         <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white">Pengguna</h1>
-            <p className="text-sm text-ink-400 mt-1">{allUsers.length} orang terdaftar</p>
+            <h1 className="text-2xl font-bold text-white">Users</h1>
+            <p className="text-sm text-ink-400 mt-1">{allUsers.length} users registered</p>
           </div>
           <button onClick={openForm} className="btn-primary inline-flex items-center gap-2 self-start sm:self-auto">
             <Icon name="plus" className="w-4 h-4" />
-            Tambah pengguna
+            Add user
           </button>
         </header>
 
         {/* Role folders (also the role filter) */}
         <section className="mb-6">
           <div className="flex items-baseline justify-between mb-3">
-            <h2 className="text-sm font-semibold text-white">Ringkasan role</h2>
-            <span className="text-xs text-ink-400">Klik folder untuk memfilter daftar</span>
+            <h2 className="text-sm font-semibold text-white">Role summary</h2>
+            <span className="text-xs text-ink-400">Click a folder to filter the list</span>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {['admin', 'petugas', 'eo', 'customer'].map((roleKey) => (
@@ -480,13 +480,13 @@ export default function Users() {
         {!loading && users.length > 0 && (
           <div className="card grid grid-cols-2 divide-x divide-ink-700 mb-6">
             <div className="p-4">
-              <p className="text-xs text-ink-400">Total order</p>
+              <p className="text-xs text-ink-400">Total orders</p>
               <p className="text-xl font-bold text-white font-mono tabular-nums mt-1.5 leading-none">
                 {totalStats.orders}
               </p>
             </div>
             <div className="p-4">
-              <p className="text-xs text-ink-400">Order lunas</p>
+              <p className="text-xs text-ink-400">Paid orders</p>
               <p className="text-xl font-bold text-emerald-400 font-mono tabular-nums mt-1.5 leading-none">
                 {totalStats.paid}
               </p>
@@ -500,8 +500,8 @@ export default function Users() {
             <Icon name="search" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
             <input
               type="text"
-              aria-label="Cari pengguna"
-              placeholder="Cari nama atau email"
+              aria-label="Search users"
+              placeholder="Search name or email"
               className="w-full input-field pl-10 bg-ink-800/40"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
@@ -513,7 +513,7 @@ export default function Users() {
               <span className="text-xs text-ink-400">Filter</span>
               <button
                 onClick={() => setRoleFilter('')}
-                aria-label={`Hapus filter ${roleConfig[roleFilter]?.label}`}
+                aria-label={`Remove filter ${roleConfig[roleFilter]?.label}`}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-flame-500/10 border border-flame-500/30 text-flame-400 rounded-lg text-xs font-medium hover:bg-flame-500/20 transition-colors ${focusRing}`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${roleDot[roleFilter]}`} />
@@ -534,19 +534,19 @@ export default function Users() {
             </div>
             {isFiltering ? (
               <>
-                <h3 className="font-semibold text-white mb-1">Tidak ada pengguna yang cocok</h3>
-                <p className="text-sm text-ink-400 mb-5">Ubah kata kunci atau pilih folder role lain.</p>
+                <h3 className="font-semibold text-white mb-1">No matching users</h3>
+                <p className="text-sm text-ink-400 mb-5">Change the keyword or pick another role folder.</p>
                 <button onClick={resetFilters} className="btn-secondary">
                   Reset filter
                 </button>
               </>
             ) : (
               <>
-                <h3 className="font-semibold text-white mb-1">Belum ada pengguna</h3>
-                <p className="text-sm text-ink-400 mb-5">Tambahkan admin, petugas, atau EO pertama.</p>
+                <h3 className="font-semibold text-white mb-1">No users yet</h3>
+                <p className="text-sm text-ink-400 mb-5">Add the first admin, staff, or EO.</p>
                 <button onClick={openForm} className="btn-primary inline-flex items-center gap-2">
                   <Icon name="plus" className="w-4 h-4" />
-                  Tambah pengguna
+                  Add user
                 </button>
               </>
             )}
@@ -555,18 +555,18 @@ export default function Users() {
           <div className="card overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 border-b border-ink-700">
               <h2 className="font-semibold text-white">
-                {roleFilter ? `Daftar ${roleConfig[roleFilter]?.label}` : 'Daftar pengguna'}
+                {roleFilter ? `${roleConfig[roleFilter]?.label} list` : 'User list'}
               </h2>
               <span className="text-xs text-ink-400">
-                <span className="font-mono tabular-nums">{users.length}</span> pengguna
+                <span className="font-mono tabular-nums">{users.length}</span> users
               </span>
             </div>
 
             <div className={`hidden lg:grid ${tableCols} gap-4 px-5 py-2.5 border-b border-ink-700 text-xs text-ink-400`}>
-              <span>Pengguna</span>
+              <span>User</span>
               <span>Role</span>
-              <span className="text-right">Order</span>
-              <span className="text-right">Lunas</span>
+              <span className="text-right">Orders</span>
+              <span className="text-right">Paid</span>
               <span>Status</span>
               <span />
             </div>
@@ -603,12 +603,12 @@ export default function Users() {
                     </div>
 
                     <div className={`order-4 lg:order-none lg:text-right ${dimmed}`}>
-                      <p className="text-xs text-ink-400 lg:hidden mb-0.5">Order</p>
+                      <p className="text-xs text-ink-400 lg:hidden mb-0.5">Orders</p>
                       <p className="text-sm font-semibold text-white font-mono tabular-nums">{totalOrders}</p>
                     </div>
 
                     <div className={`order-5 lg:order-none lg:text-right ${dimmed}`}>
-                      <p className="text-xs text-ink-400 lg:hidden mb-0.5">Lunas</p>
+                      <p className="text-xs text-ink-400 lg:hidden mb-0.5">Paid</p>
                       <p className="text-sm font-semibold text-emerald-400 font-mono tabular-nums">{totalPaid}</p>
                     </div>
 
@@ -617,10 +617,10 @@ export default function Users() {
                         checked={!!user.is_active}
                         disabled={processingId === user.id}
                         onChange={() => toggleActive(user)}
-                        label={user.is_active ? `Nonaktifkan ${user.name}` : `Aktifkan ${user.name}`}
+                        label={user.is_active ? `Deactivate ${user.name}` : `Activate ${user.name}`}
                       />
                       <span className={`text-xs ${user.is_active ? 'text-emerald-400' : 'text-ink-400'}`}>
-                        {user.is_active ? 'Aktif' : 'Nonaktif'}
+                        {user.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </div>
 
@@ -629,12 +629,12 @@ export default function Users() {
                         to={`/profile/${user.id}`}
                         className={`flex-1 lg:flex-none text-center px-3 py-1.5 rounded-md bg-ink-800 hover:bg-ink-700 text-xs font-medium text-ink-200 transition-colors ${focusRing}`}
                       >
-                        Lihat profil
+                        View profile
                       </Link>
                       <button
                         onClick={() => setConfirmId(user.id)}
-                        aria-label={`Hapus ${user.name}`}
-                        title="Hapus pengguna"
+                        aria-label={`Delete ${user.name}`}
+                        title="Delete user"
                         className={`p-2 rounded-lg text-ink-400 hover:text-red-400 hover:bg-red-500/10 transition-colors ${focusRing}`}
                       >
                         <Icon name="trash" className="w-4 h-4" />
@@ -647,17 +647,17 @@ export default function Users() {
                         className="order-last col-span-full flex flex-wrap items-center justify-between gap-3 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2.5"
                       >
                         <p className="text-sm text-red-300">
-                          Hapus <span className="font-semibold">{user.name}</span>?{' '}
+                          Delete <span className="font-semibold">{user.name}</span>?{' '}
                           {totalOrders > 0
-                            ? `Pengguna ini punya ${totalOrders} order, menonaktifkannya lebih aman.`
-                            : 'Tindakan ini tidak bisa dibatalkan.'}
+                            ? `This user has ${totalOrders} orders, deactivating them is safer.`
+                            : 'This action cannot be undone.'}
                         </p>
                         <div className="flex gap-2">
                           <button
                             onClick={() => setConfirmId(null)}
                             className={`px-3 py-1.5 rounded-md text-xs font-medium text-ink-200 hover:bg-ink-700 transition-colors ${focusRing}`}
                           >
-                            Batal
+                            Cancel
                           </button>
                           <button
                             onClick={() => handleDelete(user)}
@@ -665,7 +665,7 @@ export default function Users() {
                             className={`px-3 py-1.5 rounded-md text-xs font-medium bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-60 inline-flex items-center gap-1.5 ${focusRing}`}
                           >
                             {deletingId === user.id && <Spinner className="h-3 w-3" />}
-                            Hapus pengguna
+                            Delete user
                           </button>
                         </div>
                       </div>
@@ -678,11 +678,11 @@ export default function Users() {
             {users.length > PAGE_SIZE && (
               <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-ink-700 text-xs text-ink-400">
                 <span>
-                  Menampilkan{' '}
+                  Showing{' '}
                   <span className="text-white font-mono tabular-nums">
                     {pageStart + 1}-{Math.min(pageStart + PAGE_SIZE, users.length)}
                   </span>{' '}
-                  dari <span className="font-mono tabular-nums">{users.length}</span>
+                  of <span className="font-mono tabular-nums">{users.length}</span>
                 </span>
                 <div className="flex gap-2">
                   <button
@@ -690,14 +690,14 @@ export default function Users() {
                     disabled={currentPage === 1}
                     className={`px-3 py-1.5 rounded-md bg-ink-800 hover:bg-ink-700 text-ink-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${focusRing}`}
                   >
-                    Sebelumnya
+                    Previous
                   </button>
                   <button
                     onClick={() => setPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className={`px-3 py-1.5 rounded-md bg-ink-800 hover:bg-ink-700 text-ink-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${focusRing}`}
                   >
-                    Berikutnya
+                    Next
                   </button>
                 </div>
               </div>
@@ -735,14 +735,14 @@ export default function Users() {
                     <div className="flex items-start justify-between gap-3 p-5 border-b border-ink-700">
                       <div>
                         <h2 id="user-form-title" className="font-semibold text-white">
-                          Tambah pengguna baru
+                          Add new user
                         </h2>
-                        <p className="text-xs text-ink-400 mt-0.5">Lengkapi data di bawah ini</p>
+                        <p className="text-xs text-ink-400 mt-0.5">Fill in the details below</p>
                       </div>
                       <button
                         type="button"
                         onClick={closeForm}
-                        aria-label="Tutup form"
+                        aria-label="Close form"
                         className={`p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-ink-700 transition-colors ${focusRing}`}
                       >
                         <Icon name="close" className="w-5 h-5" />
@@ -772,14 +772,14 @@ export default function Users() {
 
                       <div>
                         <label htmlFor="user-name" className="block text-sm text-ink-200 mb-1.5">
-                          Nama lengkap
+                          Full name
                         </label>
                         <input
                           id="user-name"
                           required
                           autoFocus
                           className="w-full input-field bg-ink-800/40"
-                          placeholder="Masukkan nama lengkap"
+                          placeholder="Enter full name"
                           value={form.name}
                           onChange={(e) => setForm({ ...form, name: e.target.value })}
                         />
@@ -810,7 +810,7 @@ export default function Users() {
                             onClick={() => setShowPassword((v) => !v)}
                             className={`text-xs text-flame-400 hover:text-flame-300 font-medium rounded ${focusRing}`}
                           >
-                            {showPassword ? 'Sembunyikan' : 'Tampilkan'}
+                            {showPassword ? 'Hide' : 'Show'}
                           </button>
                         </div>
                         <input
@@ -820,7 +820,7 @@ export default function Users() {
                           minLength={6}
                           autoComplete="new-password"
                           className="w-full input-field bg-ink-800/40"
-                          placeholder="Minimal 6 karakter"
+                          placeholder="At least 6 characters"
                           value={form.password}
                           onChange={(e) => setForm({ ...form, password: e.target.value })}
                         />
@@ -828,7 +828,7 @@ export default function Users() {
 
                       <div>
                         <label htmlFor="user-phone" className="block text-sm text-ink-200 mb-1.5">
-                          Nomor HP <span className="text-ink-400">(opsional)</span>
+                          Phone number <span className="text-ink-400">(optional)</span>
                         </label>
                         <input
                           id="user-phone"
@@ -860,14 +860,14 @@ export default function Users() {
                           {saving ? (
                             <>
                               <Spinner />
-                              Menyimpan...
+                              Saving...
                             </>
                           ) : (
-                            'Simpan pengguna'
+                            'Save user'
                           )}
                         </button>
                         <button type="button" onClick={closeForm} className="btn-secondary">
-                          Batal
+                          Cancel
                         </button>
                       </div>
                     </div>

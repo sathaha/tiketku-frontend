@@ -39,8 +39,8 @@ export default function Reports() {
   async function fetchReport() {
     setLoading(true);
     try {
-      const res = await api.get('/reports/sales', { 
-        params: from && to ? { from, to } : {} 
+      const res = await api.get('/reports/sales', {
+        params: from && to ? { from, to } : {}
       });
       setReport(res.data);
     } catch (err) {
@@ -76,36 +76,36 @@ export default function Reports() {
 
   async function handleExport() {
     if (!report) return;
-    
+
     setExporting(true);
     try {
-      // Coba fetch dari endpoint export jika ada
+      // Try fetching from the export endpoint if available
       const params = from && to ? { from, to } : {};
-      
-      // Method 1: Jika backend menyediakan endpoint export CSV
+
+      // Method 1: If the backend provides a CSV export endpoint
       try {
         const response = await api.get('/reports/sales/export', {
           params,
           responseType: 'blob',
         });
-        
+
         // Create download link
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `laporan-penjualan-${from || 'semua'}-${to || 'waktu'}.csv`);
+        link.setAttribute('download', `sales-report-${from || 'all'}-${to || 'time'}.csv`);
         document.body.appendChild(link);
         link.click();
         link.remove();
         window.URL.revokeObjectURL(url);
       } catch (exportErr) {
-        // Method 2: Fallback - generate CSV dari data yang ada
+        // Method 2: Fallback - generate CSV from existing data
         console.warn('Export endpoint not found, generating CSV locally:', exportErr);
         generateCSVFromData();
       }
     } catch (err) {
       console.error('Failed to export report:', err);
-      alert('Gagal mengexport laporan.');
+      alert('Failed to export the report.');
     } finally {
       setExporting(false);
     }
@@ -113,35 +113,35 @@ export default function Reports() {
 
   function generateCSVFromData() {
     if (!report) return;
-    
+
     let csv = '';
-    
+
     // Add summary section
-    csv += 'LAPORAN PENJUALAN\n';
-    csv += `Periode: ${from || 'Semua'} - ${to || 'Waktu'}\n\n`;
-    csv += 'RINGKASAN\n';
-    csv += 'Total Pesanan,Total Pesanan Lunas,Total Tiket Terjual,Total Pendapatan\n';
+    csv += 'SALES REPORT\n';
+    csv += `Period: ${from || 'All'} - ${to || 'Time'}\n\n`;
+    csv += 'SUMMARY\n';
+    csv += 'Total Orders,Total Paid Orders,Total Tickets Sold,Total Revenue\n';
     csv += `${report.summary.total_orders},${report.summary.total_paid_orders},${report.summary.total_tickets_sold},"${formatRupiah(report.summary.total_revenue)}"\n\n`;
-    
+
     // Add concert sales
-    csv += 'PENJUALAN PER KONSER\n';
-    csv += 'Nama Konser,Tiket Terjual,Pendapatan\n';
+    csv += 'SALES BY CONCERT\n';
+    csv += 'Concert Name,Tickets Sold,Revenue\n';
     report.by_concert.forEach((concert) => {
       csv += `"${concert.name}",${concert.tickets_sold},"${formatRupiah(concert.revenue)}"\n`;
     });
-    
-    csv += '\nSTATUS TRANSAKSI\n';
+
+    csv += '\nTRANSACTION STATUS\n';
     csv += 'Status,Total\n';
     report.by_status.forEach((status) => {
       csv += `${status.status},${status.total}\n`;
     });
-    
+
     // Create and download CSV
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    const filename = `laporan-penjualan-${from || 'semua'}-${to || 'waktu'}.csv`;
+    const filename = `sales-report-${from || 'all'}-${to || 'time'}.csv`;
     link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
@@ -150,40 +150,40 @@ export default function Reports() {
   }
 
   const statusConfig = {
-    lunas: { label: 'Lunas', color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: 'check' },
-    menunggu_pembayaran: { label: 'Menunggu Pembayaran', color: 'text-yellow-400', bg: 'bg-yellow-500/10', icon: 'clock' },
-    kadaluarsa: { label: 'Kadaluarsa', color: 'text-red-400', bg: 'bg-red-500/10', icon: 'close' },
-    dibatalkan: { label: 'Dibatalkan', color: 'text-ink-400', bg: 'bg-ink-700', icon: 'close' },
+    lunas: { label: 'Paid', color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: 'check' },
+    menunggu_pembayaran: { label: 'Awaiting Payment', color: 'text-yellow-400', bg: 'bg-yellow-500/10', icon: 'clock' },
+    kadaluarsa: { label: 'Expired', color: 'text-red-400', bg: 'bg-red-500/10', icon: 'close' },
+    dibatalkan: { label: 'Cancelled', color: 'text-ink-400', bg: 'bg-ink-700', icon: 'close' },
   };
 
   const summaryCards = report ? [
-    { 
-      label: 'Total Pesanan', 
-      value: report.summary.total_orders, 
+    {
+      label: 'Total Orders',
+      value: report.summary.total_orders,
       icon: 'trending',
       color: 'text-blue-400',
       bg: 'bg-blue-500/10',
       border: 'border-blue-500/20'
     },
-    { 
-      label: 'Pesanan Lunas', 
-      value: report.summary.total_paid_orders, 
+    {
+      label: 'Paid Orders',
+      value: report.summary.total_paid_orders,
       icon: 'check',
       color: 'text-emerald-400',
       bg: 'bg-emerald-500/10',
       border: 'border-emerald-500/20'
     },
-    { 
-      label: 'Tiket Terjual', 
-      value: report.summary.total_tickets_sold, 
+    {
+      label: 'Tickets Sold',
+      value: report.summary.total_tickets_sold,
       icon: 'ticket',
       color: 'text-flame-400',
       bg: 'bg-flame-500/10',
       border: 'border-flame-500/20'
     },
-    { 
-      label: 'Total Pendapatan', 
-      value: formatRupiah(report.summary.total_revenue), 
+    {
+      label: 'Total Revenue',
+      value: formatRupiah(report.summary.total_revenue),
       icon: 'wallet',
       color: 'text-purple-400',
       bg: 'bg-purple-500/10',
@@ -193,7 +193,7 @@ export default function Reports() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Header dengan subtle accent */}
+      {/* Header with subtle accent */}
       <div className="relative mb-6">
         <div className="absolute -top-8 -left-4 w-40 h-40 bg-flame-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="relative flex items-start justify-between gap-4">
@@ -202,14 +202,14 @@ export default function Reports() {
               <Icon name="chart" className="w-5 h-5 text-flame-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Laporan Penjualan</h1>
+              <h1 className="text-2xl font-bold text-white">Sales Report</h1>
               <p className="text-sm text-ink-400 mt-0.5">
-                Analisis penjualan dan performa konser
+                Sales analysis and concert performance
               </p>
             </div>
           </div>
           {report && (
-            <button 
+            <button
               onClick={handleExport}
               disabled={exporting}
               className="btn-secondary inline-flex items-center gap-2 text-xs"
@@ -220,7 +220,7 @@ export default function Reports() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Mengexport...
+                  Exporting...
                 </>
               ) : (
                 <>
@@ -233,12 +233,12 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Filter dengan gradient accent */}
+      {/* Filter with gradient accent */}
       <div className="relative card p-5 mb-6 overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-flame-500/20 to-transparent" />
         <div className="flex flex-wrap items-end gap-4">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm text-ink-200 mb-1.5">Dari Tanggal</label>
+            <label className="block text-sm text-ink-200 mb-1.5">From Date</label>
             <input
               type="date"
               className="w-full input-field bg-ink-800/40"
@@ -247,7 +247,7 @@ export default function Reports() {
             />
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm text-ink-200 mb-1.5">Sampai Tanggal</label>
+            <label className="block text-sm text-ink-200 mb-1.5">To Date</label>
             <input
               type="date"
               className="w-full input-field bg-ink-800/40"
@@ -266,12 +266,12 @@ export default function Reports() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Memuat...
+                Loading...
               </>
             ) : (
               <>
                 <Icon name="calendar" className="w-4 h-4" />
-                Terapkan
+                Apply
               </>
             )}
           </button>
@@ -291,7 +291,7 @@ export default function Reports() {
         <Loading />
       ) : report && (
         <>
-          {/* Summary Cards dengan hover effect */}
+          {/* Summary Cards with hover effect */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {summaryCards.map((card, index) => (
               <motion.div
@@ -310,7 +310,7 @@ export default function Reports() {
             ))}
           </div>
 
-          {/* Sales by Concert dengan progress bar */}
+          {/* Sales by Concert with progress bar */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -320,24 +320,24 @@ export default function Reports() {
             <div className="p-5 border-b border-ink-700">
               <div className="flex items-center gap-2">
                 <Icon name="trending" className="w-4 h-4 text-flame-400" />
-                <h2 className="font-semibold text-white">Penjualan per Konser</h2>
+                <h2 className="font-semibold text-white">Sales by Concert</h2>
               </div>
               <p className="text-xs text-ink-400 mt-0.5">
-                {report.by_concert.length} konser
+                {report.by_concert.length} concerts
               </p>
             </div>
 
             {report.by_concert.length === 0 ? (
               <div className="p-12 text-center">
                 <Icon name="trending" className="w-12 h-12 text-ink-600 mx-auto mb-3" />
-                <p className="text-sm text-ink-400">Belum ada data penjualan.</p>
+                <p className="text-sm text-ink-400">No sales data yet.</p>
               </div>
             ) : (
               <div className="divide-y divide-ink-700/60">
                 {report.by_concert.map((concert, index) => {
                   const maxRevenue = Math.max(...report.by_concert.map(c => c.revenue));
                   const percentage = maxRevenue > 0 ? (concert.revenue / maxRevenue) * 100 : 0;
-                  
+
                   return (
                     <motion.div
                       key={concert.id}
@@ -353,7 +353,7 @@ export default function Reports() {
                           </p>
                           <p className="text-xs text-ink-400 mt-0.5 flex items-center gap-1">
                             <Icon name="ticket" className="w-3 h-3" />
-                            {concert.tickets_sold} tiket terjual
+                            {concert.tickets_sold} tickets sold
                           </p>
                         </div>
                         <span className="font-semibold text-flame-400 shrink-0">
@@ -362,7 +362,7 @@ export default function Reports() {
                       </div>
                       {/* Mini progress bar */}
                       <div className="w-full bg-ink-800 rounded-full h-1 overflow-hidden">
-                        <div 
+                        <div
                           className="h-full bg-gradient-to-r from-flame-500/50 to-flame-500 rounded-full transition-all duration-500"
                           style={{ width: `${percentage}%` }}
                         />
@@ -374,7 +374,7 @@ export default function Reports() {
             )}
           </motion.div>
 
-          {/* Transaction Status dengan percentage */}
+          {/* Transaction Status with percentage */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -382,9 +382,9 @@ export default function Reports() {
             className="card overflow-hidden"
           >
             <div className="p-5 border-b border-ink-700">
-              <h2 className="font-semibold text-white">Status Transaksi</h2>
+              <h2 className="font-semibold text-white">Transaction Status</h2>
               <p className="text-xs text-ink-400 mt-0.5">
-                Distribusi status pembayaran
+                Payment status distribution
               </p>
             </div>
 
@@ -398,7 +398,7 @@ export default function Reports() {
                 };
                 const totalTransactions = report.summary.total_orders || 1;
                 const percentage = (status.total / totalTransactions) * 100;
-                
+
                 return (
                   <motion.div
                     key={status.status}
@@ -423,7 +423,7 @@ export default function Reports() {
                     </div>
                     {/* Progress bar */}
                     <div className="w-full bg-ink-800 rounded-full h-1.5 overflow-hidden">
-                      <div 
+                      <div
                         className={`h-full rounded-full transition-all duration-500 ${config.bg}`}
                         style={{ width: `${percentage}%` }}
                       />

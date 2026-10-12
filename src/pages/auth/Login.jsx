@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const DEMO_ACCOUNTS = [
   { role: 'Admin', email: 'azz@gmail.com' },
-  { role: 'Petugas', email: 'jaden@gmail.com' },
+  { role: 'Staff', email: 'jaden@gmail.com' },
   { role: 'Customer', email: 'azzami@gmail.com' },
   { role: 'EO', email: 'sat@gmail.com' },
 ];
@@ -48,14 +48,14 @@ export default function Login() {
     .toUpperCase();
 
   const redirectAfterLogin = (user) => {
-    // 1. Cek dari URL query param (?from=/checkout) — di-set oleh axios interceptor
+    // 1. Check the URL query param (?from=/checkout) — set by the axios interceptor
     const params = new URLSearchParams(location.search);
     const fromQuery = params.get('from');
 
-    // 2. Cek dari location.state (dari ProtectedRoute)
+    // 2. Check location.state (from ProtectedRoute)
     const fromState = location.state?.from;
 
-    // 3. Prioritas: query param dulu, lalu state
+    // 3. Priority: query param first, then state
     const from = fromQuery || fromState;
 
     if (from && from !== '/login' && from !== '/register') {
@@ -80,7 +80,7 @@ export default function Login() {
       login(data.token, data.user);
       redirectAfterLogin(data.user);
     } catch (err) {
-      setError(err.response?.data?.message || 'Gagal login.');
+      setError(err.response?.data?.message || 'Login failed.');
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ export default function Login() {
       login(data.token, data.user);
       redirectAfterLogin(data.user);
     } catch (err) {
-      setError(err.response?.data?.message || 'Gagal login dengan Google.');
+      setError(err.response?.data?.message || 'Failed to sign in with Google.');
     } finally {
       setLoading(false);
     }
@@ -169,7 +169,7 @@ export default function Login() {
             <div className="absolute bottom-2.5 right-2.5 w-2 h-2 rounded-full bg-[#f5ede4] border border-amber-300/50 shadow-inner" />
 
             <div className="grid md:grid-cols-2 relative">
-              {/* PEMBATAS TIKET */}
+              {/* TICKET DIVIDER */}
               <div className="hidden md:block absolute left-1/2 top-8 bottom-8 -translate-x-1/2 z-10 w-6">
                 <div
                   className="absolute inset-0 bg-amber-700/[0.06]"
@@ -299,7 +299,7 @@ export default function Login() {
                           to="/forgot-password"
                           className="text-[9px] font-serif text-amber-600/80 hover:text-amber-700 transition-colors duration-200 tracking-wide"
                         >
-                          Lupa password?
+                          Forgot password?
                         </Link>
                         <button
                           type="button"
@@ -361,7 +361,7 @@ export default function Login() {
                   <div className="border-t border-amber-200/40" />
                   <div className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-[#faf6ef] px-3">
                     <span className="text-[9px] font-serif tracking-[0.3em] text-amber-400/60 uppercase">
-                      atau
+                      or
                     </span>
                   </div>
                 </div>
@@ -370,7 +370,7 @@ export default function Login() {
                 <div className="flex justify-center">
                   <GoogleLogin
                     onSuccess={handleGoogleSuccess}
-                    onError={() => setError('Login Google dibatalkan.')}
+                    onError={() => setError('Google sign-in was cancelled.')}
                     theme="outline"
                     size="large"
                     text="signin_with"

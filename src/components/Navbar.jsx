@@ -21,13 +21,13 @@ function Icon({ name, className = 'w-5 h-5' }) {
   );
 }
 
-// ===== DATA MENU =====
+// ===== MENU DATA =====
 const links = {
   customer: [
     { to: '/', label: 'Home' },
-    { to: '/promos', label: 'Promo' },
+    { to: '/promos', label: 'Promos' },
     { to: '/my-orders', label: 'Orders' },
-    { to: '/contact-history', label: 'Pesan Saya' },
+    { to: '/contact-history', label: 'My Messages' },
   ],
   admin: [
     { to: '/admin/dashboard', label: 'Dashboard' },
@@ -40,7 +40,7 @@ const links = {
     { to: '/admin/payouts', label: 'Payouts' },
     { to: '/admin/promos', label: 'Promos' },
     { to: '/admin/reports', label: 'Reports' },
-    { to: '/admin/contact-messages', label: 'Pesan Masuk' },
+    { to: '/admin/contact-messages', label: 'Inbox' },
   ],
   petugas: [
     { to: '/petugas/scan', label: 'Scan Ticket' },
@@ -55,7 +55,7 @@ const links = {
 
 const guestLinks = [
   { to: '/', label: 'Home' },
-  { to: '/promos', label: 'Promo' },
+  { to: '/promos', label: 'Promos' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
 ];
@@ -64,10 +64,10 @@ const roleLabel = {
   customer: 'Customer',
   admin: 'Admin',
   eo: 'Event Organizer',
-  petugas: 'Petugas',
+  petugas: 'Staff',
 };
 
-// Kalau menu lebih dari ini, sisanya masuk ke dropdown "Lainnya"
+// If there are more menu items than this, the rest go into a "More" dropdown
 const MAX_VISIBLE = 6;
 
 const focusRing =
@@ -124,7 +124,7 @@ export default function Navbar() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // ===== LOGOUT → REDIRECT KE LANDING PAGE =====
+  // ===== LOGOUT → REDIRECT TO LANDING PAGE =====
   function handleLogout() {
     logout();
     navigate('/', { replace: true });
@@ -166,7 +166,7 @@ export default function Navbar() {
 
   return (
     <div className="sticky top-0 z-50 pt-3 pb-2 px-3 sm:px-4">
-      {/* Penangkap klik di luar dropdown. Ditaruh di luar nav supaya benar-benar menutupi layar. */}
+      {/* Outside-click catcher for the dropdown. Placed outside the nav so it truly covers the screen. */}
       {menu && <div className="fixed inset-0 z-10" onClick={() => setMenu(null)} aria-hidden="true" />}
 
       <motion.nav
@@ -175,7 +175,7 @@ export default function Navbar() {
         transition={{ type: 'spring', stiffness: 200, damping: 22 }}
         className="relative z-20 max-w-6xl mx-auto"
       >
-        {/* ===== PILL CONTAINER — GLASS COKLAT ===== */}
+        {/* ===== PILL CONTAINER — BROWN GLASS ===== */}
         <div
           className={`rounded-full backdrop-blur-xl border border-amber-200/20 ring-1 ring-inset ring-white/5 px-2 py-2 flex items-center gap-2 sm:gap-3 transition-all duration-300 ${
             scrolled
@@ -183,10 +183,10 @@ export default function Navbar() {
               : 'bg-amber-950/40 shadow-xl shadow-amber-950/30'
           }`}
         >
-          {/* KIRI */}
+          {/* LEFT */}
           <Brand to={homePath} />
 
-          {/* TENGAH — nav links (desktop) */}
+          {/* CENTER — nav links (desktop) */}
           <div className="hidden md:flex items-center gap-0.5 flex-1 justify-center">
             {visibleLinks.map((item) => {
               const active = isActive(item.to);
@@ -224,7 +224,7 @@ export default function Navbar() {
                       : 'text-amber-100/70 hover:text-amber-50 hover:bg-amber-500/10'
                   }`}
                 >
-                  Lainnya
+                  More
                   <Icon
                     name="chevronDown"
                     className={`w-3.5 h-3.5 transition-transform duration-200 ${menu === 'more' ? 'rotate-180' : ''}`}
@@ -262,7 +262,7 @@ export default function Navbar() {
           {/* Mobile: spacer */}
           <div className="flex-1 md:hidden" />
 
-          {/* KANAN */}
+          {/* RIGHT */}
           <div className="flex items-center gap-2">
             {user ? (
               <div className="relative">
@@ -323,7 +323,7 @@ export default function Navbar() {
                               className={`${menuItem} text-amber-800/80 hover:bg-amber-50 hover:text-amber-950`}
                             >
                               <Icon name="inbox" className="w-4 h-4" />
-                              Pesan Saya
+                              My Messages
                             </Link>
                           </>
                         )}
@@ -358,12 +358,12 @@ export default function Navbar() {
               </>
             )}
 
-            {/* Mobile menu toggle — sekarang juga untuk tamu */}
+            {/* Mobile menu toggle — now also available for guests */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-expanded={mobileMenuOpen}
-              aria-label={mobileMenuOpen ? 'Tutup menu' : 'Buka menu'}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               className={`md:hidden w-10 h-10 rounded-full bg-amber-100/20 hover:bg-amber-100/30 flex items-center justify-center text-amber-100 transition-colors shrink-0 border border-amber-200/20 ${focusRing}`}
             >
               <Icon name={mobileMenuOpen ? 'close' : 'menu'} className="w-5 h-5" />

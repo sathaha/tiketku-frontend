@@ -41,7 +41,7 @@ const emptyForm = {
   status: 'draft'
 };
 
-// Warna tab ID (bergilir per index)
+// ID badge colors (rotating per index)
 const idBadgeColors = [
   'bg-blue-500/20 text-blue-300 border-blue-500/40',
   'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
@@ -51,7 +51,7 @@ const idBadgeColors = [
   'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
 ];
 
-// ===== CONCERT CARD (ala referensi) =====
+// ===== CONCERT CARD (reference style) =====
 function ConcertCard({ concert, index, isSelected, onClick }) {
   const idColor = idBadgeColors[index % idBadgeColors.length];
 
@@ -67,7 +67,7 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
           : 'bg-ink-800/40 border-ink-700/60 hover:border-flame-500/30 hover:bg-ink-800/60'
       }`}
     >
-      {/* ===== HEADER: ID badge + nama + status ===== */}
+      {/* ===== HEADER: ID badge + name + status ===== */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className={`w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 font-bold text-sm ${idColor}`}>
@@ -90,7 +90,7 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
         <span className="flex items-center gap-1 truncate">
           <Icon name="calendar" className="w-3 h-3" />
           {concert.created_at
-            ? new Date(concert.created_at).toLocaleDateString('id-ID', {
+            ? new Date(concert.created_at).toLocaleDateString('en-US', {
                 day: 'numeric', month: 'short', year: 'numeric'
               })
             : '-'}
@@ -117,7 +117,7 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
         <div className="flex items-center justify-between text-xs">
           <span className="text-ink-400 flex items-center gap-1.5">
             <Icon name="flame" className="w-3.5 h-3.5" />
-            Kategori
+            Category
           </span>
           <span className="text-white font-medium truncate ml-2">
             {concert.category_name || '-'}
@@ -127,9 +127,9 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
 
       {/* ===== TOTAL ===== */}
       <div className="flex items-center justify-between pt-3 border-t border-ink-700/50 mb-3">
-        <span className="text-[10px] text-ink-500 uppercase tracking-wider">Mulai dari</span>
+        <span className="text-[10px] text-ink-500 uppercase tracking-wider">Starting from</span>
         <span className="text-sm font-bold text-flame-400 font-mono tabular-nums">
-          {concert.min_price ? formatRupiah(concert.min_price) : 'Belum diatur'}
+          {concert.min_price ? formatRupiah(concert.min_price) : 'Not set'}
         </span>
       </div>
 
@@ -141,7 +141,7 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
           className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-ink-700/60 hover:bg-ink-700 text-ink-200 rounded-lg text-xs font-medium transition-colors"
         >
           <Icon name="calendar" className="w-3.5 h-3.5" />
-          Kelola
+          Manage
         </Link>
         <button
           onClick={(e) => {
@@ -155,14 +155,14 @@ function ConcertCard({ concert, index, isSelected, onClick }) {
           }`}
         >
           <Icon name="info" className="w-3.5 h-3.5" />
-          {isSelected ? 'Dipilih' : 'Detail'}
+          {isSelected ? 'Selected' : 'Details'}
         </button>
       </div>
     </motion.div>
   );
 }
 
-// ===== DETAIL PANEL (kanan) =====
+// ===== DETAIL PANEL (right) =====
 function DetailPanel({ concert, onClose, onEdit, onDelete }) {
   if (!concert) {
     return (
@@ -171,7 +171,7 @@ function DetailPanel({ concert, onClose, onEdit, onDelete }) {
           <Icon name="info" className="w-6 h-6 text-ink-500" />
         </div>
         <p className="text-sm text-ink-400">
-          Pilih konser untuk melihat detail
+          Select a concert to view details
         </p>
       </div>
     );
@@ -213,10 +213,10 @@ function DetailPanel({ concert, onClose, onEdit, onDelete }) {
         </div>
       )}
 
-      {/* Deskripsi */}
+      {/* Description */}
       {concert.description && (
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-ink-500 mb-1.5">Deskripsi</p>
+          <p className="text-[10px] uppercase tracking-wider text-ink-500 mb-1.5">Description</p>
           <p className="text-xs text-ink-300 leading-relaxed line-clamp-4">
             {concert.description}
           </p>
@@ -237,7 +237,7 @@ function DetailPanel({ concert, onClose, onEdit, onDelete }) {
         <div className="flex items-center justify-between text-xs">
           <span className="text-ink-400 flex items-center gap-1.5">
             <Icon name="flame" className="w-3.5 h-3.5" />
-            Kategori
+            Category
           </span>
           <span className="text-white font-medium truncate ml-2">
             {concert.category_name || '-'}
@@ -255,11 +255,11 @@ function DetailPanel({ concert, onClose, onEdit, onDelete }) {
         <div className="flex items-center justify-between text-xs">
           <span className="text-ink-400 flex items-center gap-1.5">
             <Icon name="clock" className="w-3.5 h-3.5" />
-            Dibuat
+            Created
           </span>
           <span className="text-white font-medium font-mono">
             {concert.created_at
-              ? new Date(concert.created_at).toLocaleDateString('id-ID', {
+              ? new Date(concert.created_at).toLocaleDateString('en-US', {
                   day: 'numeric', month: 'short', year: 'numeric'
                 })
               : '-'}
@@ -267,11 +267,11 @@ function DetailPanel({ concert, onClose, onEdit, onDelete }) {
         </div>
       </div>
 
-      {/* Harga */}
+      {/* Price */}
       <div className="pt-3 border-t border-ink-700/60 flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wider text-ink-500">Mulai dari</span>
+        <span className="text-[10px] uppercase tracking-wider text-ink-500">Starting from</span>
         <span className="text-base font-bold text-flame-400 font-mono tabular-nums">
-          {concert.min_price ? formatRupiah(concert.min_price) : 'Belum diatur'}
+          {concert.min_price ? formatRupiah(concert.min_price) : 'Not set'}
         </span>
       </div>
 
@@ -282,7 +282,7 @@ function DetailPanel({ concert, onClose, onEdit, onDelete }) {
           className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-flame-500 hover:bg-flame-600 text-white rounded-xl text-sm font-semibold transition-colors"
         >
           <Icon name="calendar" className="w-4 h-4" />
-          Kelola Jadwal & Tiket
+          Manage Schedule & Tickets
         </Link>
         <div className="flex gap-2">
           <button
@@ -297,7 +297,7 @@ function DetailPanel({ concert, onClose, onEdit, onDelete }) {
             className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-medium transition-colors"
           >
             <Icon name="trash" className="w-3.5 h-3.5" />
-            Hapus
+            Delete
           </button>
         </div>
       </div>
@@ -480,7 +480,7 @@ export default function Concerts() {
           <div>
             <h1 className="text-2xl font-bold text-white">Manage Concerts</h1>
             <p className="text-sm text-ink-400 mt-0.5">
-              {filteredConcerts.length} dari {concerts.length} konser
+              {filteredConcerts.length} of {concerts.length} concerts
             </p>
           </div>
         </div>
@@ -489,7 +489,7 @@ export default function Concerts() {
           className="btn-primary inline-flex items-center gap-2 self-start sm:self-auto"
         >
           <Icon name="plus" className="w-4 h-4" />
-          Tambah Konser
+          Add Concert
         </button>
       </div>
 
@@ -499,7 +499,7 @@ export default function Concerts() {
           <Icon name="search" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-500" />
           <input
             type="text"
-            placeholder="Cari nama, artis, venue, atau EO..."
+            placeholder="Search by name, artist, venue, or organizer..."
             className="w-full input-field pl-10 bg-ink-800/40"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -511,7 +511,7 @@ export default function Concerts() {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="">Semua Status</option>
+            <option value="">All Statuses</option>
             {statusOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
@@ -521,15 +521,15 @@ export default function Concerts() {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
-            <option value="newest">Terbaru</option>
-            <option value="oldest">Terlama</option>
-            <option value="name">Nama A-Z</option>
-            <option value="price">Harga Terendah</option>
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="name">Name A-Z</option>
+            <option value="price">Lowest Price</option>
           </select>
         </div>
       </div>
 
-      {/* ===== FORM ===== (tidak diubah dari yang sebelumnya) */}
+      {/* ===== FORM ===== (unchanged from before) */}
       <AnimatePresence>
         {showForm && (
           <motion.div
@@ -545,7 +545,7 @@ export default function Concerts() {
 
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-white">
-                  {editingId ? 'Edit Konser' : 'Konser Baru'}
+                  {editingId ? 'Edit Concert' : 'New Concert'}
                 </h2>
                 <button
                   type="button"
@@ -566,20 +566,20 @@ export default function Concerts() {
               <div className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-ink-200 mb-1.5">Nama Konser *</label>
+                    <label className="block text-sm text-ink-200 mb-1.5">Concert Name *</label>
                     <input
                       required
                       className="w-full input-field"
-                      placeholder="Contoh: Jazz Night Festival"
+                      placeholder="Example: Jazz Night Festival"
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-ink-200 mb-1.5">Nama Artis</label>
+                    <label className="block text-sm text-ink-200 mb-1.5">Artist Name</label>
                     <input
                       className="w-full input-field"
-                      placeholder="Contoh: Indra Lesmana"
+                      placeholder="Example: Indra Lesmana"
                       value={form.artist}
                       onChange={(e) => setForm({ ...form, artist: e.target.value })}
                     />
@@ -587,11 +587,11 @@ export default function Concerts() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-ink-200 mb-1.5">Deskripsi</label>
+                  <label className="block text-sm text-ink-200 mb-1.5">Description</label>
                   <textarea
                     className="w-full input-field"
                     rows={4}
-                    placeholder="Jelaskan detail konser..."
+                    placeholder="Describe the concert details..."
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                   />
@@ -605,20 +605,20 @@ export default function Concerts() {
                       value={form.venue_id}
                       onChange={(e) => setForm({ ...form, venue_id: e.target.value })}
                     >
-                      <option value="">Pilih Venue</option>
+                      <option value="">Select Venue</option>
                       {venues.map((v) => (
                         <option key={v.id} value={v.id}>{v.name}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm text-ink-200 mb-1.5">Kategori</label>
+                    <label className="block text-sm text-ink-200 mb-1.5">Category</label>
                     <select
                       className="w-full input-field"
                       value={form.category_id}
                       onChange={(e) => setForm({ ...form, category_id: e.target.value })}
                     >
-                      <option value="">Pilih Kategori</option>
+                      <option value="">Select Category</option>
                       {categories.map((c) => (
                         <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
@@ -640,7 +640,7 @@ export default function Concerts() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm text-ink-200 mb-1.5">Poster Konser</label>
+                    <label className="block text-sm text-ink-200 mb-1.5">Concert Poster</label>
                     <div className="flex items-center gap-3">
                       {posterPreview && (
                         <div className="relative group">
@@ -663,7 +663,7 @@ export default function Concerts() {
                       )}
                       <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-ink-700 hover:bg-ink-600 text-sm text-ink-200 transition-colors">
                         <Icon name="image" className="w-4 h-4" />
-                        {posterPreview ? 'Ganti File' : 'Pilih File'}
+                        {posterPreview ? 'Change File' : 'Choose File'}
                         <input
                           type="file"
                           accept="image/*"
@@ -687,10 +687,10 @@ export default function Concerts() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
-                        Menyimpan...
+                        Saving...
                       </>
                     ) : (
-                      'Simpan'
+                      'Save'
                     )}
                   </button>
                   <button
@@ -698,7 +698,7 @@ export default function Concerts() {
                     onClick={() => setShowForm(false)}
                     className="btn-secondary"
                   >
-                    Batal
+                    Cancel
                   </button>
                 </div>
               </div>
@@ -712,10 +712,10 @@ export default function Concerts() {
         <Loading />
       ) : filteredConcerts.length === 0 ? (
         concerts.length === 0 ? (
-          <EmptyState text="Belum ada konser. Tambahkan konser pertamamu!" />
+          <EmptyState text="No concerts yet. Add your first concert!" />
         ) : (
           <div className="text-center py-16">
-            <p className="text-ink-300 mb-2">Tidak ada konser yang cocok dengan filter.</p>
+            <p className="text-ink-300 mb-2">No concerts match the filter.</p>
             <button
               onClick={() => {
                 setSearchQuery('');
@@ -761,7 +761,7 @@ export default function Concerts() {
         </div>
       )}
 
-      {/* ===== DELETE MODAL ===== (tidak diubah) */}
+      {/* ===== DELETE MODAL ===== (unchanged) */}
       <AnimatePresence>
         {deleteTarget && (
           <motion.div
@@ -784,18 +784,18 @@ export default function Concerts() {
                 <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
                   <Icon name="trash" className="w-5 h-5 text-red-400" />
                 </div>
-                <h3 className="font-semibold text-white text-lg">Hapus Konser</h3>
+                <h3 className="font-semibold text-white text-lg">Delete Concert</h3>
               </div>
 
               <p className="text-ink-300 text-sm mb-2">
-                Kamu akan menghapus:
+                You are about to delete:
               </p>
               <p className="text-white font-medium mb-4">
                 {deleteTarget.name}
               </p>
 
               <p className="text-ink-400 text-xs mb-6">
-                Semua jadwal, kategori tiket, dan data terkait akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.
+                All schedules, ticket categories, and related data will be permanently deleted. This action cannot be undone.
               </p>
 
               <div className="flex gap-3">
@@ -810,10 +810,10 @@ export default function Concerts() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Menghapus...
+                      Deleting...
                     </>
                   ) : (
-                    'Hapus'
+                    'Delete'
                   )}
                 </button>
                 <button
@@ -821,7 +821,7 @@ export default function Concerts() {
                   disabled={deleting}
                   className="flex-1 py-2.5 bg-ink-700 hover:bg-ink-600 text-white rounded-xl text-sm font-semibold transition-colors"
                 >
-                  Batal
+                  Cancel
                 </button>
               </div>
             </motion.div>
