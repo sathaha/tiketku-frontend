@@ -1,63 +1,65 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, MotionConfig } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import api from '../../api/axios';
 import { StatusBadge, formatRupiah, formatDate } from '../../components/Ui';
 
+/* ============ ICONS ============ */
+const ICON_PATHS = {
+  plus: 'M12 4v16m8-8H4',
+  arrow: 'M13 7l5 5-5 5M6 12h12',
+  chevron: 'M9 5l7 7-7 7',
+  calendar: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+  refresh: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
+  orders: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
+  wallet: 'M21 12V7H5a2 2 0 010-4h14v4M3 5v14a2 2 0 002 2h16v-5M18 12a2 2 0 000 4h4v-4h-4z',
+  copy: 'M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z',
+  check: 'M5 13l4 4L19 7',
+  clock: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+  alert: 'M12 9v2m0 4h.01M5.071 19h13.858a2 2 0 001.732-3L13.732 4a2 2 0 00-3.464 0L3.34 16a2 2 0 001.732 3z',
+  music: 'M9 18V5l12-2v13M9 18a3 3 0 11-6 0 3 3 0 016 0zm12-2a3 3 0 11-6 0 3 3 0 016 0z',
+  users: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
+  ticket: 'M15 5v2m0 4v2m0 4v2M5 5h14a2 2 0 012 2v3a2 2 0 000 4v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3a2 2 0 000-4V7a2 2 0 012-2z',
+  clipboard: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+};
+
 function Icon({ name, className = 'w-4 h-4' }) {
-  const paths = {
-    calendar: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z',
-    plus: 'M12 5v14M5 12h14',
-    arrow: 'M13 7l5 5-5 5M6 12h12',
-    chevron: 'M9 5l7 7-7 7',
-    refresh: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
-    orders: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
-    wallet: 'M21 12V7H5a2 2 0 010-4h14v4M3 5v14a2 2 0 002 2h16v-5M18 12a2 2 0 000 4h4v-4h-4z',
-    copy: 'M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z',
-    music: 'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3',
-    users: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
-    ticket: 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z',
-    clipboard: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
-  };
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d={paths[name]} />
+      <path strokeLinecap="round" strokeLinejoin="round" d={ICON_PATHS[name]} />
     </svg>
   );
 }
 
-/* Counts up once when data arrives, and eases from the previous value on refresh. */
-function useCountUp(target, duration = 900) {
-  const [value, setValue] = useState(0);
-  const latest = useRef(0);
-
-  useEffect(() => {
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      latest.current = target;
-      setValue(target);
-      return;
-    }
-    const from = latest.current;
-    const start = performance.now();
-    let raf;
-    const tick = (now) => {
-      const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      latest.current = Math.round(from + (target - from) * eased);
-      setValue(latest.current);
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]);
-
-  return value;
-}
-
+/* ============ STYLES ============ */
 const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60';
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 focus-visible:ring-offset-1';
+// Untuk elemen di dalam container overflow-hidden, ring biasa akan terpotong.
+const focusRingInset =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500/70';
 
-// Gradien avatar untuk customer (bergantian berdasarkan nama)
+const panel = 'bg-white rounded-2xl shadow-sm shadow-amber-950/5';
+const ticketShadow =
+  'rounded-2xl drop-shadow-[0_3px_8px_rgba(69,26,3,0.10)]';
+
+const pageCss = `
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Figtree:wght@400;500;600&display=swap');
+
+  .f-display { font-family: 'Fraunces', Georgia, serif; }
+  .f-body { font-family: 'Figtree', system-ui, -apple-system, sans-serif; }
+
+  .ticket-card {
+    --stub-h: 4.5rem;
+    -webkit-mask:
+      radial-gradient(circle 9px at 0 calc(100% - var(--stub-h)), #0000 97%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle 9px at 100% calc(100% - var(--stub-h)), #0000 97%, #000) right / 51% 100% no-repeat;
+    mask:
+      radial-gradient(circle 9px at 0 calc(100% - var(--stub-h)), #0000 97%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle 9px at 100% calc(100% - var(--stub-h)), #0000 97%, #000) right / 51% 100% no-repeat;
+  }
+`;
+
+// Gradien avatar customer (dipilih berdasarkan huruf pertama nama)
 const AVATAR_GRADIENTS = [
   'from-amber-400 to-amber-600',
   'from-emerald-400 to-emerald-600',
@@ -72,92 +74,164 @@ function avatarGradient(name = '') {
   return AVATAR_GRADIENTS[code % AVATAR_GRADIENTS.length];
 }
 
+// Garis pemisah putus-putus antar sel statistik (2 kolom di mobile, 4 di desktop)
+const statDividers = [
+  '',
+  'border-l',
+  'border-t sm:border-t-0 sm:border-l',
+  'border-t border-l sm:border-t-0',
+];
+
+/* ============ HOOKS ============ */
+
+/* Menghitung naik saat data pertama datang, dan bergerak dari nilai sebelumnya saat refresh. */
+function useCountUp(target, duration = 900) {
+  const [value, setValue] = useState(0);
+  const latest = useRef(0);
+
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      latest.current = target;
+      setValue(target);
+      return undefined;
+    }
+
+    const from = latest.current;
+    const start = performance.now();
+    let raf;
+
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      latest.current = Math.round(from + (target - from) * eased);
+      setValue(latest.current);
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+
+  return value;
+}
+
+/* ============ SKELETON ============ */
+function Bone({ className = '' }) {
+  return <div className={`bg-amber-100 rounded ${className}`} />;
+}
+
 function SkeletonLoader() {
   return (
-    <div className="animate-pulse grid grid-cols-1 lg:grid-cols-3 gap-4" aria-hidden="true">
-      <div className="lg:col-span-2 space-y-4">
-        <div className="bg-white border border-amber-200/60 rounded-2xl grid grid-cols-1 sm:grid-cols-3">
-          <div className="p-6 sm:col-span-2 space-y-4">
-            <div className="h-3 w-24 bg-amber-100 rounded" />
-            <div className="h-10 w-64 bg-amber-100 rounded" />
-            <div className="h-1.5 w-full bg-amber-100 rounded-full mt-6" />
-          </div>
-          <div className="p-6 space-y-4 border-t border-dashed border-amber-200/60 sm:border-t-0 sm:border-l">
-            <div className="h-3 w-24 bg-amber-100 rounded" />
-            <div className="h-6 w-32 bg-amber-100 rounded" />
+    <div
+      className="animate-pulse grid grid-cols-1 lg:grid-cols-3 gap-6 items-start"
+      role="status"
+      aria-label="Loading dashboard"
+    >
+      <div className="lg:col-span-2 space-y-6 min-w-0">
+        {/* Revenue ticket */}
+        <div className={ticketShadow}>
+          <div className="ticket-card bg-white rounded-2xl overflow-hidden grid grid-rows-[1fr_var(--stub-h)]">
+            <div className="p-6 space-y-4">
+              <Bone className="h-3 w-24" />
+              <Bone className="h-12 w-72 max-w-full" />
+              <Bone className="h-1.5 w-full rounded-full mt-6" />
+            </div>
+            <div className="border-t border-dashed border-amber-300/80 bg-amber-50 px-6 flex items-center justify-between">
+              <div className="space-y-2">
+                <Bone className="h-3 w-24" />
+                <Bone className="h-5 w-32" />
+              </div>
+              <Bone className="h-9 w-28 rounded-lg" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white border border-amber-200/60 rounded-2xl grid grid-cols-2 sm:grid-cols-4">
+        {/* Stats */}
+        <div className={`${panel} grid grid-cols-2 sm:grid-cols-4 overflow-hidden`}>
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="p-4 flex items-center gap-3">
-              <div className="w-9 h-9 bg-amber-100 rounded-lg" />
-              <div className="space-y-2">
-                <div className="h-4 w-10 bg-amber-100 rounded" />
-                <div className="h-3 w-16 bg-amber-100 rounded" />
+            <div key={i} className={`border-dashed border-amber-200 ${statDividers[i]}`}>
+              <div className="p-4 flex items-center gap-3">
+                <Bone className="w-10 h-10 rounded-xl shrink-0" />
+                <div className="space-y-2">
+                  <Bone className="h-5 w-10" />
+                  <Bone className="h-3 w-16" />
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="bg-white border border-amber-200/60 rounded-2xl p-5">
-          <div className="h-4 w-40 bg-amber-100 rounded mb-5" />
+        {/* Recent transactions */}
+        <div className={`${panel} overflow-hidden`}>
+          <div className="px-6 py-4 bg-amber-950 space-y-2">
+            <div className="h-5 w-44 bg-amber-900 rounded" />
+            <div className="h-3 w-24 bg-amber-900 rounded" />
+          </div>
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex items-center justify-between py-3 border-t border-amber-200/60">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-100" />
+            <div key={i} className="flex items-center justify-between gap-4 px-6 py-4 border-t first:border-t-0 border-dashed border-amber-200">
+              <div className="flex items-center gap-4">
+                <Bone className="w-10 h-10 rounded-xl shrink-0" />
                 <div className="space-y-2">
-                  <div className="h-3 w-40 bg-amber-100 rounded" />
-                  <div className="h-3 w-28 bg-amber-100 rounded" />
+                  <Bone className="h-3 w-40" />
+                  <Bone className="h-3 w-28" />
                 </div>
               </div>
-              <div className="h-3 w-20 bg-amber-100 rounded" />
+              <div className="space-y-2 flex flex-col items-end">
+                <Bone className="h-3 w-20" />
+                <Bone className="h-4 w-14 rounded-full" />
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="bg-white border border-amber-200/60 rounded-2xl p-5 space-y-4">
-          <div className="h-4 w-32 bg-amber-100 rounded" />
-          <div className="h-10 w-full bg-amber-100 rounded-lg" />
-          <div className="h-10 w-full bg-amber-100 rounded-lg" />
+      {/* Side rail */}
+      <div className="space-y-6 min-w-0">
+        <div className={`${panel} p-5 space-y-4`}>
+          <Bone className="h-4 w-32" />
+          <Bone className="h-12 w-full rounded-lg" />
+          <Bone className="h-12 w-full rounded-lg" />
         </div>
-        <div className="bg-white border border-amber-200/60 rounded-2xl p-5 space-y-4">
-          <div className="h-4 w-28 bg-amber-100 rounded" />
-          <div className="h-3 w-full bg-amber-100 rounded" />
-          <div className="h-3 w-3/4 bg-amber-100 rounded" />
+        <div className={`${panel} p-5 space-y-4`}>
+          <Bone className="h-4 w-28" />
+          <Bone className="h-3 w-full" />
+          <Bone className="h-3 w-3/4" />
         </div>
       </div>
     </div>
   );
 }
 
-const statBorders = [
-  '',
-  'border-l',
-  'border-t sm:border-t-0 sm:border-l',
-  'border-l border-t sm:border-t-0',
-];
-
+/* ============ BUILDING BLOCKS ============ */
 function StatCell({ icon, tint, label, value, link, index }) {
-  const content = (
-    <div className={`p-4 flex items-center gap-3 border-amber-200/60 ${statBorders[index]} ${link ? 'hover:bg-amber-50 transition-colors' : ''}`}>
-      <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${tint}`}>
+  const body = (
+    <>
+      <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${tint}`}>
         <Icon name={icon} className="w-[18px] h-[18px]" />
       </span>
-      <div className="min-w-0">
-        <p className="font-serif text-xl font-bold text-amber-950 font-mono tabular-nums leading-none">{value}</p>
-        <p className="font-serif text-xs text-amber-700/70 mt-1.5 truncate">{label}</p>
+      <div className="min-w-0 flex-1">
+        <p className="f-display text-2xl font-semibold text-amber-950 tabular-nums leading-none">{value}</p>
+        <p className="text-xs text-amber-700/80 mt-1.5 truncate">{label}</p>
       </div>
-    </div>
+      {link && (
+        <Icon name="chevron" className="w-4 h-4 text-amber-500 group-hover:text-amber-800 transition-colors shrink-0" />
+      )}
+    </>
   );
-  return link ? (
-    <Link to={link} className={`block ${focusRing}`}>
-      {content}
-    </Link>
-  ) : (
-    content
+
+  return (
+    <div className={`border-dashed border-amber-200 ${statDividers[index]}`}>
+      {link ? (
+        <Link
+          to={link}
+          className={`group h-full p-4 flex items-center gap-3 hover:bg-amber-50 transition-colors ${focusRingInset}`}
+        >
+          {body}
+        </Link>
+      ) : (
+        <div className="h-full p-4 flex items-center gap-3">{body}</div>
+      )}
+    </div>
   );
 }
 
@@ -165,77 +239,96 @@ function AttentionRow({ to, icon, tint, title, sub, badge }) {
   return (
     <Link
       to={to}
-      className={`flex items-center gap-3 p-3 -mx-1 rounded-lg hover:bg-amber-50 transition-colors group ${focusRing}`}
+      className={`group flex items-center gap-3 px-5 py-3.5 hover:bg-amber-50 transition-colors ${focusRingInset}`}
     >
-      <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${tint}`}>
+      <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${tint}`}>
         <Icon name={icon} className="w-[18px] h-[18px]" />
       </span>
       <div className="flex-1 min-w-0">
-        <p className="font-serif text-sm font-medium text-amber-950">{title}</p>
-        <p className="font-serif text-xs text-amber-700/60 truncate">{sub}</p>
+        <p className="text-sm font-medium text-amber-950">{title}</p>
+        <p className="text-xs text-amber-700/80 truncate">{sub}</p>
       </div>
       {badge ? (
-        <span className="min-w-5 h-5 px-1.5 bg-amber-100 text-amber-800 border border-amber-200/60 text-xs font-mono rounded-full flex items-center justify-center">
+        <span className="min-w-5 h-5 px-1.5 bg-amber-950 text-amber-50 text-xs tabular-nums rounded-full flex items-center justify-center">
           {badge}
         </span>
       ) : null}
-      <Icon name="chevron" className="w-4 h-4 text-amber-500 group-hover:text-amber-800 transition-colors" />
+      <Icon name="chevron" className="w-4 h-4 text-amber-500 group-hover:text-amber-800 transition-colors shrink-0" />
     </Link>
   );
 }
 
+function InfoRow({ icon, label, children }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-2.5 text-sm">
+      <span className="text-amber-700/80 flex items-center gap-1.5 shrink-0">
+        <Icon name={icon} className="w-3.5 h-3.5 text-amber-500" />
+        {label}
+      </span>
+      <span className="text-amber-950 font-medium truncate text-right">{children}</span>
+    </div>
+  );
+}
+
+function OperationalPill() {
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+      <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 motion-reduce:animate-none" />
+        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+      </span>
+      Operational
+    </span>
+  );
+}
+
 /**
- * Recent transactions row — dibuat lebih hidup dengan:
- * - avatar gradien per customer
- * - order code jadi chip kecil
- * - status badge di kanan, total di atas
+ * Baris transaksi terbaru:
+ * avatar gradien, order code sebagai chip yang bisa di-copy,
+ * total di atas dan status di bawah (rata kanan).
  */
 function RecentOrderRow({ order, copiedCode, onCopy }) {
-  const gradient = avatarGradient(order.customer_name || '');
+  const isCopied = copiedCode === order.order_code;
 
   return (
-    <li className="group relative px-5 py-4 hover:bg-amber-50/60 transition-colors">
+    <li className="px-6 py-4 hover:bg-amber-50/60 transition-colors">
       <div className="flex items-center gap-4">
-        {/* Avatar gradien */}
-        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 shadow-sm`}>
-          <span className="font-serif text-sm font-bold text-white">
+        <div
+          className={`w-10 h-10 rounded-xl bg-gradient-to-br ${avatarGradient(order.customer_name)} flex items-center justify-center shrink-0 shadow-sm`}
+          aria-hidden="true"
+        >
+          <span className="f-display text-base font-semibold text-white">
             {order.customer_name?.charAt(0)?.toUpperCase() || '?'}
           </span>
         </div>
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
-          <p className="font-serif font-semibold text-amber-950 text-sm truncate">
-            {order.concert_name}
-          </p>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-            <span className="font-serif text-xs text-amber-700/70 truncate">
+          <p className="f-display font-semibold text-amber-950 truncate">{order.concert_name}</p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-1">
+            <span className="text-sm text-amber-700/80 truncate max-w-[10rem] sm:max-w-none">
               {order.customer_name}
             </span>
 
-            {/* Order code chip */}
             <button
+              type="button"
               onClick={() => onCopy(order.order_code)}
-              className={`inline-flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 hover:bg-amber-100 border border-amber-200/60 rounded-md font-mono text-[10px] text-amber-800 transition-colors ${focusRing}`}
               title="Copy order code"
+              aria-label={`Copy order code ${order.order_code}`}
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50 hover:bg-amber-100 border border-amber-200 text-[11px] text-amber-800 tabular-nums transition-colors ${focusRing}`}
             >
-              {copiedCode === order.order_code ? 'Copied!' : order.order_code}
-              <Icon name="copy" className="w-3 h-3 opacity-70" />
+              {order.order_code}
+              <Icon name={isCopied ? 'check' : 'copy'} className="w-3 h-3 opacity-70" />
             </button>
 
-            {/* Date */}
-            <span className="font-serif text-[11px] text-amber-600/60 flex items-center gap-1">
+            <span className="text-xs text-amber-700/70 flex items-center gap-1">
               <Icon name="calendar" className="w-3 h-3" />
               {formatDate(order.created_at)}
             </span>
           </div>
         </div>
 
-        {/* Total + status */}
-        <div className="text-right shrink-0 flex flex-col items-end gap-1.5">
-          <p className="font-serif font-bold text-amber-800 font-mono tabular-nums text-sm">
-            {formatRupiah(order.total_price)}
-          </p>
+        <div className="shrink-0 flex flex-col items-end gap-1.5">
+          <p className="f-display font-semibold text-amber-950 tabular-nums">{formatRupiah(order.total_price)}</p>
           <StatusBadge status={order.status} />
         </div>
       </div>
@@ -243,45 +336,70 @@ function RecentOrderRow({ order, copiedCode, onCopy }) {
   );
 }
 
+/* ============ MAIN ============ */
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [copiedCode, setCopiedCode] = useState(null);
+  const [toast, setToast] = useState(null);
+  const copyTimer = useRef(null);
+
+  const notify = useCallback((type, message) => {
+    setToast({ type, message, id: Date.now() });
+  }, []);
+
+  const fetchStats = useCallback(
+    async (isManual = false) => {
+      if (isManual) setRefreshing(true);
+      else setLoading(true);
+
+      try {
+        const res = await api.get('/reports/dashboard');
+        setStats(res.data);
+        setLastUpdated(new Date());
+      } catch (err) {
+        console.error('Failed to fetch dashboard stats:', err);
+        // Kalau data lama masih ada, cukup beri tahu lewat toast
+        if (isManual) notify('error', "Couldn't refresh. Showing the last data we loaded.");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [notify]
+  );
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [fetchStats]);
 
-  async function fetchStats(isManual = false) {
-    if (isManual) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
+  useEffect(() => {
+    if (!toast) return undefined;
+    const t = setTimeout(() => setToast(null), 3200);
+    return () => clearTimeout(t);
+  }, [toast]);
 
+  useEffect(() => () => clearTimeout(copyTimer.current), []);
+
+  async function copyOrderCode(code) {
     try {
-      const res = await api.get('/reports/dashboard');
-      setStats(res.data);
-      setLastUpdated(new Date());
-    } catch (err) {
-      console.error('Failed to fetch dashboard stats:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+      await navigator.clipboard?.writeText(code);
+    } catch {
+      notify('error', "Couldn't copy the order code.");
+      return;
     }
-  }
-
-  function copyOrderCode(code) {
-    navigator.clipboard?.writeText(code);
     setCopiedCode(code);
-    setTimeout(() => setCopiedCode((c) => (c === code ? null : c)), 1200);
+    notify('success', `Order code ${code} copied`);
+    clearTimeout(copyTimer.current);
+    copyTimer.current = setTimeout(() => setCopiedCode(null), 1200);
   }
 
   const totalRevenue = stats?.total_revenue || 0;
   const pendingPayout = stats?.pending_payout || 0;
   const pendingApproval = stats?.pending_approval || 0;
+  const recentOrders = stats?.recentOrders ?? [];
   const animatedRevenue = useCountUp(totalRevenue);
 
   const payoutShare = totalRevenue
@@ -296,115 +414,126 @@ export default function Dashboard() {
 
   const timeLabel = lastUpdated
     ? lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-    : '';
+    : '-';
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="min-h-screen bg-[#f5ede4]">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <style>{`
-            @media (min-width: 640px) {
-              .ticket-cut {
-                -webkit-mask:
-                  radial-gradient(circle 9px at 66.6667% 0, #0000 97%, #000) top / 100% 51% no-repeat,
-                  radial-gradient(circle 9px at 66.6667% 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
-                mask:
-                  radial-gradient(circle 9px at 66.6667% 0, #0000 97%, #000) top / 100% 51% no-repeat,
-                  radial-gradient(circle 9px at 66.6667% 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
-              }
-            }
-          `}</style>
-
-          {/* Header */}
+      <style>{pageCss}</style>
+      <div className="f-body min-h-screen bg-[#f5ede4] px-4 py-8">
+        <div className="max-w-7xl mx-auto">
+          {/* ===== HEADER ===== */}
           <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
-            <div>
-              <h1 className="font-serif text-2xl font-bold text-amber-950">Admin dashboard</h1>
-              {summary && <p className="font-serif text-sm text-amber-700/70 mt-1">{summary}</p>}
+            <div className="min-w-0">
+              <h1 className="f-display text-3xl font-bold text-amber-950">Admin dashboard</h1>
+              <p className="text-sm text-amber-700/80 mt-1">{loading ? 'Loading dashboard…' : summary}</p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-start sm:self-auto">
               {lastUpdated && !loading && (
-                <span className="font-serif text-xs text-amber-700/60 mr-1">Updated {timeLabel}</span>
+                <span className="text-xs text-amber-700/80 mr-1 hidden sm:inline tabular-nums">
+                  Updated {timeLabel}
+                </span>
               )}
               <button
+                type="button"
                 onClick={() => fetchStats(true)}
                 disabled={refreshing || loading}
                 aria-label="Refresh data"
                 title="Refresh data"
-                className={`p-2 hover:bg-amber-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 ${focusRing}`}
+                className={`p-2.5 bg-white hover:bg-amber-50 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${focusRing}`}
               >
-                <Icon name="refresh" className={`w-5 h-5 text-amber-700 ${refreshing ? 'animate-spin' : ''}`} />
+                <Icon
+                  name="refresh"
+                  className={`w-4 h-4 text-amber-800 ${refreshing ? 'animate-spin motion-reduce:animate-none' : ''}`}
+                />
               </button>
               <Link
                 to="/admin/concerts"
-                className={`flex items-center gap-2 px-3.5 py-2 bg-amber-800 hover:bg-amber-700 active:scale-[0.98] text-amber-50 rounded-lg font-serif text-sm font-medium transition-all ${focusRing}`}
+                className={`inline-flex items-center gap-2 px-5 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 text-sm font-medium rounded-xl transition-colors ${focusRing}`}
               >
                 <Icon name="plus" className="w-4 h-4" />
-                Create concert
+                Add concert
               </Link>
             </div>
           </header>
 
+          {/* ===== CONTENT ===== */}
           {loading ? (
             <SkeletonLoader />
           ) : !stats ? (
-            <div className="max-w-md mx-auto py-16 text-center">
-              <h2 className="font-serif text-xl font-bold text-amber-950 mb-2">Couldn't load the dashboard</h2>
-              <p className="font-serif text-amber-700/70 mb-6">Check your connection, then try again.</p>
+            <div className="max-w-md mx-auto rounded-2xl border-2 border-dashed border-amber-300/70 p-10 text-center">
+              <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4 text-amber-600">
+                <Icon name="alert" className="w-6 h-6" />
+              </div>
+              <h2 className="f-display text-lg font-semibold text-amber-950 mb-1">Couldn't load the dashboard</h2>
+              <p className="text-sm text-amber-800/80 mb-5">Check your connection, then try again.</p>
               <button
+                type="button"
                 onClick={() => fetchStats()}
-                className={`px-4 py-2 bg-amber-800 hover:bg-amber-700 text-amber-50 rounded-lg font-serif text-sm font-medium transition-colors ${focusRing}`}
+                className={`px-4 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 text-sm font-medium rounded-xl transition-colors ${focusRing}`}
               >
                 Try again
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               {/* Main column */}
-              <div className="lg:col-span-2 space-y-4 min-w-0">
-                {/* Revenue, shaped like a ticket with a payout stub */}
-                <div className="ticket-cut bg-white border border-amber-200/60 rounded-2xl relative grid grid-cols-1 sm:grid-cols-3">
-                  <div className="p-6 sm:col-span-2">
-                    <p className="font-serif text-sm text-amber-700/70">Total revenue</p>
-                    <p className="mt-2 font-serif text-4xl font-bold text-amber-950 font-mono tabular-nums tracking-tight">
-                      {formatRupiah(animatedRevenue)}
-                    </p>
-
-                    <div className="mt-6">
-                      <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${payoutShare}%` }}
-                          transition={{ duration: 0.8, ease: 'easeOut' }}
-                          className="h-full bg-orange-400 rounded-full"
-                        />
-                      </div>
-                      <p className="flex items-center gap-2 mt-3 font-serif text-xs text-amber-700/70">
-                        <Icon name="wallet" className="w-3.5 h-3.5 text-orange-500 shrink-0" />
-                        {payoutShare}% of revenue is still owed to event organizers
+              <div className="lg:col-span-2 space-y-6 min-w-0">
+                {/* Revenue: tiket dengan stub payout */}
+                <div className={ticketShadow}>
+                  <div className="ticket-card bg-white rounded-2xl overflow-hidden grid grid-rows-[1fr_var(--stub-h)]">
+                    <div className="p-6 min-w-0">
+                      <p className="text-sm text-amber-700/80">Total revenue</p>
+                      <p className="mt-2 f-display text-4xl sm:text-5xl font-semibold text-amber-950 tabular-nums tracking-tight break-words">
+                        {formatRupiah(animatedRevenue)}
                       </p>
+
+                      <div className="mt-6">
+                        <div className="flex items-center justify-between gap-3 mb-2 text-xs text-amber-700/80">
+                          <span className="flex items-center gap-1.5">
+                            <Icon name="wallet" className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                            Still owed to event organizers
+                          </span>
+                          <span className="font-medium text-amber-950 tabular-nums">{payoutShare}%</span>
+                        </div>
+                        <div
+                          role="progressbar"
+                          aria-label="Share of revenue still owed to event organizers"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={payoutShare}
+                          className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden"
+                        >
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${payoutShare}%` }}
+                            transition={{ duration: 0.8, ease: 'easeOut' }}
+                            className="h-full bg-orange-400 rounded-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-dashed border-amber-300/80 bg-amber-50 px-6 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs text-amber-700/80">Pending EO payout</p>
+                        <p className="f-display text-base font-semibold text-orange-600 tabular-nums truncate">
+                          {formatRupiah(pendingPayout)}
+                        </p>
+                      </div>
+                      <Link
+                        to="/admin/payouts"
+                        className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-amber-50 bg-amber-800 hover:bg-amber-700 rounded-lg transition-colors shrink-0 ${focusRing}`}
+                      >
+                        <Icon name="wallet" className="w-3.5 h-3.5" />
+                        {pendingPayout > 0 ? 'Process payout' : 'View payouts'}
+                      </Link>
                     </div>
                   </div>
-
-                  <Link
-                    to="/admin/payouts"
-                    className={`group flex flex-col justify-between gap-6 p-6 border-t border-dashed border-amber-200/60 sm:border-t-0 sm:border-l hover:bg-orange-50 transition-colors ${focusRing}`}
-                  >
-                    <div>
-                      <p className="font-serif text-sm text-amber-700/70">Pending EO payout</p>
-                      <p className="mt-2 font-serif text-2xl font-bold text-orange-600 font-mono tabular-nums">
-                        {formatRupiah(pendingPayout)}
-                      </p>
-                    </div>
-                    <span className="inline-flex items-center gap-1.5 font-serif text-xs font-medium text-amber-800">
-                      {pendingPayout > 0 ? 'Process payout' : 'View payouts'}
-                      <Icon name="arrow" className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                    </span>
-                  </Link>
                 </div>
 
-                {/* Numbers at a glance */}
-                <div className="bg-white border border-amber-200/60 rounded-2xl grid grid-cols-2 sm:grid-cols-4 overflow-hidden">
+                {/* Angka ringkas */}
+                <div className={`${panel} grid grid-cols-2 sm:grid-cols-4 overflow-hidden`}>
                   <StatCell index={0} icon="music" tint="bg-amber-100 text-amber-700" label="Concerts" value={stats.total_concerts || 0} />
                   <StatCell index={1} icon="users" tint="bg-blue-100 text-blue-700" label="Customers" value={stats.total_users || 0} />
                   <StatCell index={2} icon="ticket" tint="bg-emerald-100 text-emerald-700" label="Tickets sold" value={stats.tickets_sold || 0} />
@@ -418,35 +547,33 @@ export default function Dashboard() {
                   />
                 </div>
 
-                {/* Recent transactions */}
-                <section className="bg-white border border-amber-200/60 rounded-2xl overflow-hidden">
-                  <div className="flex items-center justify-between p-5 border-b border-amber-200/60">
-                    <div>
-                      <h2 className="font-serif font-semibold text-amber-950">Recent transactions</h2>
-                      <p className="font-serif text-xs text-amber-700/60 mt-0.5">
-                        Latest {stats.recentOrders?.length || 0} orders
-                      </p>
+                {/* Transaksi terbaru */}
+                <section className={`${panel} overflow-hidden`}>
+                  <div className="flex items-center justify-between gap-3 px-6 py-4 bg-amber-950 text-amber-50">
+                    <div className="min-w-0">
+                      <h2 className="f-display text-xl font-semibold">Recent transactions</h2>
+                      <p className="text-xs text-amber-200/70 mt-0.5">Latest {recentOrders.length} orders</p>
                     </div>
                     <Link
                       to="/admin/orders"
-                      className={`font-serif text-sm text-amber-700 hover:text-amber-900 font-medium inline-flex items-center gap-1 group rounded ${focusRing}`}
+                      className={`group inline-flex items-center gap-1.5 px-3 py-1.5 -mr-1.5 rounded-lg text-sm font-medium text-amber-200 hover:text-white hover:bg-amber-900 transition-colors shrink-0 ${focusRing}`}
                     >
                       View all
-                      <Icon name="arrow" className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      <Icon name="arrow" className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform motion-reduce:transition-none" />
                     </Link>
                   </div>
 
-                  {!stats.recentOrders || stats.recentOrders.length === 0 ? (
-                    <div className="p-12 text-center">
-                      <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 border border-amber-200/60 flex items-center justify-center mb-4">
-                        <Icon name="orders" className="w-6 h-6 text-amber-600" />
+                  {recentOrders.length === 0 ? (
+                    <div className="m-5 rounded-2xl border-2 border-dashed border-amber-300/70 p-10 text-center">
+                      <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4 text-amber-600">
+                        <Icon name="orders" className="w-6 h-6" />
                       </div>
-                      <h3 className="font-serif font-semibold text-amber-950 mb-1">No transactions yet</h3>
-                      <p className="font-serif text-sm text-amber-700/60">Orders show up here as soon as the first ticket is sold.</p>
+                      <h3 className="f-display text-lg font-semibold text-amber-950 mb-1">No transactions yet</h3>
+                      <p className="text-sm text-amber-800/80">Orders show up here as soon as the first ticket is sold.</p>
                     </div>
                   ) : (
-                    <ul className="divide-y divide-amber-200/60">
-                      {stats.recentOrders.map((order) => (
+                    <ul className="divide-y divide-dashed divide-amber-200">
+                      {recentOrders.map((order) => (
                         <RecentOrderRow
                           key={order.id}
                           order={order}
@@ -460,10 +587,10 @@ export default function Dashboard() {
               </div>
 
               {/* Side rail */}
-              <aside className="space-y-4 min-w-0">
-                <section className="bg-white border border-amber-200/60 rounded-2xl p-5">
-                  <h2 className="font-serif font-semibold text-amber-950 mb-3">Needs attention</h2>
-                  <div className="space-y-1">
+              <aside className="space-y-6 min-w-0 lg:sticky lg:top-6">
+                <section className={`${panel} overflow-hidden`}>
+                  <h2 className="f-display text-base font-semibold text-amber-950 px-5 pt-5 pb-2">Needs attention</h2>
+                  <div className="divide-y divide-dashed divide-amber-200 border-t border-dashed border-amber-200">
                     <AttentionRow
                       to="/admin/approvals"
                       icon="clipboard"
@@ -482,28 +609,43 @@ export default function Dashboard() {
                   </div>
                 </section>
 
-                <section className="bg-white border border-amber-200/60 rounded-2xl p-5">
-                  <h2 className="font-serif font-semibold text-amber-950 mb-1">Platform status</h2>
-                  <div className="divide-y divide-amber-200/60">
-                    <div className="flex items-center justify-between py-3">
-                      <div className="flex items-center gap-2.5">
-                        <span className="relative flex h-2.5 w-2.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 motion-reduce:animate-none" />
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-                        </span>
-                        <span className="font-serif text-sm text-amber-950">Xendit payments</span>
-                      </div>
-                      <span className="font-serif text-xs text-emerald-700">Operational</span>
-                    </div>
-                    <div className="flex items-center justify-between py-3">
-                      <span className="font-serif text-sm text-amber-800/70">Dashboard data</span>
-                      <span className="font-serif text-sm text-amber-950 font-mono tabular-nums">{timeLabel}</span>
-                    </div>
+                <section className={`${panel} p-5`}>
+                  <h2 className="f-display text-base font-semibold text-amber-950 mb-1">Platform status</h2>
+                  <div className="divide-y divide-dashed divide-amber-200 border-t border-dashed border-amber-200 mt-2">
+                    <InfoRow icon="wallet" label="Xendit payments">
+                      <OperationalPill />
+                    </InfoRow>
+                    <InfoRow icon="clock" label="Dashboard data">
+                      <span className="tabular-nums">{timeLabel}</span>
+                    </InfoRow>
                   </div>
                 </section>
               </aside>
             </div>
           )}
+
+          {/* ===== TOAST ===== */}
+          <div className="fixed bottom-6 inset-x-0 z-[90] flex justify-center px-4 pointer-events-none">
+            <AnimatePresence>
+              {toast && (
+                <motion.div
+                  key={toast.id}
+                  role="status"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 12 }}
+                  transition={{ duration: 0.18 }}
+                  className="pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-amber-950 text-amber-50 text-sm shadow-lg shadow-amber-950/30"
+                >
+                  <Icon
+                    name={toast.type === 'error' ? 'alert' : 'check'}
+                    className={`w-4 h-4 ${toast.type === 'error' ? 'text-red-400' : 'text-emerald-400'}`}
+                  />
+                  {toast.message}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </MotionConfig>
