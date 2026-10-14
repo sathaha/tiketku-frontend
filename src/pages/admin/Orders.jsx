@@ -2,29 +2,53 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import api from '../../api/axios';
-import { StatusBadge, formatRupiah, formatDate } from '../../components/Ui';
+import { formatRupiah, formatDate } from '../../components/Ui';
+
+/* ============ ICONS ============ */
+const ICON_PATHS = {
+  search: 'M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z',
+  close: 'M6 18L18 6M6 6l12 12',
+  ticket: 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z',
+  bank: 'M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11m16-11v11M8 14v3m4-3v3m4-3v3',
+  copy: 'M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z',
+  check: 'M5 13l4 4L19 7',
+  alert: 'M12 9v2m0 4h.01M5.071 19h13.858a2 2 0 001.732-3L13.732 4a2 2 0 00-3.464 0L3.34 16a2 2 0 001.732 3z',
+  receipt: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+  wallet: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
+};
 
 function Icon({ name, className = 'w-4 h-4' }) {
-  const paths = {
-    search: 'M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z',
-    close: 'M6 18L18 6M6 6l12 12',
-    ticket: 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z',
-    bank: 'M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11m16-11v11M8 14v3m4-3v3m4-3v3',
-    copy: 'M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z',
-    check: 'M5 13l4 4L19 7',
-    alert: 'M12 9v2m0 4h.01M5.071 19h13.858a2 2 0 001.732-3L13.732 4a2 2 0 00-3.464 0L3.34 16a2 2 0 001.732 3z',
-    receipt: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
-  };
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d={paths[name] || paths.alert} />
+      <path strokeLinecap="round" strokeLinejoin="round" d={ICON_PATHS[name] || ICON_PATHS.alert} />
     </svg>
   );
 }
 
-const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60';
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 focus-visible:ring-offset-1';
+
+const pageCss = `
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Figtree:wght@400;500;600&display=swap');
+
+  .f-display { font-family: 'Fraunces', Georgia, serif; }
+  .f-body { font-family: 'Figtree', system-ui, -apple-system, sans-serif; }
+
+  /* Receipt: notches on the tear line above the total */
+  .receipt {
+    --tail-h: 6rem;
+    -webkit-mask:
+      radial-gradient(circle 9px at 0 calc(100% - var(--tail-h)), #0000 97%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle 9px at 100% calc(100% - var(--tail-h)), #0000 97%, #000) right / 51% 100% no-repeat;
+    mask:
+      radial-gradient(circle 9px at 0 calc(100% - var(--tail-h)), #0000 97%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle 9px at 100% calc(100% - var(--tail-h)), #0000 97%, #000) right / 51% 100% no-repeat;
+  }
+`;
+
+/* ============ CONSTANTS ============ */
 const PAGE_SIZE = 20;
 
+// values match the API
 const statusTabs = [
   { value: '', label: 'All' },
   { value: 'menunggu_pembayaran', label: 'Pending' },
@@ -33,17 +57,45 @@ const statusTabs = [
   { value: 'dibatalkan', label: 'Cancelled' },
 ];
 
-const tableCols = 'lg:grid-cols-[9.5rem_minmax(0,1fr)_minmax(0,1.2fr)_8.5rem_7.5rem_6.5rem]';
+const tableCols = 'lg:grid-cols-[9.5rem_minmax(0,1fr)_minmax(0,1.2fr)_8.5rem_8rem_6.5rem]';
+
+const statusMeta = {
+  lunas: { label: 'Paid', light: 'bg-emerald-50 text-emerald-700', dark: 'bg-emerald-950/60 text-emerald-300', dot: 'bg-emerald-500', darkDot: 'bg-emerald-400' },
+  menunggu_pembayaran: { label: 'Pending', light: 'bg-yellow-50 text-yellow-700', dark: 'bg-yellow-950/60 text-yellow-300', dot: 'bg-yellow-500', darkDot: 'bg-yellow-400' },
+  kadaluarsa: { label: 'Expired', light: 'bg-stone-100 text-stone-600', dark: 'bg-amber-900 text-amber-200', dot: 'bg-stone-400', darkDot: 'bg-amber-400' },
+  dibatalkan: { label: 'Cancelled', light: 'bg-red-50 text-red-700', dark: 'bg-red-950/60 text-red-300', dot: 'bg-red-500', darkDot: 'bg-red-400' },
+  belum_cair: { label: 'Not paid out', light: 'bg-yellow-50 text-yellow-700', dark: 'bg-yellow-950/60 text-yellow-300', dot: 'bg-yellow-500', darkDot: 'bg-yellow-400' },
+  sudah_cair: { label: 'Paid out', light: 'bg-emerald-50 text-emerald-700', dark: 'bg-emerald-950/60 text-emerald-300', dot: 'bg-emerald-500', darkDot: 'bg-emerald-400' },
+};
+
+function StatusPill({ status, dark = false }) {
+  const meta = statusMeta[status] || {
+    label: status ? String(status).replace(/_/g, ' ') : '-',
+    light: 'bg-amber-50 text-amber-800',
+    dark: 'bg-amber-900 text-amber-100',
+    dot: 'bg-amber-500',
+    darkDot: 'bg-amber-400',
+  };
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${dark ? meta.dark : meta.light}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dark ? meta.darkDot : meta.dot}`} />
+      {meta.label}
+    </span>
+  );
+}
 
 function formatTime(d) {
   return d ? new Date(d).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '';
 }
 
+const num = (v) => Number(v) || 0;
+
 function SkeletonRows() {
   return (
-    <div className="bg-white border border-amber-200/60 rounded-2xl animate-pulse" aria-hidden="true">
+    <div className="bg-white rounded-2xl overflow-hidden animate-pulse" role="status" aria-label="Loading transactions">
+      <div className="h-12 bg-amber-950/90" />
       {[...Array(6)].map((_, i) => (
-        <div key={i} className="flex items-center justify-between gap-4 px-5 py-4 border-t first:border-t-0 border-amber-200/60">
+        <div key={i} className="flex items-center justify-between gap-4 px-5 py-4 border-t border-dashed border-amber-200">
           <div className="flex items-center gap-6">
             <div className="h-3 w-24 bg-amber-100 rounded" />
             <div className="space-y-2">
@@ -58,6 +110,7 @@ function SkeletonRows() {
   );
 }
 
+/* ============ MAIN ============ */
 export default function Orders() {
   const [searchParams, setSearchParams] = useSearchParams();
   const status = searchParams.get('status') || '';
@@ -74,6 +127,7 @@ export default function Orders() {
 
   const [toast, setToast] = useState(null);
   const requestRef = useRef(0);
+  const listRequestRef = useRef(0);
   const searchRef = useRef(null);
 
   useEffect(() => {
@@ -117,14 +171,18 @@ export default function Orders() {
   }
 
   async function fetchOrders() {
+    const requestId = ++listRequestRef.current;
     setLoading(true);
     try {
       const res = await api.get('/orders', { params: status ? { status } : {} });
+      if (requestId !== listRequestRef.current) return;
       setOrders(res.data);
     } catch (err) {
+      if (requestId !== listRequestRef.current) return;
       console.error('Failed to fetch orders:', err);
+      setToast({ message: "Couldn't load transactions. Please try again.", id: Date.now() });
     } finally {
-      setLoading(false);
+      if (requestId === listRequestRef.current) setLoading(false);
     }
   }
 
@@ -140,7 +198,7 @@ export default function Orders() {
     } catch (err) {
       if (requestId !== requestRef.current) return;
       console.error('Failed to fetch order detail:', err);
-      setToast({ message: 'Failed to load transaction detail.', id: Date.now() });
+      setToast({ message: "Couldn't load the transaction details. Please try again.", id: Date.now() });
       setSelectedId(null);
     } finally {
       if (requestId === requestRef.current) setDetailLoading(false);
@@ -175,9 +233,8 @@ export default function Orders() {
     );
   }, [orders, search]);
 
-  const paidRevenue = filteredOrders
-    .filter((o) => o.status === 'lunas')
-    .reduce((sum, o) => sum + Number(o.total_price || 0), 0);
+  const paidOrders = filteredOrders.filter((o) => o.status === 'lunas');
+  const paidRevenue = paidOrders.reduce((sum, o) => sum + num(o.total_price), 0);
 
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -186,49 +243,55 @@ export default function Orders() {
 
   const isFiltering = !!search.trim() || !!status;
   const base = detail || orders.find((o) => o.id === selectedId) || null;
+  const activeTab = statusTabs.find((t) => t.value === status);
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="min-h-screen bg-[#f5ede4] px-4 py-8">
+      <style>{pageCss}</style>
+      <div className="f-body min-h-screen bg-[#f5ede4] px-4 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <header className="mb-6">
-            <h1 className="font-serif text-2xl font-bold text-amber-950">Transactions</h1>
-            <p className="font-serif text-sm text-amber-700/70 mt-1">
-              Status updates automatically when the customer pays via Xendit, with no manual verification.
+            <h1 className="f-display text-3xl font-bold text-amber-950">Transactions</h1>
+            <p className="text-sm text-amber-700/80 mt-1">
+              Statuses update on their own when customers pay through Xendit. No manual verification needed.
             </p>
           </header>
 
           {/* Summary */}
           {!loading && orders.length > 0 && (
-            <div className="bg-white border border-amber-200/60 rounded-2xl grid grid-cols-2 divide-x divide-amber-200/60 mb-6">
+            <section aria-label="Summary" className="bg-white rounded-2xl grid grid-cols-3 divide-x divide-dashed divide-amber-200 mb-6">
               <div className="p-4">
-                <p className="font-serif text-xs text-amber-700/70">Transactions found</p>
-                <p className="font-serif text-xl font-bold text-amber-950 font-mono tabular-nums mt-1.5 leading-none">
+                <p className="text-sm text-amber-700/90">Transactions</p>
+                <p className="f-display text-2xl font-bold text-amber-950 tabular-nums mt-1.5 leading-none">
                   {filteredOrders.length}
                 </p>
               </div>
               <div className="p-4">
-                <p className="font-serif text-xs text-amber-700/70">Paid revenue</p>
-                <p className="font-serif text-xl font-bold text-amber-700 font-mono tabular-nums mt-1.5 leading-none">
+                <p className="text-sm text-amber-700/90">Paid</p>
+                <p className="f-display text-2xl font-bold text-emerald-700 tabular-nums mt-1.5 leading-none">
+                  {paidOrders.length}
+                </p>
+              </div>
+              <div className="p-4 min-w-0">
+                <p className="text-sm text-amber-700/90">Paid revenue</p>
+                <p className="f-display text-lg sm:text-2xl font-bold text-amber-800 tabular-nums mt-1.5 leading-none truncate">
                   {formatRupiah(paidRevenue)}
                 </p>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Search and status */}
+          {/* Status tabs and search */}
           <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
-            <div className="flex gap-1 p-1 bg-white border border-amber-200/60 rounded-xl overflow-x-auto self-start">
+            <div role="group" aria-label="Filter by status" className="flex gap-1 p-1 bg-white rounded-xl overflow-x-auto self-start max-w-full">
               {statusTabs.map((tab) => (
                 <button
                   key={tab.value}
                   onClick={() => updateParams({ status: tab.value })}
                   aria-pressed={status === tab.value}
-                  className={`px-3.5 py-1.5 rounded-lg font-serif text-xs whitespace-nowrap transition-colors ${
-                    status === tab.value
-                      ? 'bg-amber-800 text-amber-50'
-                      : 'text-amber-700/70 hover:text-amber-900'
+                  className={`px-3.5 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                    status === tab.value ? 'bg-amber-950 text-amber-50' : 'text-amber-700 hover:text-amber-950 hover:bg-amber-50'
                   } ${focusRing}`}
                 >
                   {tab.label}
@@ -242,8 +305,8 @@ export default function Orders() {
                 ref={searchRef}
                 type="text"
                 aria-label="Search transactions"
-                className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200/60 rounded-xl font-serif text-sm text-amber-950 placeholder-amber-400/60 focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 transition-all"
-                placeholder="Search order code, name, email, or concert"
+                className="w-full pl-10 pr-4 py-3 bg-white rounded-xl text-sm text-amber-950 placeholder-amber-700/40 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all"
+                placeholder="Search by order code, name, email or concert"
                 value={search}
                 onChange={(e) => updateParams({ q: e.target.value }, true)}
               />
@@ -254,31 +317,38 @@ export default function Orders() {
           {loading ? (
             <SkeletonRows />
           ) : filteredOrders.length === 0 ? (
-            <div className="bg-white border border-amber-200/60 rounded-2xl p-12 text-center">
-              <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 border border-amber-200/60 flex items-center justify-center mb-4">
-                <Icon name="receipt" className="w-6 h-6 text-amber-600" />
+            <div className="rounded-2xl border-2 border-dashed border-amber-300/70 p-12 text-center">
+              <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4 text-amber-600">
+                <Icon name="receipt" className="w-6 h-6" />
               </div>
               {isFiltering ? (
                 <>
-                  <h3 className="font-serif font-semibold text-amber-950 mb-1">No transactions match</h3>
-                  <p className="font-serif text-sm text-amber-700/70 mb-5">Change the keyword or status filter.</p>
+                  <h3 className="f-display text-lg font-semibold text-amber-950 mb-1">No transactions match</h3>
+                  <p className="text-sm text-amber-800/80 mb-5">Change the keyword or the status.</p>
                   <button
                     onClick={() => setSearchParams({})}
-                    className="px-4 py-2 bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-900 font-serif text-sm rounded-xl transition-colors"
+                    className={`px-4 py-2 bg-white hover:bg-amber-50 text-amber-900 text-sm font-medium rounded-xl transition-colors ${focusRing}`}
                   >
-                    Reset filter
+                    Clear filters
                   </button>
                 </>
               ) : (
                 <>
-                  <h3 className="font-serif font-semibold text-amber-950 mb-1">No transactions yet</h3>
-                  <p className="font-serif text-sm text-amber-700/70">Transactions will appear here after the first ticket is ordered.</p>
+                  <h3 className="f-display text-lg font-semibold text-amber-950 mb-1">No transactions yet</h3>
+                  <p className="text-sm text-amber-800/80">They'll show up here after the first ticket is ordered.</p>
                 </>
               )}
             </div>
           ) : (
-            <div className="bg-white border border-amber-200/60 rounded-2xl overflow-hidden">
-              <div className={`hidden lg:grid ${tableCols} gap-4 px-5 py-3 border-b border-amber-200/60 font-serif text-xs text-amber-700/70`}>
+            <div className="bg-white rounded-2xl overflow-hidden shadow-sm shadow-amber-950/5">
+              <div className="flex items-center justify-between px-5 py-3.5 bg-amber-950 text-amber-50">
+                <h2 className="f-display text-lg font-semibold">{activeTab?.value ? `${activeTab.label} transactions` : 'All transactions'}</h2>
+                <span className="text-sm text-amber-200/70 tabular-nums">
+                  {filteredOrders.length} {filteredOrders.length === 1 ? 'result' : 'results'}
+                </span>
+              </div>
+
+              <div className={`hidden lg:grid ${tableCols} gap-4 px-5 py-2.5 bg-amber-50 border-b border-dashed border-amber-200 text-xs font-medium text-amber-700`}>
                 <span>Order code</span>
                 <span>Customer</span>
                 <span>Concert</span>
@@ -287,7 +357,7 @@ export default function Orders() {
                 <span className="text-right">Created</span>
               </div>
 
-              <ul className="divide-y divide-amber-200/60">
+              <ul className="divide-y divide-dashed divide-amber-200">
                 {pageItems.map((order) => (
                   <li
                     key={order.id}
@@ -298,6 +368,7 @@ export default function Orders() {
                         type="button"
                         onClick={() => copyCode(order.order_code)}
                         title="Copy order code"
+                        aria-label={`Copy order code ${order.order_code}`}
                         className={`relative z-10 inline-flex items-center gap-1.5 font-mono text-xs text-amber-800 hover:text-amber-950 transition-colors rounded ${focusRing}`}
                       >
                         {copiedCode === order.order_code ? 'Copied' : order.order_code}
@@ -312,61 +383,58 @@ export default function Orders() {
                       <button
                         type="button"
                         onClick={() => openDetail(order.id)}
-                        className={`text-left font-serif font-medium text-amber-950 truncate max-w-full rounded after:absolute after:inset-0 after:content-[''] ${focusRing}`}
+                        aria-label={`Open transaction ${order.order_code} from ${order.customer_name}`}
+                        className={`text-left text-sm font-semibold text-amber-950 truncate max-w-full rounded after:absolute after:inset-0 after:content-[''] ${focusRing}`}
                       >
                         {order.customer_name}
                       </button>
-                      {order.customer_email && (
-                        <p className="font-serif text-xs text-amber-700/60 truncate">{order.customer_email}</p>
-                      )}
+                      {order.customer_email && <p className="text-xs text-amber-700/80 truncate">{order.customer_email}</p>}
                     </div>
 
                     <div className="order-4 lg:order-none col-span-2 lg:col-span-1 min-w-0">
-                      <p className="font-serif text-sm text-amber-900 truncate">{order.concert_name}</p>
-                      <p className="font-serif text-xs text-amber-700/60 truncate">
+                      <p className="text-sm text-amber-900 truncate">{order.concert_name}</p>
+                      <p className="text-xs text-amber-700/80 truncate">
                         {order.ticket_category_name} × {order.qty}
                       </p>
                     </div>
 
                     <div className="order-5 lg:order-none lg:text-right">
-                      <p className="font-serif font-semibold text-amber-700 font-mono tabular-nums">
-                        {formatRupiah(order.total_price)}
-                      </p>
+                      <p className="f-display text-base font-semibold text-amber-950 tabular-nums">{formatRupiah(order.total_price)}</p>
                     </div>
 
                     <div className="order-2 lg:order-none justify-self-end lg:justify-self-start">
-                      <StatusBadge status={order.status} />
+                      <StatusPill status={order.status} />
                     </div>
 
                     <div className="order-6 lg:order-none text-right justify-self-end">
-                      <p className="font-serif text-xs text-amber-800">{formatDate(order.created_at)}</p>
-                      <p className="font-serif text-xs text-amber-600/60 font-mono tabular-nums">{formatTime(order.created_at)}</p>
+                      <p className="text-xs text-amber-900">{formatDate(order.created_at)}</p>
+                      <p className="text-xs text-amber-700/70 tabular-nums">{formatTime(order.created_at)}</p>
                     </div>
                   </li>
                 ))}
               </ul>
 
               {filteredOrders.length > PAGE_SIZE && (
-                <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-amber-200/60 font-serif text-xs text-amber-700/70">
+                <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-dashed border-amber-200 text-sm text-amber-700/80">
                   <span>
                     Showing{' '}
-                    <span className="text-amber-950 font-mono tabular-nums">
-                      {pageStart + 1}-{Math.min(pageStart + PAGE_SIZE, filteredOrders.length)}
+                    <span className="text-amber-950 font-medium tabular-nums">
+                      {pageStart + 1} to {Math.min(pageStart + PAGE_SIZE, filteredOrders.length)}
                     </span>{' '}
-                    of <span className="font-mono tabular-nums">{filteredOrders.length}</span>
+                    of <span className="tabular-nums">{filteredOrders.length}</span>
                   </span>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setPage(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className={`px-3 py-1.5 rounded-lg bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-serif ${focusRing}`}
+                      className={`px-3.5 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200/70 text-amber-900 font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${focusRing}`}
                     >
                       Previous
                     </button>
                     <button
                       onClick={() => setPage(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1.5 rounded-lg bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-serif ${focusRing}`}
+                      className={`px-3.5 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200/70 text-amber-900 font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${focusRing}`}
                     >
                       Next
                     </button>
@@ -387,7 +455,7 @@ export default function Orders() {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                   onClick={closeDrawer}
-                  className="fixed inset-0 bg-amber-950/50 z-[60]"
+                  className="fixed inset-0 bg-amber-950/50 backdrop-blur-sm z-[60]"
                   aria-hidden="true"
                 />
                 <motion.aside
@@ -399,136 +467,144 @@ export default function Orders() {
                   animate={{ x: 0 }}
                   exit={{ x: '100%' }}
                   transition={{ duration: 0.22, ease: 'easeOut' }}
-                  className="fixed inset-y-0 right-0 z-[70] w-full max-w-md"
+                  className="f-body fixed inset-y-0 right-0 z-[70] w-full max-w-md"
                 >
-                  <div className="bg-white !rounded-none !border-y-0 !border-r-0 h-full flex flex-col border-l border-amber-200/60 shadow-2xl">
-                    <div className="flex items-start justify-between gap-3 p-5 border-b border-amber-200/60">
-                      <div className="min-w-0">
-                        {base && (
-                          <button
-                            type="button"
-                            onClick={() => copyCode(base.order_code)}
-                            title="Copy order code"
-                            className={`inline-flex items-center gap-1.5 font-mono text-xs text-amber-700/70 hover:text-amber-950 transition-colors rounded ${focusRing}`}
-                          >
-                            {copiedCode === base.order_code ? 'Copied' : base.order_code}
-                            <Icon
-                              name={copiedCode === base.order_code ? 'check' : 'copy'}
-                              className={`w-3 h-3 ${copiedCode === base.order_code ? 'text-emerald-600' : ''}`}
-                            />
-                          </button>
-                        )}
-                        <h2 id="order-title" className="font-serif font-semibold text-amber-950 mt-1 truncate">
-                          {base?.concert_name || 'Transaction detail'}
-                        </h2>
+                  <div className="bg-white h-full flex flex-col shadow-2xl shadow-amber-950/30">
+                    <div className="p-5 bg-amber-950 text-amber-50">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          {base && (
+                            <button
+                              type="button"
+                              onClick={() => copyCode(base.order_code)}
+                              title="Copy order code"
+                              aria-label={`Copy order code ${base.order_code}`}
+                              className={`inline-flex items-center gap-1.5 font-mono text-xs text-amber-200/80 hover:text-white transition-colors rounded ${focusRing}`}
+                            >
+                              {copiedCode === base.order_code ? 'Copied' : base.order_code}
+                              <Icon
+                                name={copiedCode === base.order_code ? 'check' : 'copy'}
+                                className={`w-3 h-3 ${copiedCode === base.order_code ? 'text-emerald-400' : ''}`}
+                              />
+                            </button>
+                          )}
+                          <h2 id="order-title" className="f-display text-xl font-semibold mt-1 break-words">
+                            {base?.concert_name || 'Transaction details'}
+                          </h2>
+                        </div>
+                        <button
+                          onClick={closeDrawer}
+                          aria-label="Close"
+                          className={`-mr-1.5 -mt-1 p-1.5 rounded-lg text-amber-200 hover:text-white hover:bg-amber-900 transition-colors ${focusRing}`}
+                        >
+                          <Icon name="close" className="w-5 h-5" />
+                        </button>
                       </div>
-                      <button
-                        onClick={closeDrawer}
-                        aria-label="Close"
-                        className={`p-1.5 rounded-lg text-amber-500 hover:text-amber-900 hover:bg-amber-100 transition-colors ${focusRing}`}
-                      >
-                        <Icon name="close" className="w-5 h-5" />
-                      </button>
+                      {base && (
+                        <div className="flex items-center gap-3 mt-3 flex-wrap">
+                          <StatusPill status={base.status} dark />
+                          <span className="text-sm text-amber-200/70">
+                            {formatDate(base.created_at)}, {formatTime(base.created_at)}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-5 space-y-5">
                       {base && (
-                        <div className="flex items-center gap-3">
-                          <StatusBadge status={base.status} />
-                          <span className="font-serif text-xs text-amber-700/70">
-                            Created {formatDate(base.created_at)}, {formatTime(base.created_at)}
-                          </span>
-                        </div>
-                      )}
-
-                      {base && (
-                        <div className="rounded-xl border border-amber-200/60 divide-y divide-amber-200/60">
-                          <div className="p-4">
-                            <p className="font-serif font-medium text-amber-950">{base.customer_name}</p>
-                            {(detail?.customer_email || base.customer_email) && (
-                              <p className="font-serif text-xs text-amber-700/70 mt-0.5">
-                                {detail?.customer_email || base.customer_email}
-                              </p>
-                            )}
+                        <div className="rounded-2xl bg-amber-50 divide-y divide-dashed divide-amber-200">
+                          <div className="flex items-center gap-3 p-4">
+                            <span className="w-10 h-10 rounded-full bg-amber-200 text-amber-900 f-display font-semibold flex items-center justify-center shrink-0">
+                              {base.customer_name?.charAt(0)?.toUpperCase() || '?'}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-amber-950 truncate">{base.customer_name}</p>
+                              {(detail?.customer_email || base.customer_email) && (
+                                <p className="text-xs text-amber-700/80 truncate">{detail?.customer_email || base.customer_email}</p>
+                              )}
+                            </div>
                           </div>
                           <div className="flex items-center justify-between gap-3 p-4">
-                            <div className="flex items-center gap-2.5 font-serif text-sm text-amber-900 min-w-0">
-                              <Icon name="ticket" className="w-4 h-4 text-amber-500 shrink-0" />
+                            <div className="flex items-center gap-2.5 text-sm text-amber-900 min-w-0">
+                              <Icon name="ticket" className="w-4 h-4 text-amber-600 shrink-0" />
                               <span className="truncate">{base.ticket_category_name}</span>
                             </div>
-                            <span className="font-serif text-sm text-amber-950 font-mono tabular-nums shrink-0">× {base.qty}</span>
+                            <span className="text-sm font-semibold text-amber-950 tabular-nums shrink-0">× {base.qty}</span>
                           </div>
                         </div>
                       )}
 
                       {detailLoading || !detail ? (
-                        <div className="animate-pulse space-y-3" aria-hidden="true">
-                          <div className="h-32 bg-amber-100 rounded-xl" />
-                          <div className="h-16 bg-amber-100 rounded-xl" />
+                        <div className="animate-pulse space-y-3" role="status" aria-label="Loading details">
+                          <div className="h-40 bg-amber-100 rounded-2xl" />
+                          <div className="h-16 bg-amber-100 rounded-2xl" />
                         </div>
                       ) : (
                         <>
                           {/* Receipt */}
-                          <div className="rounded-xl border border-dashed border-amber-200/60 divide-y divide-dashed divide-amber-200/60 font-serif text-sm">
-                            <div className="p-4 space-y-2">
-                              <div className="flex justify-between text-amber-800/80">
+                          <div className="receipt bg-amber-50 rounded-2xl overflow-hidden">
+                            <div className="p-4 space-y-2 text-sm">
+                              <div className="flex justify-between text-amber-800">
                                 <span>Ticket subtotal</span>
-                                <span className="font-mono tabular-nums">
-                                  {formatRupiah(detail.unit_price * detail.qty)}
-                                </span>
+                                <span className="tabular-nums text-amber-950">{formatRupiah(num(detail.unit_price) * num(detail.qty))}</span>
                               </div>
-                              <div className="flex justify-between text-amber-800/80">
+                              <div className="flex justify-between text-amber-800">
                                 <span>Service fee</span>
-                                <span className="font-mono tabular-nums">{formatRupiah(detail.platform_fee_amount)}</span>
+                                <span className="tabular-nums text-amber-950">{formatRupiah(detail.platform_fee_amount)}</span>
                               </div>
-                              {detail.discount_amount > 0 && (
+                              {num(detail.discount_amount) > 0 && (
                                 <div className="flex justify-between text-emerald-700">
                                   <span>Discount</span>
-                                  <span className="font-mono tabular-nums">-{formatRupiah(detail.discount_amount)}</span>
+                                  <span className="tabular-nums">−{formatRupiah(detail.discount_amount)}</span>
                                 </div>
                               )}
                             </div>
-                            <div className="flex items-center justify-between p-4">
-                              <span className="font-serif font-semibold text-amber-950">Total paid</span>
-                              <span className="font-serif text-lg font-bold text-amber-700 font-mono tabular-nums">
-                                {formatRupiah(detail.total_price)}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between px-4 py-3 font-serif text-xs text-amber-700/70">
-                              <span>EO share</span>
-                              <span className="font-mono tabular-nums">{formatRupiah(detail.eo_payout_amount)}</span>
+                            <div className="h-24 border-t border-dashed border-amber-300 bg-amber-100 px-4 flex flex-col justify-center gap-1.5">
+                              <div className="flex items-baseline justify-between">
+                                <span className="text-sm font-semibold text-amber-950">Total paid</span>
+                                <span className="f-display text-2xl font-bold text-amber-950 tabular-nums">{formatRupiah(detail.total_price)}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-xs text-amber-800/80">
+                                <span>Organizer's share</span>
+                                <span className="tabular-nums">{formatRupiah(detail.eo_payout_amount)}</span>
+                              </div>
                             </div>
                           </div>
 
                           {detail.xendit_payment_channel && (
-                            <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-200/60">
+                            <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-50">
                               <span className="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
                                 <Icon name="bank" className="w-[18px] h-[18px]" />
                               </span>
                               <div>
-                                <p className="font-serif text-xs text-amber-700/70">Paid via</p>
-                                <p className="font-serif text-sm font-medium text-amber-950 mt-0.5">{detail.xendit_payment_channel}</p>
-                                <p className="font-serif text-xs text-amber-700/70 mt-0.5">
-                                  {formatDate(detail.paid_at)}, {formatTime(detail.paid_at)}
-                                </p>
+                                <p className="text-xs text-amber-700/80">Paid via</p>
+                                <p className="text-sm font-semibold text-amber-950 mt-0.5">{detail.xendit_payment_channel}</p>
+                                {detail.paid_at && (
+                                  <p className="text-xs text-amber-700/80 mt-0.5">
+                                    {formatDate(detail.paid_at)}, {formatTime(detail.paid_at)}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           )}
 
                           {detail.status === 'lunas' && (
-                            <div className="flex items-center justify-between p-4 rounded-xl border border-amber-200/60">
-                              <span className="font-serif text-sm text-amber-800/80">Payout to EO</span>
-                              <StatusBadge status={detail.payout_status} />
+                            <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-amber-50">
+                              <span className="flex items-center gap-2 text-sm text-amber-900">
+                                <Icon name="wallet" className="w-4 h-4 text-amber-600" />
+                                Payout to organizer
+                              </span>
+                              <StatusPill status={detail.payout_status} />
                             </div>
                           )}
                         </>
                       )}
                     </div>
 
-                    <div className="p-4 border-t border-amber-200/60">
+                    <div className="p-4 border-t border-dashed border-amber-200">
                       <button
                         onClick={closeDrawer}
-                        className="w-full py-2.5 bg-white border border-amber-200/60 hover:bg-amber-50 text-amber-900 font-serif text-sm rounded-xl transition-colors"
+                        className={`w-full py-2.5 bg-amber-100 hover:bg-amber-200/70 text-amber-900 text-sm font-medium rounded-xl transition-colors ${focusRing}`}
                       >
                         Close
                       </button>
@@ -550,9 +626,9 @@ export default function Orders() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 12 }}
                   transition={{ duration: 0.18 }}
-                  className="pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-lg border font-serif text-sm font-medium bg-red-50 border-red-200/60 text-red-700"
+                  className="pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-amber-950 text-amber-50 text-sm shadow-lg shadow-amber-950/30"
                 >
-                  <Icon name="alert" className="w-4 h-4" />
+                  <Icon name="alert" className="w-4 h-4 text-red-400" />
                   {toast.message}
                 </motion.div>
               )}
