@@ -1520,7 +1520,6 @@ const pageCss = `
   .f-body { font-family: 'Figtree', system-ui, -apple-system, sans-serif; }
 `;
 
-/* Ticket panel: notches on the tear line above the total */
 const TAIL_H = '10.5rem';
 const panelMask = {
   WebkitMask: `radial-gradient(circle 10px at 0 calc(100% - ${TAIL_H}), #0000 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 10px at 100% calc(100% - ${TAIL_H}), #0000 97%, #000) right / 51% 100% no-repeat`,
@@ -1538,7 +1537,6 @@ function clampRating(value) {
 }
 
 /* ============ DATE HELPERS ============ */
-// "2026-03-14" / "2026-03-14T00:00:00Z" -> local date (avoids day shifting by timezone)
 function parseLocalDate(value) {
   const [y, m, d] = String(value).slice(0, 10).split('-').map(Number);
   return new Date(y, (m || 1) - 1, d || 1);
@@ -1648,13 +1646,14 @@ function SectionHeading({ label, action, id }) {
   );
 }
 
-/* ============ STAR ROW (fallback inline, jika StarRating dari Ui bermasalah) ============ */
+/* ============ STAR ROW (self-contained, tidak bergantung Ui) ============ */
 function StarRow({ value, size = 'w-3.5 h-3.5' }) {
   const v = clampRating(value);
+  const rounded = Math.round(v);
   return (
     <div className="flex gap-0.5" aria-label={`Rating ${v} out of 5`}>
       {Array.from({ length: 5 }).map((_, i) => {
-        const filled = i < Math.round(v);
+        const filled = i < rounded;
         return (
           <Icon
             key={i}
@@ -1769,7 +1768,6 @@ function TicketPanel({
           )}
         </div>
 
-        {/* Stub */}
         <div style={{ height: TAIL_H }} className="bg-amber-100 border-t border-dashed border-amber-400/70 px-5 flex flex-col justify-center gap-3">
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
@@ -1839,19 +1837,26 @@ export default function ConcertDetail() {
       const res = await api.get(`/concerts/${id}`);
       const data = res.data;
 
-      /* ===== NORMALIZE (rating fix) ===== */
+      /* ===== NORMALIZE (reviews sudah digabung di backend) ===== */
       const normalizedReviews = (data.reviews || []).map((r, idx) => ({
         ...r,
-        id: r.id ?? idx,
+        id: r.id ?? `local-${idx}`,
         user_name: r.user_name || r.name || 'Anonymous',
+        initials: r.initials || null,
         rating: clampRating(r.rating ?? r.stars ?? r.score),
         comment: r.comment || r.text || '',
+        source: r.source || 'review',
       }));
 
       const explicitCount = toNumber(data.review_count, NaN);
       const reviewCount = Number.isFinite(explicitCount)
         ? explicitCount
         : normalizedReviews.length;
+
+      const ratings = normalizedReviews.map((r) => r.rating).filter((n) => n > 0);
+      const computedAvg = ratings.length
+        ? Number((ratings.reduce((s, n) => s + n, 0) / ratings.length).toFixed(1))
+        : 0;
 
       const normalized = {
         ...data,
@@ -1861,7 +1866,7 @@ export default function ConcertDetail() {
           remaining: toNumber(tc.remaining, 0),
         })),
         sold_count: toNumber(data.sold_count, 0),
-        avg_rating: clampRating(data.avg_rating ?? data.average_rating ?? data.rating),
+        avg_rating: clampRating(data.avg_rating ?? computedAvg),
         review_count: reviewCount,
         reviews: normalizedReviews,
       };
@@ -1969,7 +1974,6 @@ export default function ConcertDetail() {
           </motion.div>
           <div className="absolute inset-0 bg-gradient-to-t from-amber-950 via-amber-950/60 to-amber-950/20" />
 
-          {/* Top actions */}
           <div className="absolute top-4 inset-x-4 max-w-7xl mx-auto flex items-center justify-between">
             <Link
               to="/"
@@ -1999,7 +2003,6 @@ export default function ConcertDetail() {
             </div>
           </div>
 
-          {/* Title block */}
           <div className="absolute bottom-0 inset-x-0">
             <div className="max-w-7xl mx-auto px-4 pb-8 flex items-end justify-between gap-6">
               <div className="min-w-0">
@@ -2045,7 +2048,6 @@ export default function ConcertDetail() {
 
         {/* ===== MAIN CONTENT ===== */}
         <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-amber-700/80 mb-6 min-w-0">
             <Link to="/" className={`hover:text-amber-950 transition-colors inline-flex items-center gap-1 rounded ${focusRing}`}>
               <Icon name="home" className="w-3.5 h-3.5" />
@@ -2058,7 +2060,6 @@ export default function ConcertDetail() {
           </nav>
 
           <div className="grid lg:grid-cols-3 gap-8 items-start">
-            {/* Tickets first on small screens */}
             <motion.aside
               className="order-first lg:order-none lg:col-start-3 lg:row-start-1 lg:sticky lg:top-6 space-y-4"
               initial={{ opacity: 0, y: 16 }}
@@ -2098,7 +2099,6 @@ export default function ConcertDetail() {
               </div>
             </motion.aside>
 
-            {/* Details */}
             <motion.div
               className="lg:col-span-2 lg:col-start-1 lg:row-start-1 space-y-6"
               initial={{ opacity: 0, y: 16 }}
@@ -2132,7 +2132,6 @@ export default function ConcertDetail() {
                 </section>
               )}
 
-              {/* Venue */}
               <section className="bg-white rounded-2xl p-6" id="venue">
                 <SectionHeading label="Venue" />
                 <div className="flex items-start gap-3 mb-4">
@@ -2171,7 +2170,7 @@ export default function ConcertDetail() {
                 )}
               </section>
 
-              {/* Reviews */}
+              {/* Reviews (gabungan reviews + testimonials dari backend) */}
               <section className="bg-white rounded-2xl p-6" id="reviews">
                 <SectionHeading
                   label="Ratings and reviews"
@@ -2212,11 +2211,18 @@ export default function ConcertDetail() {
                       <div key={r.id} className="bg-amber-50 rounded-xl p-4">
                         <div className="flex items-center gap-3 mb-2">
                           <span className="w-9 h-9 rounded-full bg-amber-200 text-amber-900 f-display font-semibold text-sm flex items-center justify-center shrink-0">
-                            {r.user_name?.charAt(0).toUpperCase()}
+                            {r.initials || r.user_name?.charAt(0).toUpperCase()}
                           </span>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-amber-950 truncate">{r.user_name}</p>
-                            <StarRow value={r.rating} size="w-3.5 h-3.5" />
+                            <div className="flex items-center gap-2">
+                              <StarRow value={r.rating} size="w-3.5 h-3.5" />
+                              {r.source === 'testimonial' && (
+                                <span className="text-[10px] text-amber-600/70 uppercase tracking-wider">
+                                  Platform
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         {r.comment && <p className="text-sm text-amber-900 leading-relaxed">{r.comment}</p>}
@@ -2226,7 +2232,6 @@ export default function ConcertDetail() {
                 )}
               </section>
 
-              {/* FAQ */}
               <section className="bg-white rounded-2xl p-6" id="faq">
                 <SectionHeading label="Good to know" />
                 <div className="divide-y divide-dashed divide-amber-200 -my-1">
@@ -2268,7 +2273,6 @@ export default function ConcertDetail() {
           </div>
         </div>
 
-        {/* Toast */}
         <AnimatePresence>
           {toast && (
             <motion.div
