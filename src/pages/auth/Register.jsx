@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { GoogleLogin } from '@react-oauth/google';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 
+/* ============ HELPERS ============ */
 function generateTicketNo() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
@@ -14,17 +15,80 @@ function generateTicketNo() {
   return `TK-${code}`;
 }
 
-const BUBBLES = Array.from({ length: 12 }, (_, i) => ({
-  id: i,
-  size: Math.random() * 60 + 15,
-  left: Math.random() * 100,
-  duration: Math.random() * 20 + 10,
-  delay: Math.random() * 15,
-  x1: Math.random() * 100,
-  x2: Math.random() * 100,
-  opacity: Math.random() * 0.12 + 0.02,
-}));
+const ROUTES_BY_ROLE = {
+  admin: '/admin/dashboard',
+  petugas: '/petugas/scan',
+  eo: '/eo/dashboard',
+};
 
+const BARS = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 1, 3, 2, 1, 3, 1];
+const PERKS = ['Free to join', 'Instant tickets', 'Secure payments'];
+
+/* ============ ICONS ============ */
+const ICON_PATHS = {
+  check: 'M5 13l4 4L19 7',
+  arrow: 'M13 7l5 5-5 5M6 12h12',
+  alert: 'M12 9v2m0 4h.01M5.071 19h13.858a2 2 0 001.732-3L13.732 4a2 2 0 00-3.464 0L3.34 16a2 2 0 001.732 3z',
+};
+
+function Icon({ name, className = 'w-4 h-4' }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d={ICON_PATHS[name]} />
+    </svg>
+  );
+}
+
+function Spinner({ className = 'h-4 w-4' }) {
+  return (
+    <svg className={`animate-spin motion-reduce:animate-none ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+    </svg>
+  );
+}
+
+/* ============ STYLES ============ */
+const focusRing =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 focus-visible:ring-offset-1';
+
+const inputCls =
+  'w-full px-4 py-3 bg-white border border-amber-200 rounded-xl text-sm text-amber-950 placeholder-amber-700/40 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all';
+
+/* Ticket with a tear line between the dark and light halves.
+   The notches are cut out with a mask, so they work on any background (desktop only). */
+const pageCss = `
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Figtree:wght@400;500;600&display=swap');
+
+  .f-display { font-family: 'Fraunces', Georgia, serif; }
+  .f-body { font-family: 'Figtree', system-ui, -apple-system, sans-serif; }
+
+  .register-pass { --left-w: 20rem; }
+  @media (min-width: 768px) {
+    .register-pass {
+      -webkit-mask:
+        radial-gradient(circle 11px at var(--left-w) 0, #0000 97%, #000) top / 100% 51% no-repeat,
+        radial-gradient(circle 11px at var(--left-w) 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
+      mask:
+        radial-gradient(circle 11px at var(--left-w) 0, #0000 97%, #000) top / 100% 51% no-repeat,
+        radial-gradient(circle 11px at var(--left-w) 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
+    }
+  }
+`;
+
+function Field({ id, label, optional = false, children }) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-amber-900 mb-1.5">
+        {label}
+        {optional && <span className="font-normal text-amber-700/70"> (optional)</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+/* ============ MAIN ============ */
 export default function Register() {
   const [form, setForm] = useState({
     name: '',
@@ -36,34 +100,37 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [ticketNo] = useState(generateTicketNo);
-  const [isFocused, setIsFocused] = useState({
-    name: false,
-    email: false,
-    password: false,
-    phone: false,
-  });
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const issuedDate = new Date()
-    .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-    .toUpperCase();
+  // The Google button follows the form width (Google only accepts 200 to 400)
+  const googleRef = useRef(null);
+  const [googleWidth, setGoogleWidth] = useState(280);
+
+  useEffect(() => {
+    const el = googleRef.current;
+    if (!el) return undefined;
+    const update = () => setGoogleWidth(Math.max(200, Math.min(400, Math.floor(el.clientWidth))));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const issuedDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
   const redirectAfterAuth = (user) => {
-    const routes = {
-      admin: '/admin/dashboard',
-      petugas: '/petugas/scan',
-      eo: '/eo/dashboard',
-    };
-    navigate(routes[user.role] || '/', { replace: true });
+    navigate(ROUTES_BY_ROLE[user.role] || '/', { replace: true });
   };
+
+  const setField = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     if (form.password.length < 6) {
-      setError('Password must be at least 6 characters.');
+      setError('Use a password with at least 6 characters.');
       return;
     }
 
@@ -74,7 +141,7 @@ export default function Register() {
       login(data.token, data.user);
       redirectAfterAuth(data.user);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed.');
+      setError(err.response?.data?.message || "Couldn't create your account. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -90,370 +157,223 @@ export default function Register() {
       login(data.token, data.user);
       redirectAfterAuth(data.user);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to sign up with Google.');
+      setError(err.response?.data?.message || "Couldn't sign you up with Google. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 py-8">
-      {/* Background Image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600&q=80')`,
-        }}
-      />
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-
-      {/* Floating Bubbles */}
-      {BUBBLES.map((bubble) => (
-        <motion.div
-          key={bubble.id}
-          className="absolute rounded-full border border-white/10"
-          style={{
-            width: bubble.size,
-            height: bubble.size,
-            left: `${bubble.left}%`,
-            top: '110%',
-            opacity: bubble.opacity,
-          }}
-          animate={{
-            y: ['0vh', '-120vh'],
-            x: [`${bubble.x1}%`, `${bubble.x2}%`],
-          }}
-          transition={{
-            duration: bubble.duration,
-            repeat: Infinity,
-            ease: 'linear',
-            delay: bubble.delay,
-          }}
+    <MotionConfig reducedMotion="user">
+      <style>{pageCss}</style>
+      <div className="f-body min-h-screen relative flex items-center justify-center px-4 py-8">
+        {/* Background photo */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600&q=80')` }}
+          aria-hidden="true"
         />
-      ))}
+        <div className="absolute inset-0 bg-gradient-to-b from-amber-950/80 via-amber-950/70 to-amber-950/90" aria-hidden="true" />
 
-      {/* Main Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="w-full max-w-4xl relative"
-      >
-        <div className="absolute -inset-8 bg-amber-400/5 rounded-3xl blur-3xl" />
-
-        <div className="relative">
-          {/* Hole */}
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-[#f5ede4] border-2 border-amber-300/50 z-20 shadow-inner" />
-
-          {/* String */}
-          <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-px h-6 bg-amber-400/30 -rotate-3" />
-          <div className="absolute -top-8 left-[46%] w-px h-8 bg-amber-400/20 rotate-3" />
-
-          {/* Card Body */}
-          <div className="bg-[#faf6ef] border-2 border-amber-300/50 shadow-2xl overflow-hidden rounded-2xl relative">
-            {/* Corner Accents */}
-            <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-amber-700/20 rounded-tl-2xl" />
-            <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-amber-700/20 rounded-tr-2xl" />
-            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-amber-700/20 rounded-bl-2xl" />
-            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-amber-700/20 rounded-br-2xl" />
-
-            {/* Corner rivets */}
-            <div className="absolute top-2.5 left-2.5 w-2 h-2 rounded-full bg-[#f5ede4] border border-amber-300/50 shadow-inner" />
-            <div className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#f5ede4] border border-amber-300/50 shadow-inner" />
-            <div className="absolute bottom-2.5 left-2.5 w-2 h-2 rounded-full bg-[#f5ede4] border border-amber-300/50 shadow-inner" />
-            <div className="absolute bottom-2.5 right-2.5 w-2 h-2 rounded-full bg-[#f5ede4] border border-amber-300/50 shadow-inner" />
-
-            {/* ===== 2 COLUMNS + DIVIDER ===== */}
-            <div className="grid md:grid-cols-2 relative">
-              {/* ===== TICKET DIVIDER ===== */}
-              <div className="hidden md:block absolute left-1/2 top-8 bottom-8 -translate-x-1/2 z-10 w-6">
-                <div
-                  className="absolute inset-0 bg-amber-700/[0.06]"
-                  style={{
-                    WebkitMaskImage:
-                      'radial-gradient(circle 7px at 0 7px, transparent 99%, #000 100%), radial-gradient(circle 7px at 100% 7px, transparent 99%, #000 100%)',
-                    maskImage:
-                      'radial-gradient(circle 7px at 0 7px, transparent 99%, #000 100%), radial-gradient(circle 7px at 100% 7px, transparent 99%, #000 100%)',
-                    WebkitMaskSize: '100% 18px, 100% 18px',
-                    maskSize: '100% 18px, 100% 18px',
-                    WebkitMaskRepeat: 'repeat-y, repeat-y',
-                    maskRepeat: 'repeat-y, repeat-y',
-                  }}
-                />
-
-                <div
-                  className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-px"
-                  style={{
-                    backgroundImage:
-                      'repeating-linear-gradient(to bottom, rgba(180,83,9,0.35) 0 4px, transparent 4px 9px)',
-                  }}
-                />
-
-                <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#faf6ef] border border-amber-300/50 shadow-inner" />
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#faf6ef] border border-amber-300/50 shadow-inner" />
-
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#faf6ef] px-1.5 py-3 rounded-full border border-amber-300/40 shadow-sm">
-                  <span
-                    className="text-[8px] font-serif tracking-[0.25em] text-amber-500/70"
-                    style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
-                  >
-                    TICKET
-                  </span>
-                </div>
-              </div>
-
-              {/* ===== LEFT COLUMN ===== */}
-              <div className="p-8 md:p-10 bg-gradient-to-br from-amber-50/50 to-transparent pr-6 md:pr-8">
-                <Link to="/" className="inline-flex items-center gap-3 mb-6 group">
-                  <div className="w-10 h-10 rounded-full border-2 border-amber-700/50 flex items-center justify-center text-amber-700 font-serif text-xl bg-white/50 transition-transform group-hover:scale-105 duration-300">
+        <motion.main
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="w-full max-w-3xl relative"
+        >
+          <div className="drop-shadow-[0_20px_40px_rgba(0,0,0,0.45)]">
+            <div className="register-pass grid md:grid-cols-[var(--left-w)_1fr] rounded-2xl overflow-hidden">
+              {/* ===== Dark half: pitch ===== */}
+              <section className="bg-amber-950 text-amber-50 p-7 md:p-8 flex flex-col">
+                <Link to="/" className={`inline-flex items-center gap-2.5 self-start rounded-lg ${focusRing}`}>
+                  <span className="w-9 h-9 rounded-full ring-2 ring-amber-400/70 flex items-center justify-center f-display text-lg font-semibold text-amber-300">
                     T
-                  </div>
-                  <span className="font-serif font-bold text-2xl text-amber-900">
-                    tiket<span className="text-amber-600">ku</span>
+                  </span>
+                  <span className="f-display text-2xl font-bold text-amber-50">
+                    tiket<span className="text-amber-400">ku</span>
                   </span>
                 </Link>
 
-                <h1 className="font-serif text-4xl text-amber-900 leading-tight mb-2">
+                <h1 className="f-display text-4xl font-semibold leading-tight mt-8 md:mt-12">
                   Join the
                   <br />
-                  <span className="text-amber-600 italic">Experience.</span>
+                  <span className="text-amber-300">experience.</span>
                 </h1>
-
-                <div className="w-16 h-[2px] bg-amber-700/30 my-4" />
-
-                <p className="text-amber-800/60 text-sm max-w-sm font-light leading-relaxed">
+                <p className="text-sm text-amber-200/70 mt-3 leading-relaxed max-w-xs">
                   Create your account and never miss a beat. Your next event is one ticket away.
                 </p>
 
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {['FREE', 'INSTANT', 'SECURE'].map((label) => (
-                    <span
-                      key={label}
-                      className="font-serif text-[10px] tracking-[0.2em] text-amber-600 border border-amber-700/20 rounded-full px-4 py-1 uppercase bg-white/30"
-                    >
+                <ul className="mt-6 space-y-2">
+                  {PERKS.map((label) => (
+                    <li key={label} className="flex items-center gap-2 text-sm text-amber-100">
+                      <span className="w-5 h-5 rounded-full bg-amber-900 text-amber-300 flex items-center justify-center shrink-0">
+                        <Icon name="check" className="w-3 h-3" />
+                      </span>
                       {label}
-                    </span>
+                    </li>
                   ))}
-                </div>
-              </div>
+                </ul>
 
-              {/* ===== RIGHT COLUMN ===== */}
-              <div className="p-8 md:p-10 pl-6 md:pl-8">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="font-serif text-xl text-amber-900">Sign Up</h2>
-                  <div className="text-right">
-                    <p className="text-[9px] font-serif tracking-[0.3em] text-amber-600 uppercase">
-                      New Pass
-                    </p>
-                    <p className="text-[10px] text-amber-800/50 font-light tracking-wider">
-                      {issuedDate}
-                    </p>
+                <div className="hidden md:block mt-auto pt-10">
+                  <div className="border-t border-dashed border-amber-800 pt-4 flex items-end justify-between gap-3">
+                    <div>
+                      <p className="text-xs text-amber-200/60">Entry pass</p>
+                      <p className="f-display text-base font-semibold tabular-nums">{ticketNo}</p>
+                      <p className="text-xs text-amber-200/60 mt-0.5">{issuedDate}</p>
+                    </div>
+                    <div className="flex items-end gap-0.5 opacity-60" aria-hidden="true">
+                      {BARS.map((w, i) => (
+                        <span
+                          key={i}
+                          className="bg-amber-300"
+                          style={{ width: `${w}px`, height: i % 3 === 0 ? '28px' : '22px' }}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
+              </section>
 
-                {/* Error */}
+              {/* ===== Light half: form ===== */}
+              <section className="bg-amber-50 p-7 md:p-10">
+                <h2 className="f-display text-2xl font-semibold text-amber-950 mb-6">Sign up</h2>
+
                 <AnimatePresence>
                   {error && (
                     <motion.div
-                      initial={{ opacity: 0, y: -8 }}
+                      role="alert"
+                      initial={{ opacity: 0, y: -6 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      className="mb-5 flex items-center gap-2 p-3 bg-red-50/80 border border-red-200/50 rounded-xl"
+                      exit={{ opacity: 0, y: -6 }}
+                      className="mb-5 flex items-start gap-2 p-3 rounded-xl bg-red-50 text-red-700 text-sm"
                     >
-                      <span className="font-serif text-[9px] tracking-[0.2em] text-red-600 uppercase border border-red-300/50 px-2 py-0.5 rounded">
-                        Error
-                      </span>
-                      <span className="text-red-700/80 text-sm font-light">{error}</span>
+                      <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
+                      {error}
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-3.5">
-                  <div>
-                    <label className="block text-[10px] font-serif tracking-[0.3em] text-amber-700/60 uppercase mb-1.5">
-                      Full Name
-                    </label>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <Field id="reg-name" label="Full name">
                     <input
+                      id="reg-name"
+                      name="name"
                       type="text"
                       required
-                      onFocus={() => setIsFocused({ ...isFocused, name: true })}
-                      onBlur={() => setIsFocused({ ...isFocused, name: false })}
-                      className={`w-full px-4 py-3 bg-white/70 border transition-all duration-300 text-amber-900 placeholder-amber-400/50 font-light text-sm rounded-xl ${
-                        isFocused.name
-                          ? 'border-amber-500/60 ring-2 ring-amber-500/10'
-                          : 'border-amber-200/60'
-                      }`}
+                      autoComplete="name"
+                      className={inputCls}
                       value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      onChange={setField('name')}
                       placeholder="John Doe"
                     />
-                  </div>
+                  </Field>
 
-                  <div>
-                    <label className="block text-[10px] font-serif tracking-[0.3em] text-amber-700/60 uppercase mb-1.5">
-                      Email Address
-                    </label>
+                  <Field id="reg-email" label="Email">
                     <input
+                      id="reg-email"
+                      name="email"
                       type="email"
                       required
-                      onFocus={() => setIsFocused({ ...isFocused, email: true })}
-                      onBlur={() => setIsFocused({ ...isFocused, email: false })}
-                      className={`w-full px-4 py-3 bg-white/70 border transition-all duration-300 text-amber-900 placeholder-amber-400/50 font-light text-sm rounded-xl ${
-                        isFocused.email
-                          ? 'border-amber-500/60 ring-2 ring-amber-500/10'
-                          : 'border-amber-200/60'
-                      }`}
+                      autoComplete="email"
+                      className={inputCls}
                       value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      onChange={setField('email')}
                       placeholder="you@example.com"
                     />
-                  </div>
+                  </Field>
 
-                  <div>
-                    <label className="block text-[10px] font-serif tracking-[0.3em] text-amber-700/60 uppercase mb-1.5">
-                      Phone <span className="text-amber-400/50 normal-case">(optional)</span>
-                    </label>
+                  <Field id="reg-phone" label="Phone" optional>
                     <input
+                      id="reg-phone"
+                      name="phone"
                       type="tel"
-                      onFocus={() => setIsFocused({ ...isFocused, phone: true })}
-                      onBlur={() => setIsFocused({ ...isFocused, phone: false })}
-                      className={`w-full px-4 py-3 bg-white/70 border transition-all duration-300 text-amber-900 placeholder-amber-400/50 font-light text-sm rounded-xl ${
-                        isFocused.phone
-                          ? 'border-amber-500/60 ring-2 ring-amber-500/10'
-                          : 'border-amber-200/60'
-                      }`}
+                      inputMode="tel"
+                      autoComplete="tel"
+                      className={inputCls}
                       value={form.phone}
-                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                      onChange={setField('phone')}
                       placeholder="0812xxxxxxx"
                     />
-                  </div>
+                  </Field>
 
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-[10px] font-serif tracking-[0.3em] text-amber-700/60 uppercase">
-                        Password
-                      </label>
+                  <Field id="reg-password" label="Password">
+                    <div className="relative">
+                      <input
+                        id="reg-password"
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        minLength={6}
+                        autoComplete="new-password"
+                        className={`${inputCls} pr-16`}
+                        value={form.password}
+                        onChange={setField('password')}
+                        placeholder="At least 6 characters"
+                      />
                       <button
                         type="button"
                         onClick={() => setShowPassword((s) => !s)}
-                        className="text-[9px] font-serif text-amber-600/60 hover:text-amber-700 transition-colors duration-200"
+                        aria-pressed={showPassword}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        className={`absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md text-sm font-medium text-amber-700 hover:text-amber-950 transition-colors ${focusRing}`}
                       >
                         {showPassword ? 'Hide' : 'Show'}
                       </button>
                     </div>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      minLength={6}
-                      onFocus={() => setIsFocused({ ...isFocused, password: true })}
-                      onBlur={() => setIsFocused({ ...isFocused, password: false })}
-                      className={`w-full px-4 py-3 pr-11 bg-white/70 border transition-all duration-300 text-amber-900 placeholder-amber-400/50 font-light text-sm rounded-xl ${
-                        isFocused.password
-                          ? 'border-amber-500/60 ring-2 ring-amber-500/10'
-                          : 'border-amber-200/60'
-                      }`}
-                      value={form.password}
-                      onChange={(e) => setForm({ ...form, password: e.target.value })}
-                      placeholder="Min. 6 characters"
-                    />
-                  </div>
+                  </Field>
 
-                  {/* Divider */}
-                  <div className="relative py-2">
-                    <div className="border-t border-amber-200/30" />
-                    <div className="absolute left-1/2 -translate-x-1/2 -top-1.5 bg-[#faf6ef] px-3">
-                      <span className="text-[8px] font-serif tracking-[0.5em] text-amber-400/50">✦</span>
-                    </div>
-                  </div>
-
-                  <motion.button
+                  <button
                     type="submit"
                     disabled={loading}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                    className="relative w-full py-3.5 px-4 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif tracking-[0.3em] uppercase text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group rounded-xl overflow-hidden"
+                    className={`w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-amber-800 hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed text-amber-50 text-sm font-semibold rounded-xl transition-colors ${focusRing}`}
                   >
-                    <span className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-300" />
                     {loading ? (
                       <>
-                        <span className="inline-block w-4 h-4 border-2 border-amber-200/40 border-t-amber-200 rounded-full animate-spin" />
-                        <span className="text-[10px]">Processing...</span>
+                        <Spinner />
+                        Creating your account…
                       </>
                     ) : (
                       <>
-                        <span className="text-[10px] group-hover:translate-x-1 transition-transform duration-300">→</span>
-                        <span className="text-[10px]">Create Account</span>
+                        Create account
+                        <Icon name="arrow" className="w-4 h-4" />
                       </>
                     )}
-                  </motion.button>
+                  </button>
                 </form>
 
-                {/* ===== DIVIDER ===== */}
-                <div className="relative py-3 my-4">
-                  <div className="border-t border-amber-200/40" />
-                  <div className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-[#faf6ef] px-3">
-                    <span className="text-[9px] font-serif tracking-[0.3em] text-amber-400/60 uppercase">
-                      or
-                    </span>
-                  </div>
+                {/* "or" divider */}
+                <div className="flex items-center gap-3 my-5" aria-hidden="true">
+                  <span className="flex-1 border-t border-dashed border-amber-300" />
+                  <span className="text-sm text-amber-700/80">or</span>
+                  <span className="flex-1 border-t border-dashed border-amber-300" />
                 </div>
 
-                {/* ===== GOOGLE BUTTON ===== */}
-                <div className="flex justify-center">
+                <div ref={googleRef} className="flex justify-center">
                   <GoogleLogin
                     onSuccess={handleGoogleSuccess}
-                    onError={() => setError('Google sign-up was cancelled.')}
+                    onError={() => setError("Google sign-up didn't complete. Please try again.")}
                     theme="outline"
                     size="large"
                     text="signup_with"
                     shape="pill"
-                    width="320"
+                    width={String(googleWidth)}
                   />
                 </div>
 
-                <p className="text-center text-amber-700/50 text-xs mt-5 font-serif tracking-wide">
-                  already have an account?{' '}
+                <p className="text-center text-sm text-amber-800 mt-6">
+                  Already have an account?{' '}
                   <Link
                     to="/login"
-                    className="text-amber-700 hover:text-amber-800 border-b border-amber-700/20 hover:border-amber-700 transition-colors duration-200"
+                    className={`font-semibold text-amber-900 underline underline-offset-4 decoration-amber-400 hover:decoration-amber-800 rounded ${focusRing}`}
                   >
-                    sign in
+                    Sign in
                   </Link>
                 </p>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="bg-amber-50/50 px-8 py-3 border-t border-amber-200/30 flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <span className="text-[8px] font-serif tracking-[0.4em] text-amber-600/40 uppercase">
-                  No.{ticketNo}
-                </span>
-                <div className="h-4 w-px bg-amber-200/30" />
-                <div className="flex gap-0.5 opacity-20">
-                  {[2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 1, 3, 2, 1].map((w, i) => (
-                    <div
-                      key={i}
-                      className="bg-amber-700"
-                      style={{ width: `${w}px`, height: i % 3 === 0 ? '14px' : '10px' }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <span className="text-[8px] font-serif tracking-[0.4em] text-amber-400/40 uppercase">
-                tear here
-              </span>
+              </section>
             </div>
           </div>
-        </div>
-
-        <p className="text-center text-[8px] font-serif tracking-[0.3em] text-amber-400/30 mt-4">
-          designed with ♥ for live events
-        </p>
-      </motion.div>
-    </div>
+        </motion.main>
+      </div>
+    </MotionConfig>
   );
 }

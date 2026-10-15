@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { GoogleLogin } from '@react-oauth/google';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 
+/* Demo shortcuts fill the form for quick testing.
+   Set to false before deploying: the password below ships in the client bundle. */
+const SHOW_DEMO_ACCOUNTS = true;
+const DEMO_PASSWORD = 'Nabil261108';
 const DEMO_ACCOUNTS = [
   { role: 'Admin', email: 'azz@gmail.com' },
   { role: 'Staff', email: 'jaden@gmail.com' },
@@ -21,16 +25,32 @@ function generateTicketNo() {
   return `TK-${code}`;
 }
 
-const BUBBLES = Array.from({ length: 12 }, (_, i) => ({
-  id: i,
-  size: Math.random() * 60 + 15,
-  left: Math.random() * 100,
-  duration: Math.random() * 20 + 10,
-  delay: Math.random() * 15,
-  x1: Math.random() * 100,
-  x2: Math.random() * 100,
-  opacity: Math.random() * 0.12 + 0.02,
-}));
+const BARS = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 1, 3, 2, 1, 3, 1, 2, 2, 1, 4, 1, 2, 1, 3];
+
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 focus-visible:ring-offset-1';
+
+const pageCss = `
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Figtree:wght@400;500;600&display=swap');
+
+  .f-display { font-family: 'Fraunces', Georgia, serif; }
+  .f-body { font-family: 'Figtree', system-ui, -apple-system, sans-serif; }
+
+  /* Ticket with a tear line between the dark and light halves (desktop only) */
+  .login-pass { --left-w: 20rem; }
+  @media (min-width: 768px) {
+    .login-pass {
+      -webkit-mask:
+        radial-gradient(circle 11px at var(--left-w) 0, #0000 97%, #000) top / 100% 51% no-repeat,
+        radial-gradient(circle 11px at var(--left-w) 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
+      mask:
+        radial-gradient(circle 11px at var(--left-w) 0, #0000 97%, #000) top / 100% 51% no-repeat,
+        radial-gradient(circle 11px at var(--left-w) 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
+    }
+  }
+`;
+
+const inputCls =
+  'w-full px-4 py-3 bg-white border border-amber-200 rounded-xl text-sm text-amber-950 placeholder-amber-700/40 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -38,17 +58,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [ticketNo] = useState(generateTicketNo);
-  const [isFocused, setIsFocused] = useState({ email: false, password: false });
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const issuedDate = new Date()
-    .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-    .toUpperCase();
+  const issuedDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
   const redirectAfterLogin = (user) => {
-    // 1. Check the URL query param (?from=/checkout) — set by the axios interceptor
+    // 1. Check the URL query param (?from=/checkout), set by the axios interceptor
     const params = new URLSearchParams(location.search);
     const fromQuery = params.get('from');
 
@@ -58,7 +75,10 @@ export default function Login() {
     // 3. Priority: query param first, then state
     const from = fromQuery || fromState;
 
-    if (from && from !== '/login' && from !== '/register') {
+    // only follow in-app paths ("/something", never "//host")
+    const isSafe = typeof from === 'string' && from.startsWith('/') && !from.startsWith('//');
+
+    if (isSafe && from !== '/login' && from !== '/register') {
       navigate(from, { replace: true });
     } else {
       const routes = {
@@ -80,7 +100,7 @@ export default function Login() {
       login(data.token, data.user);
       redirectAfterLogin(data.user);
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed.');
+      setError(err.response?.data?.message || "Couldn't sign you in. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -96,193 +116,110 @@ export default function Login() {
       login(data.token, data.user);
       redirectAfterLogin(data.user);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to sign in with Google.');
+      setError(err.response?.data?.message || "Couldn't sign you in with Google. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const fillDemo = (email) => {
-    setForm({ email, password: 'Nabil261108' });
+    setForm({ email, password: DEMO_PASSWORD });
     setError('');
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 py-8">
-      {/* Background Image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600&q=80')`,
-        }}
-      />
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-
-      {/* Floating Bubbles */}
-      {BUBBLES.map((bubble) => (
-        <motion.div
-          key={bubble.id}
-          className="absolute rounded-full border border-white/10"
-          style={{
-            width: bubble.size,
-            height: bubble.size,
-            left: `${bubble.left}%`,
-            top: '110%',
-            opacity: bubble.opacity,
-          }}
-          animate={{
-            y: ['0vh', '-120vh'],
-            x: [`${bubble.x1}%`, `${bubble.x2}%`],
-          }}
-          transition={{
-            duration: bubble.duration,
-            repeat: Infinity,
-            ease: 'linear',
-            delay: bubble.delay,
-          }}
+    <MotionConfig reducedMotion="user">
+      <style>{pageCss}</style>
+      <div className="f-body min-h-screen relative flex items-center justify-center px-4 py-8">
+        {/* Background photo */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600&q=80')` }}
+          aria-hidden="true"
         />
-      ))}
+        <div className="absolute inset-0 bg-gradient-to-b from-amber-950/80 via-amber-950/70 to-amber-950/90" aria-hidden="true" />
 
-      {/* Main Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="w-full max-w-4xl relative"
-      >
-        <div className="absolute -inset-8 bg-amber-400/5 rounded-3xl blur-3xl" />
-
-        <div className="relative">
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-[#f5ede4] border-2 border-amber-300/50 z-20 shadow-inner" />
-          <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-px h-6 bg-amber-400/30 -rotate-3" />
-          <div className="absolute -top-8 left-[46%] w-px h-8 bg-amber-400/20 rotate-3" />
-
-          <div className="bg-[#faf6ef] border-2 border-amber-300/50 shadow-2xl overflow-hidden rounded-2xl relative">
-            <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-amber-700/20 rounded-tl-2xl" />
-            <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-amber-700/20 rounded-tr-2xl" />
-            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-amber-700/20 rounded-bl-2xl" />
-            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-amber-700/20 rounded-br-2xl" />
-
-            <div className="absolute top-2.5 left-2.5 w-2 h-2 rounded-full bg-[#f5ede4] border border-amber-300/50 shadow-inner" />
-            <div className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#f5ede4] border border-amber-300/50 shadow-inner" />
-            <div className="absolute bottom-2.5 left-2.5 w-2 h-2 rounded-full bg-[#f5ede4] border border-amber-300/50 shadow-inner" />
-            <div className="absolute bottom-2.5 right-2.5 w-2 h-2 rounded-full bg-[#f5ede4] border border-amber-300/50 shadow-inner" />
-
-            <div className="grid md:grid-cols-2 relative">
-              {/* TICKET DIVIDER */}
-              <div className="hidden md:block absolute left-1/2 top-8 bottom-8 -translate-x-1/2 z-10 w-6">
-                <div
-                  className="absolute inset-0 bg-amber-700/[0.06]"
-                  style={{
-                    WebkitMaskImage:
-                      'radial-gradient(circle 7px at 0 7px, transparent 99%, #000 100%), radial-gradient(circle 7px at 100% 7px, transparent 99%, #000 100%)',
-                    maskImage:
-                      'radial-gradient(circle 7px at 0 7px, transparent 99%, #000 100%), radial-gradient(circle 7px at 100% 7px, transparent 99%, #000 100%)',
-                    WebkitMaskSize: '100% 18px, 100% 18px',
-                    maskSize: '100% 18px, 100% 18px',
-                    WebkitMaskRepeat: 'repeat-y, repeat-y',
-                    maskRepeat: 'repeat-y, repeat-y',
-                  }}
-                />
-                <div
-                  className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-px"
-                  style={{
-                    backgroundImage:
-                      'repeating-linear-gradient(to bottom, rgba(180,83,9,0.35) 0 4px, transparent 4px 9px)',
-                  }}
-                />
-                <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#faf6ef] border border-amber-300/50 shadow-inner" />
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#faf6ef] border border-amber-300/50 shadow-inner" />
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#faf6ef] px-1.5 py-3 rounded-full border border-amber-300/40 shadow-sm">
-                  <span
-                    className="text-[8px] font-serif tracking-[0.25em] text-amber-500/70"
-                    style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
-                  >
-                    TICKET
-                  </span>
-                </div>
-              </div>
-
-              {/* LEFT */}
-              <div className="p-8 md:p-10 bg-gradient-to-br from-amber-50/50 to-transparent pr-6 md:pr-8">
-                <Link to="/" className="inline-flex items-center gap-3 mb-6 group">
-                  <div className="w-10 h-10 rounded-full border-2 border-amber-700/50 flex items-center justify-center text-amber-700 font-serif text-xl bg-white/50 transition-transform group-hover:scale-105 duration-300">
+        <motion.main
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="w-full max-w-3xl relative"
+        >
+          {/* Ticket */}
+          <div className="drop-shadow-[0_20px_40px_rgba(0,0,0,0.45)]">
+            <div className="login-pass grid md:grid-cols-[var(--left-w)_1fr] rounded-2xl overflow-hidden">
+              {/* Dark half */}
+              <section className="bg-amber-950 text-amber-50 p-7 md:p-8 flex flex-col">
+                <Link to="/" className={`inline-flex items-center gap-2.5 self-start rounded-lg ${focusRing}`}>
+                  <span className="w-9 h-9 rounded-full ring-2 ring-amber-400/70 flex items-center justify-center f-display text-lg font-semibold text-amber-300">
                     T
-                  </div>
-                  <span className="font-serif font-bold text-2xl text-amber-900">
-                    tiket<span className="text-amber-600">ku</span>
+                  </span>
+                  <span className="f-display text-2xl font-bold text-amber-50">
+                    tiket<span className="text-amber-400">ku</span>
                   </span>
                 </Link>
 
-                <h1 className="font-serif text-4xl text-amber-900 leading-tight mb-2">
+                <h1 className="f-display text-4xl font-semibold leading-tight mt-8 md:mt-12">
                   Welcome
                   <br />
-                  <span className="text-amber-600 italic">Back.</span>
+                  <span className="text-amber-300">back.</span>
                 </h1>
-
-                <div className="w-16 h-[2px] bg-amber-700/30 my-4" />
-
-                <p className="text-amber-800/60 text-sm max-w-sm font-light leading-relaxed">
+                <p className="text-sm text-amber-200/70 mt-3 leading-relaxed max-w-xs">
                   No more digging through emails. Your tickets are already at the door.
                 </p>
 
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {['EST. 2024', 'LIVE', 'EXCLUSIVE'].map((label) => (
-                    <span
-                      key={label}
-                      className="font-serif text-[10px] tracking-[0.2em] text-amber-600 border border-amber-700/20 rounded-full px-4 py-1 uppercase bg-white/30"
-                    >
-                      {label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* RIGHT */}
-              <div className="p-8 md:p-10 pl-6 md:pl-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="font-serif text-xl text-amber-900">Sign In</h2>
-                  <div className="text-right">
-                    <p className="text-[9px] font-serif tracking-[0.3em] text-amber-600 uppercase">
-                      Entry Pass
-                    </p>
-                    <p className="text-[10px] text-amber-800/50 font-light tracking-wider">
-                      {issuedDate}
-                    </p>
+                <div className="hidden md:block mt-auto pt-10">
+                  <div className="border-t border-dashed border-amber-800 pt-4 flex items-end justify-between gap-3">
+                    <div>
+                      <p className="text-xs text-amber-200/60">Entry pass</p>
+                      <p className="f-display text-base font-semibold tabular-nums">{ticketNo}</p>
+                      <p className="text-xs text-amber-200/60 mt-0.5">{issuedDate}</p>
+                    </div>
+                    <div className="flex items-end gap-0.5 opacity-60" aria-hidden="true">
+                      {BARS.slice(0, 16).map((w, i) => (
+                        <span
+                          key={i}
+                          className="bg-amber-300"
+                          style={{ width: `${w}px`, height: i % 3 === 0 ? '28px' : '22px' }}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
+              </section>
+
+              {/* Light half */}
+              <section className="bg-amber-50 p-7 md:p-10">
+                <h2 className="f-display text-2xl font-semibold text-amber-950 mb-6">Sign in</h2>
 
                 <AnimatePresence>
                   {error && (
                     <motion.div
-                      initial={{ opacity: 0, y: -8 }}
+                      role="alert"
+                      initial={{ opacity: 0, y: -6 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      className="mb-5 flex items-center gap-2 p-3 bg-red-50/80 border border-red-200/50 rounded-xl"
+                      exit={{ opacity: 0, y: -6 }}
+                      className="mb-5 flex items-start gap-2 p-3 bg-red-50 rounded-xl text-sm text-red-700"
                     >
-                      <span className="font-serif text-[9px] tracking-[0.2em] text-red-600 uppercase border border-red-300/50 px-2 py-0.5 rounded">
-                        Invalid
-                      </span>
-                      <span className="text-red-700/80 text-sm font-light">{error}</span>
+                      <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.071 19h13.858a2 2 0 001.732-3L13.732 4a2 2 0 00-3.464 0L3.34 16a2 2 0 001.732 3z" />
+                      </svg>
+                      {error}
                     </motion.div>
                   )}
                 </AnimatePresence>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-serif tracking-[0.3em] text-amber-700/60 uppercase mb-1.5">
-                      Email Address
+                    <label htmlFor="login-email" className="block text-sm font-medium text-amber-900 mb-1.5">
+                      Email
                     </label>
                     <input
+                      id="login-email"
                       type="email"
                       required
-                      onFocus={() => setIsFocused({ ...isFocused, email: true })}
-                      onBlur={() => setIsFocused({ ...isFocused, email: false })}
-                      className={`w-full px-4 py-3 bg-white/70 border transition-all duration-300 text-amber-900 placeholder-amber-400/50 font-light text-sm rounded-xl ${
-                        isFocused.email
-                          ? 'border-amber-500/60 ring-2 ring-amber-500/10'
-                          : 'border-amber-200/60'
-                      }`}
+                      autoComplete="username"
+                      className={inputCls}
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       placeholder="you@example.com"
@@ -291,151 +228,105 @@ export default function Login() {
 
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-[10px] font-serif tracking-[0.3em] text-amber-700/60 uppercase">
+                      <label htmlFor="login-password" className="block text-sm font-medium text-amber-900">
                         Password
                       </label>
-                      <div className="flex items-center gap-3">
-                        <Link
-                          to="/forgot-password"
-                          className="text-[9px] font-serif text-amber-600/80 hover:text-amber-700 transition-colors duration-200 tracking-wide"
-                        >
-                          Forgot password?
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword((s) => !s)}
-                          className="text-[9px] font-serif text-amber-600/60 hover:text-amber-700 transition-colors duration-200"
-                        >
-                          {showPassword ? 'Hide' : 'Show'}
-                        </button>
-                      </div>
+                      <Link
+                        to="/forgot-password"
+                        className={`text-sm text-amber-700 hover:text-amber-950 rounded transition-colors ${focusRing}`}
+                      >
+                        Forgot password?
+                      </Link>
                     </div>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      onFocus={() => setIsFocused({ ...isFocused, password: true })}
-                      onBlur={() => setIsFocused({ ...isFocused, password: false })}
-                      className={`w-full px-4 py-3 pr-11 bg-white/70 border transition-all duration-300 text-amber-900 placeholder-amber-400/50 font-light text-sm rounded-xl ${
-                        isFocused.password
-                          ? 'border-amber-500/60 ring-2 ring-amber-500/10'
-                          : 'border-amber-200/60'
-                      }`}
-                      value={form.password}
-                      onChange={(e) => setForm({ ...form, password: e.target.value })}
-                      placeholder="••••••••"
-                    />
-                  </div>
-
-                  <div className="relative py-2">
-                    <div className="border-t border-amber-200/30" />
-                    <div className="absolute left-1/2 -translate-x-1/2 -top-1.5 bg-[#faf6ef] px-3">
-                      <span className="text-[8px] font-serif tracking-[0.5em] text-amber-400/50">✦</span>
+                    <div className="relative">
+                      <input
+                        id="login-password"
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        autoComplete="current-password"
+                        className={`${inputCls} pr-16`}
+                        value={form.password}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                        placeholder="Your password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((s) => !s)}
+                        aria-pressed={showPassword}
+                        className={`absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-sm font-medium text-amber-700 hover:text-amber-950 rounded-md transition-colors ${focusRing}`}
+                      >
+                        {showPassword ? 'Hide' : 'Show'}
+                      </button>
                     </div>
                   </div>
 
-                  <motion.button
+                  <button
                     type="submit"
                     disabled={loading}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                    className="relative w-full py-3.5 px-4 bg-amber-800 hover:bg-amber-700 text-amber-50 font-serif tracking-[0.3em] uppercase text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group rounded-xl overflow-hidden"
+                    className={`w-full py-3 px-4 bg-amber-800 hover:bg-amber-700 text-amber-50 text-sm font-semibold rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 ${focusRing}`}
                   >
-                    <span className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-300" />
                     {loading ? (
                       <>
-                        <span className="inline-block w-4 h-4 border-2 border-amber-200/40 border-t-amber-200 rounded-full animate-spin" />
-                        <span className="text-[10px]">Processing...</span>
+                        <span className="inline-block w-4 h-4 border-2 border-amber-200/40 border-t-amber-200 rounded-full animate-spin" aria-hidden="true" />
+                        Signing in…
                       </>
                     ) : (
-                      <>
-                        <span className="text-[10px] group-hover:translate-x-1 transition-transform duration-300">→</span>
-                        <span className="text-[10px]">Enter the gate</span>
-                      </>
+                      'Sign in'
                     )}
-                  </motion.button>
+                  </button>
                 </form>
 
-                {/* ===== DIVIDER ===== */}
-                <div className="relative py-3 my-4">
-                  <div className="border-t border-amber-200/40" />
-                  <div className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-[#faf6ef] px-3">
-                    <span className="text-[9px] font-serif tracking-[0.3em] text-amber-400/60 uppercase">
-                      or
-                    </span>
-                  </div>
+                {/* Divider */}
+                <div className="flex items-center gap-3 my-5" aria-hidden="true">
+                  <span className="flex-1 border-t border-dashed border-amber-300" />
+                  <span className="text-sm text-amber-700/80">or</span>
+                  <span className="flex-1 border-t border-dashed border-amber-300" />
                 </div>
 
-                {/* ===== GOOGLE BUTTON ===== */}
+                {/* Google */}
                 <div className="flex justify-center">
                   <GoogleLogin
                     onSuccess={handleGoogleSuccess}
-                    onError={() => setError('Google sign-in was cancelled.')}
+                    onError={() => setError("Google sign-in didn't complete. Please try again.")}
                     theme="outline"
                     size="large"
                     text="signin_with"
                     shape="pill"
-                    width="320"
+                    width="280"
                   />
                 </div>
 
-                <p className="text-center text-amber-700/50 text-xs mt-5 font-serif tracking-wide">
-                  first time here?{' '}
+                <p className="text-center text-sm text-amber-800 mt-6">
+                  New to Tiketku?{' '}
                   <Link
                     to="/register"
-                    className="text-amber-700 hover:text-amber-800 border-b border-amber-700/20 hover:border-amber-700 transition-colors duration-200"
+                    className={`font-semibold text-amber-900 underline underline-offset-4 decoration-amber-400 hover:decoration-amber-800 rounded ${focusRing}`}
                   >
-                    create account
+                    Create an account
                   </Link>
                 </p>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="bg-amber-50/50 px-8 py-3 border-t border-amber-200/30 flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <span className="text-[8px] font-serif tracking-[0.4em] text-amber-600/40 uppercase">
-                  No.{ticketNo}
-                </span>
-                <div className="h-4 w-px bg-amber-200/30" />
-                <div className="flex gap-0.5 opacity-20">
-                  {[2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 1, 3, 2, 1].map((w, i) => (
-                    <div
-                      key={i}
-                      className="bg-amber-700"
-                      style={{ width: `${w}px`, height: i % 3 === 0 ? '14px' : '10px' }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <span className="text-[8px] font-serif tracking-[0.4em] text-amber-400/40 uppercase">
-                tear here
-              </span>
+              </section>
             </div>
           </div>
-        </div>
 
-        {/* Demo Accounts */}
-        <div className="mt-6 flex flex-wrap gap-2 justify-center">
-          {DEMO_ACCOUNTS.map((acc) => (
-            <motion.button
-              key={acc.role}
-              type="button"
-              onClick={() => fillDemo(acc.email)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              className="font-serif text-[9px] tracking-[0.2em] text-amber-200/80 hover:text-amber-100 border border-amber-400/30 hover:border-amber-400/50 rounded-full px-4 py-1.5 bg-white/10 backdrop-blur-sm transition-all duration-200 uppercase"
-            >
-              {acc.role}
-            </motion.button>
-          ))}
-        </div>
-
-        <p className="text-center text-[8px] font-serif tracking-[0.3em] text-amber-400/30 mt-4">
-          designed with ♥ for live events
-        </p>
-      </motion.div>
-    </div>
+          {/* Demo accounts */}
+          {SHOW_DEMO_ACCOUNTS && (
+            <div className="mt-6 flex flex-wrap items-center gap-2 justify-center">
+              <span className="text-sm text-amber-100/70">Try a demo account:</span>
+              {DEMO_ACCOUNTS.map((acc) => (
+                <button
+                  key={acc.role}
+                  type="button"
+                  onClick={() => fillDemo(acc.email)}
+                  className={`text-sm font-medium text-amber-50 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 transition-colors ${focusRing}`}
+                >
+                  {acc.role}
+                </button>
+              ))}
+            </div>
+          )}
+        </motion.main>
+      </div>
+    </MotionConfig>
   );
 }
