@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig, useReducedMotion, useInView } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { getUserWithStats } from '../../api/userApi';
+
+const EASE = [0.22, 1, 0.36, 1];
 
 /* ============ ICONS ============ */
 const ICON_PATHS = {
@@ -41,14 +43,13 @@ function Icon({ name, className = 'w-4 h-4' }) {
 
 const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 focus-visible:ring-offset-1';
 
-/* ============ STYLES (fonts + ticket notches) ============ */
+/* ============ STYLES ============ */
 const pageCss = `
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Figtree:wght@400;500;600&display=swap');
 
   .f-display { font-family: 'Fraunces', Georgia, serif; }
   .f-body { font-family: 'Figtree', system-ui, -apple-system, sans-serif; }
 
-  /* Pass: notches sit on the horizontal tear line (mobile) ... */
   .pass {
     --stub-h: 6.5rem;
     --stub-w: 9.5rem;
@@ -59,7 +60,6 @@ const pageCss = `
       radial-gradient(circle 10px at 0 calc(100% - var(--stub-h)), #0000 97%, #000) left / 51% 100% no-repeat,
       radial-gradient(circle 10px at 100% calc(100% - var(--stub-h)), #0000 97%, #000) right / 51% 100% no-repeat;
   }
-  /* ... and on the vertical tear line (desktop) */
   @media (min-width: 640px) {
     .pass {
       -webkit-mask:
@@ -87,54 +87,79 @@ function formatRupiah(amount) {
   if (rounded >= 1_000_000) return `Rp ${(rounded / 1_000_000).toFixed(1)}M`;
   return `Rp ${rounded.toLocaleString('id-ID')}`;
 }
-
 function formatRupiahFull(amount) {
   if (!amount) return 'Rp 0';
   return `Rp ${Math.round(amount).toLocaleString('id-ID')}`;
 }
 
-/* ============ STATS PER ROLE ============ */
+/* ============ STATS CONFIG ============ */
 function getStatsConfig(role, u) {
   if (role === 'admin') {
     return [
-      { icon: 'users', label: 'Users', value: u.total_users || 0 },
-      { icon: 'package', label: 'Orders', value: u.total_orders || 0 },
-      { icon: 'chart', label: 'Revenue', value: formatRupiah(u.total_spent || 0), small: true },
-      { icon: 'scan', label: 'Check-ins', value: u.total_checkins || 0 },
+      { icon: 'users', label: 'Users', value: u.total_users || 0, numeric: true },
+      { icon: 'package', label: 'Orders', value: u.total_orders || 0, numeric: true },
+      { icon: 'chart', label: 'Revenue', value: formatRupiah(u.total_spent || 0), small: true, numeric: false },
+      { icon: 'scan', label: 'Check-ins', value: u.total_checkins || 0, numeric: true },
     ];
   }
   if (role === 'eo') {
     return [
-      { icon: 'music', label: 'Events', value: u.total_events || 0 },
-      { icon: 'ticket', label: 'Tickets sold', value: u.total_tickets_sold || 0 },
-      { icon: 'wallet', label: 'Revenue', value: formatRupiah(u.eo_revenue || 0), small: true },
-      { icon: 'calendar', label: 'Active', value: u.active_events || 0 },
+      { icon: 'music', label: 'Events', value: u.total_events || 0, numeric: true },
+      { icon: 'ticket', label: 'Tickets sold', value: u.total_tickets_sold || 0, numeric: true },
+      { icon: 'wallet', label: 'Revenue', value: formatRupiah(u.eo_revenue || 0), small: true, numeric: false },
+      { icon: 'calendar', label: 'Active', value: u.active_events || 0, numeric: true },
     ];
   }
   if (role === 'petugas') {
     return [
-      { icon: 'scan', label: 'Today', value: u.today_scans || 0 },
-      { icon: 'calendar', label: 'This week', value: u.weekly_scans || 0 },
-      { icon: 'check', label: 'All time', value: u.total_checkins || 0 },
-      { icon: 'music', label: 'Events', value: u.active_events || 0 },
+      { icon: 'scan', label: 'Today', value: u.today_scans || 0, numeric: true },
+      { icon: 'calendar', label: 'This week', value: u.weekly_scans || 0, numeric: true },
+      { icon: 'check', label: 'All time', value: u.total_checkins || 0, numeric: true },
+      { icon: 'music', label: 'Events', value: u.active_events || 0, numeric: true },
     ];
   }
   return [
-    { icon: 'package', label: 'Orders', value: u.total_orders || 0 },
-    { icon: 'check', label: 'Paid', value: u.total_orders_paid || 0 },
-    { icon: 'ticket', label: 'Tickets', value: u.active_tickets || 0 },
-    { icon: 'star', label: 'Reviews', value: u.total_ratings || 0 },
+    { icon: 'package', label: 'Orders', value: u.total_orders || 0, numeric: true },
+    { icon: 'check', label: 'Paid', value: u.total_orders_paid || 0, numeric: true },
+    { icon: 'ticket', label: 'Tickets', value: u.active_tickets || 0, numeric: true },
+    { icon: 'star', label: 'Reviews', value: u.total_ratings || 0, numeric: true },
   ];
 }
 
 function getHighlight(role, u) {
-  if (role === 'eo') return { label: 'Total revenue', value: formatRupiahFull(u.eo_revenue || 0) };
-  if (role === 'admin') return { label: 'Platform revenue', value: formatRupiahFull(u.total_spent || 0) };
-  if (role === 'petugas') return { label: 'Total scans', value: (u.total_checkins || 0).toLocaleString('en-US') };
-  return { label: 'Total spent', value: formatRupiahFull(u.total_spent || 0) };
+  if (role === 'eo') return { label: 'Total revenue', value: formatRupiahFull(u.eo_revenue || 0), numericValue: u.eo_revenue || 0 };
+  if (role === 'admin') return { label: 'Platform revenue', value: formatRupiahFull(u.total_spent || 0), numericValue: u.total_spent || 0 };
+  if (role === 'petugas') return { label: 'Total scans', value: (u.total_checkins || 0).toLocaleString('en-US'), numericValue: u.total_checkins || 0 };
+  return { label: 'Total spent', value: formatRupiahFull(u.total_spent || 0), numericValue: u.total_spent || 0 };
 }
 
-/* ============ BARCODE (deterministic from user id) ============ */
+/* ============ ANIMATED NUMBER ============ */
+function AnimatedNumber({ value, format = (n) => n.toLocaleString('en-US'), duration = 1.2, className = '' }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-40px' });
+  const reduce = useReducedMotion();
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    const end = Number(value) || 0;
+    if (!inView) return undefined;
+    if (reduce || !end) { setDisplay(end); return undefined; }
+    let raf;
+    const start = performance.now();
+    const tick = (now) => {
+      const p = Math.min((now - start) / (duration * 1000), 1);
+      const eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
+      setDisplay(Math.round(end * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, value, duration, reduce]);
+
+  return <span ref={ref} className={`tabular-nums ${className}`}>{format(display)}</span>;
+}
+
+/* ============ BARCODE ============ */
 function useBarcode(seed) {
   return useMemo(() => {
     let s = (Number(seed) || 7) * 9301 + 49297;
@@ -153,13 +178,7 @@ function useBarcode(seed) {
 function Barcode({ seed, className }) {
   const { bars, width } = useBarcode(seed);
   return (
-    <svg
-      viewBox={`0 0 ${width} 24`}
-      preserveAspectRatio="none"
-      className={className}
-      role="img"
-      aria-label="Member barcode"
-    >
+    <svg viewBox={`0 0 ${width} 24`} preserveAspectRatio="none" className={className} role="img" aria-label="Member barcode">
       {bars.map((b, i) => (
         <motion.rect
           key={i}
@@ -170,7 +189,7 @@ function Barcode({ seed, className }) {
           className="fill-amber-950"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.35 + i * 0.018, duration: 0.15 }}
+          transition={{ delay: 0.6 + i * 0.015, duration: 0.15 }}
         />
       ))}
     </svg>
@@ -184,8 +203,8 @@ function Avatar({ user, preview, canEdit, onClick }) {
   return (
     <Wrapper
       {...(canEdit ? { type: 'button', onClick, 'aria-label': 'Change profile photo' } : {})}
-      className={`relative w-20 h-20 shrink-0 rounded-full bg-amber-900 ring-2 ring-amber-400/70 ring-offset-2 ring-offset-amber-950 overflow-hidden ${
-        canEdit ? `group cursor-pointer ${focusRing}` : ''
+      className={`relative w-20 h-20 shrink-0 rounded-full bg-amber-900 ring-2 ring-amber-400/70 ring-offset-2 ring-offset-amber-950 overflow-hidden transition-all ${
+        canEdit ? `group cursor-pointer hover:ring-amber-300 ${focusRing}` : ''
       }`}
     >
       {img ? (
@@ -205,22 +224,32 @@ function Avatar({ user, preview, canEdit, onClick }) {
 }
 
 /* ============ STAT CELL ============ */
-function StatCell({ icon, label, value, small }) {
+function StatCell({ icon, label, value, small, numeric, delay = 0 }) {
   return (
-    <div className="px-2 py-4 text-center min-w-0">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay, ease: EASE }}
+      className="px-2 py-4 text-center min-w-0"
+    >
       <Icon name={icon} className="w-4 h-4 mx-auto text-amber-600" />
-      <p className={`f-display font-semibold text-amber-950 tabular-nums leading-none mt-2 truncate ${small ? 'text-sm' : 'text-xl'}`}>
-        {value}
+      <p className={`f-display font-semibold text-amber-950 leading-none mt-2 truncate ${small ? 'text-sm' : 'text-xl'}`}>
+        {numeric ? <AnimatedNumber value={value} /> : value}
       </p>
       <p className="text-xs text-amber-700/80 mt-1.5 truncate">{label}</p>
-    </div>
+    </motion.div>
   );
 }
 
 /* ============ INFO ROW ============ */
-function InfoRow({ icon, label, value }) {
+function InfoRow({ icon, label, value, delay = 0 }) {
   return (
-    <div className="flex items-center gap-3 py-3.5">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay, ease: EASE }}
+      className="flex items-center gap-3 py-3.5"
+    >
       <span className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 text-amber-700">
         <Icon name={icon} className="w-4 h-4" />
       </span>
@@ -228,40 +257,38 @@ function InfoRow({ icon, label, value }) {
         <p className="text-xs text-amber-700/80">{label}</p>
         <p className="text-sm text-amber-950 truncate">{value || '-'}</p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 /* ============ SETTINGS ROW ============ */
-function SettingsRow({ icon, label, hint, onClick, danger = false }) {
+function SettingsRow({ icon, label, hint, onClick, danger = false, delay = 0 }) {
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
+      initial={{ opacity: 0, x: 12 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.4, delay, ease: EASE }}
       className={`w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors group ${focusRing} ${
         danger ? 'hover:bg-red-50' : 'hover:bg-amber-50'
       }`}
     >
-      <span
-        className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-          danger ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700'
-        }`}
-      >
+      <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+        danger ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700'
+      }`}>
         <Icon name={icon} className="w-4 h-4" />
       </span>
       <span className="flex-1 min-w-0">
         <span className={`block text-sm font-medium ${danger ? 'text-red-700' : 'text-amber-950'}`}>{label}</span>
         {hint && <span className="block text-xs text-amber-700/70">{hint}</span>}
       </span>
-      <Icon
-        name="arrowRight"
-        className={`w-4 h-4 transition-transform group-hover:translate-x-0.5 ${danger ? 'text-red-400' : 'text-amber-400'}`}
-      />
-    </button>
+      <Icon name="arrowRight" className={`w-4 h-4 transition-transform group-hover:translate-x-0.5 ${danger ? 'text-red-400' : 'text-amber-400'}`} />
+    </motion.button>
   );
 }
 
-/* ============ MODAL + FIELD ============ */
+/* ============ MODAL ============ */
 function Modal({ title, onClose, children }) {
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose();
@@ -308,9 +335,7 @@ function Modal({ title, onClose, children }) {
 function Field({ id, label, ...props }) {
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-amber-900 mb-1.5">
-        {label}
-      </label>
+      <label htmlFor={id} className="block text-sm font-medium text-amber-900 mb-1.5">{label}</label>
       <input
         id={id}
         className="w-full px-4 py-2.5 bg-amber-50/70 border border-amber-200 rounded-xl text-sm text-amber-950 placeholder-amber-700/40 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
@@ -322,13 +347,15 @@ function Field({ id, label, ...props }) {
 
 function PrimaryButton({ loading, loadingText, children, ...props }) {
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
       className={`w-full py-3 bg-amber-800 hover:bg-amber-700 text-amber-50 text-sm font-medium rounded-xl transition-colors disabled:opacity-50 ${focusRing}`}
       disabled={loading}
       {...props}
     >
       {loading ? loadingText : children}
-    </button>
+    </motion.button>
   );
 }
 
@@ -337,6 +364,7 @@ export default function Profile() {
   const { id } = useParams();
   const { user, updateUser, logout } = useAuth();
   const navigate = useNavigate();
+  const reduce = useReducedMotion();
 
   const [profileUser, setProfileUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -356,6 +384,7 @@ export default function Profile() {
   const [pwLoading, setPwLoading] = useState(false);
 
   const [toast, setToast] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   const isOwnProfile = !id || user?.id === parseInt(id);
   const targetId = id || user?.id;
@@ -365,14 +394,20 @@ export default function Profile() {
     setTimeout(() => setToast(''), 2800);
   };
 
-  /* ===== FETCH ===== */
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
+  useEffect(() => {
+    if (reduce) { setMounted(true); return; }
+    const t = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(t);
+  }, [reduce]);
+
   useEffect(() => {
     let cancelled = false;
     const fetchProfile = async () => {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
+      if (!user) { navigate('/login'); return; }
       try {
         setLoading(true);
         setError('');
@@ -393,16 +428,10 @@ export default function Profile() {
       }
     };
     fetchProfile();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [id, user, navigate]);
 
-  /* ===== HANDLERS ===== */
-  const openEdit = () => {
-    setMessage('');
-    setShowEditModal(true);
-  };
+  const openEdit = () => { setMessage(''); setShowEditModal(true); };
 
   const closeEdit = useCallback(() => {
     setShowEditModal(false);
@@ -429,9 +458,7 @@ export default function Profile() {
       formData.append('name', form.name);
       formData.append('phone', form.phone);
       if (file) formData.append('profile_picture', file);
-      const res = await api.put('/auth/profile', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const res = await api.put('/auth/profile', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       updateUser(res.data.user);
       const refreshRes = await getUserWithStats(targetId);
       setProfileUser(refreshRes.data.data);
@@ -455,10 +482,7 @@ export default function Profile() {
     }
     setPwLoading(true);
     try {
-      await api.put('/auth/change-password', {
-        old_password: pwForm.old_password,
-        new_password: pwForm.new_password,
-      });
+      await api.put('/auth/change-password', { old_password: pwForm.old_password, new_password: pwForm.new_password });
       closePassword();
       showToast('Password changed');
     } catch (err) {
@@ -505,7 +529,12 @@ export default function Profile() {
       <MotionConfig reducedMotion="user">
         <style>{pageCss}</style>
         <div className="f-body min-h-screen bg-[#f5ede4] flex items-center justify-center px-5">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-sm shadow-amber-900/5">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: EASE }}
+            className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-sm shadow-amber-900/5"
+          >
             <div className="w-12 h-12 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4 text-amber-700">
               <Icon name="lock" className="w-5 h-5" />
             </div>
@@ -517,7 +546,7 @@ export default function Profile() {
             >
               Go back
             </button>
-          </div>
+          </motion.div>
         </div>
       </MotionConfig>
     );
@@ -543,28 +572,45 @@ export default function Profile() {
         <div className="max-w-xl mx-auto px-4 py-8">
           {/* Back button */}
           {!isOwnProfile && (
-            <button
+            <motion.button
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: 0.1, ease: EASE }}
               onClick={() => navigate(-1)}
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 mb-5 text-sm rounded-full bg-white text-amber-800 hover:text-amber-950 hover:bg-amber-50 transition-colors ${focusRing}`}
             >
               <Icon name="arrowLeft" className="w-3.5 h-3.5" />
               Back
-            </button>
+            </motion.button>
           )}
 
           {/* Admin notice */}
           {isAdminView && (
-            <div className="mb-4 px-4 py-3 bg-amber-100/70 border border-dashed border-amber-400/60 rounded-2xl text-sm text-amber-900">
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.15, ease: EASE }}
+              className="mb-4 px-4 py-3 bg-amber-100/70 border border-dashed border-amber-400/60 rounded-2xl text-sm text-amber-900"
+            >
               Admin view: you're looking at <strong className="font-semibold">{profileUser.name}</strong>'s profile.
-            </div>
+            </motion.div>
           )}
 
-          {/* ===== MEMBER PASS ===== */}
+          {/* ===== MEMBER PASS — clipPath emerge ===== */}
           <motion.section
             aria-label="Member pass"
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, ease: 'easeOut' }}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, clipPath: 'inset(0 0 100% 0)' }}
+            animate={
+              mounted
+                ? reduce
+                  ? { opacity: 1 }
+                  : { opacity: 1, clipPath: 'inset(0 0 0% 0)' }
+                : reduce
+                ? { opacity: 0 }
+                : { opacity: 0, clipPath: 'inset(0 0 100% 0)' }
+            }
+            transition={{ duration: 0.7, ease: EASE }}
+            style={{ willChange: 'clip-path, opacity' }}
             className="mb-4 drop-shadow-[0_10px_18px_rgba(69,26,3,0.18)]"
           >
             <div className="pass grid grid-cols-1 grid-rows-[auto_var(--stub-h)] sm:grid-cols-[1fr_var(--stub-w)] sm:grid-rows-none rounded-2xl overflow-hidden">
@@ -573,44 +619,77 @@ export default function Profile() {
                 <div className="flex items-center justify-between">
                   <span className="f-display text-base font-semibold text-amber-300">Tiketku</span>
                   {canEdit && (
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       onClick={openEdit}
                       className={`inline-flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 text-xs font-medium rounded-full bg-amber-900 text-amber-100 hover:bg-amber-800 transition-colors ${focusRing}`}
                     >
                       <Icon name="edit" className="w-3.5 h-3.5" />
                       Edit profile
-                    </button>
+                    </motion.button>
                   )}
                 </div>
 
                 <div className="flex items-center gap-4 mt-5">
-                  <Avatar user={profileUser} preview={preview} canEdit={canEdit} onClick={pickPhoto} />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.4, ease: EASE }}
+                  >
+                    <Avatar user={profileUser} preview={preview} canEdit={canEdit} onClick={pickPhoto} />
+                  </motion.div>
                   <div className="min-w-0 flex-1">
-                    <h1 className="f-display text-2xl font-semibold leading-tight break-words">{profileUser.name}</h1>
-                    <p className="text-sm text-amber-200/70 mt-0.5">{meta.tagline}</p>
-                    <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                    <motion.h1
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: 0.45, ease: EASE }}
+                      className="f-display text-2xl font-semibold leading-tight break-words"
+                    >
+                      {profileUser.name}
+                    </motion.h1>
+                    <motion.p
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: 0.5, ease: EASE }}
+                      className="text-sm text-amber-200/70 mt-0.5"
+                    >
+                      {meta.tagline}
+                    </motion.p>
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.55, ease: EASE }}
+                      className="flex items-center gap-2 mt-2.5 flex-wrap"
+                    >
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-amber-100 bg-amber-900 rounded-full">
                         <Icon name={meta.icon} className="w-3 h-3" />
                         {meta.label}
                       </span>
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full ${
-                          profileUser.is_active ? 'text-emerald-300 bg-emerald-950/60' : 'text-red-300 bg-red-950/60'
-                        }`}
-                      >
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full ${
+                        profileUser.is_active ? 'text-emerald-300 bg-emerald-950/60' : 'text-red-300 bg-red-950/60'
+                      }`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${profileUser.is_active ? 'bg-emerald-400' : 'bg-red-400'}`} />
                         {profileUser.is_active ? 'Active' : 'Inactive'}
                       </span>
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
 
-                <div className="mt-5 pt-4 border-t border-dashed border-amber-800 flex items-end justify-between gap-3">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.65, ease: EASE }}
+                  className="mt-5 pt-4 border-t border-dashed border-amber-800 flex items-end justify-between gap-3"
+                >
                   <span className="text-sm text-amber-200/70">{highlight.label}</span>
                   <span className="f-display text-2xl font-bold text-amber-300 tabular-nums leading-none">
-                    {highlight.value}
+                    <AnimatedNumber
+                      value={highlight.numericValue}
+                      format={(n) => (role === 'petugas' ? n.toLocaleString('en-US') : formatRupiahFull(n))}
+                    />
                   </span>
-                </div>
+                </motion.div>
               </div>
 
               {/* Stub: member number + barcode */}
@@ -629,18 +708,25 @@ export default function Profile() {
             aria-label="Statistics"
             className="grid grid-cols-4 divide-x divide-dashed divide-amber-200 bg-white rounded-2xl mb-4"
           >
-            {stats.map((s) => (
-              <StatCell key={s.label} {...s} />
+            {stats.map((s, i) => (
+              <StatCell key={s.label} {...s} delay={0.8 + i * 0.08} />
             ))}
           </section>
 
           {/* ===== INFO ===== */}
           <section className="bg-white rounded-2xl px-5 py-4 mb-4">
-            <h2 className="f-display text-base font-semibold text-amber-950">Contact and details</h2>
+            <motion.h2
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 1.1, ease: EASE }}
+              className="f-display text-base font-semibold text-amber-950"
+            >
+              Contact and details
+            </motion.h2>
             <div className="divide-y divide-dashed divide-amber-200 mt-1">
-              <InfoRow icon="mail" label="Email" value={profileUser.email} />
-              {profileUser.phone && <InfoRow icon="phone" label="Phone" value={profileUser.phone} />}
-              <InfoRow icon="calendar" label="Member since" value={joinedDate} />
+              <InfoRow icon="mail" label="Email" value={profileUser.email} delay={1.15} />
+              {profileUser.phone && <InfoRow icon="phone" label="Phone" value={profileUser.phone} delay={1.2} />}
+              <InfoRow icon="calendar" label="Member since" value={joinedDate} delay={1.25} />
             </div>
           </section>
 
@@ -652,27 +738,23 @@ export default function Profile() {
                 label="Change password"
                 hint="Use a password you don't use anywhere else"
                 onClick={() => setShowPasswordModal(true)}
+                delay={1.35}
               />
-              <SettingsRow icon="logout" label="Log out" onClick={logout} danger />
+              <SettingsRow icon="logout" label="Log out" onClick={logout} danger delay={1.4} />
             </section>
           )}
 
-          {/* Hidden file input */}
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
         </div>
 
-        {/* ===== EDIT MODAL ===== */}
+        {/* EDIT MODAL */}
         <AnimatePresence>
           {showEditModal && (
             <Modal title="Edit profile" onClose={closeEdit}>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-amber-100 overflow-hidden flex items-center justify-center text-amber-600 shrink-0">
-                    {preview ? (
-                      <img src={preview} alt="Profile preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <Icon name="user" className="w-6 h-6" />
-                    )}
+                    {preview ? <img src={preview} alt="Profile preview" className="w-full h-full object-cover" /> : <Icon name="user" className="w-6 h-6" />}
                   </div>
                   <div>
                     <button
@@ -687,88 +769,40 @@ export default function Profile() {
                   </div>
                 </div>
 
-                <Field
-                  id="profile-name"
-                  label="Name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  autoComplete="name"
-                />
-                <Field
-                  id="profile-phone"
-                  label="Phone number"
-                  type="tel"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  autoComplete="tel"
-                />
+                <Field id="profile-name" label="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" />
+                <Field id="profile-phone" label="Phone number" type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} autoComplete="tel" />
 
-                <PrimaryButton type="submit" loading={saving} loadingText="Saving…">
-                  Save changes
-                </PrimaryButton>
-                {message && (
-                  <p role="alert" className="text-sm text-red-600 text-center">
-                    {message}
-                  </p>
-                )}
+                <PrimaryButton type="submit" loading={saving} loadingText="Saving…">Save changes</PrimaryButton>
+                {message && <p role="alert" className="text-sm text-red-600 text-center">{message}</p>}
               </form>
             </Modal>
           )}
         </AnimatePresence>
 
-        {/* ===== PASSWORD MODAL ===== */}
+        {/* PASSWORD MODAL */}
         <AnimatePresence>
           {showPasswordModal && (
             <Modal title="Change password" onClose={closePassword}>
               <form onSubmit={handleChangePassword} className="space-y-4">
-                <Field
-                  id="pw-old"
-                  label="Current password"
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  value={pwForm.old_password}
-                  onChange={(e) => setPwForm({ ...pwForm, old_password: e.target.value })}
-                />
-                <Field
-                  id="pw-new"
-                  label="New password"
-                  type="password"
-                  required
-                  autoComplete="new-password"
-                  value={pwForm.new_password}
-                  onChange={(e) => setPwForm({ ...pwForm, new_password: e.target.value })}
-                />
-                <Field
-                  id="pw-confirm"
-                  label="Confirm new password"
-                  type="password"
-                  required
-                  autoComplete="new-password"
-                  value={pwForm.confirm}
-                  onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
-                />
-                <PrimaryButton type="submit" loading={pwLoading} loadingText="Saving…">
-                  Change password
-                </PrimaryButton>
-                {pwMessage && (
-                  <p role="alert" className="text-sm text-red-600 text-center">
-                    {pwMessage}
-                  </p>
-                )}
+                <Field id="pw-old" label="Current password" type="password" required autoComplete="current-password" value={pwForm.old_password} onChange={(e) => setPwForm({ ...pwForm, old_password: e.target.value })} />
+                <Field id="pw-new" label="New password" type="password" required autoComplete="new-password" value={pwForm.new_password} onChange={(e) => setPwForm({ ...pwForm, new_password: e.target.value })} />
+                <Field id="pw-confirm" label="Confirm new password" type="password" required autoComplete="new-password" value={pwForm.confirm} onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })} />
+                <PrimaryButton type="submit" loading={pwLoading} loadingText="Saving…">Change password</PrimaryButton>
+                {pwMessage && <p role="alert" className="text-sm text-red-600 text-center">{pwMessage}</p>}
               </form>
             </Modal>
           )}
         </AnimatePresence>
 
-        {/* ===== TOAST ===== */}
+        {/* TOAST */}
         <AnimatePresence>
           {toast && (
             <motion.div
               role="status"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 16, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.95 }}
+              transition={{ duration: 0.3, ease: EASE }}
               className="f-body fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-amber-950 text-amber-50 text-sm shadow-lg shadow-amber-950/30"
             >
               <Icon name="check" className="w-4 h-4 text-emerald-400" />

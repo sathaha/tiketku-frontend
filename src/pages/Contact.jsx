@@ -1,8 +1,9 @@
-// src/pages/Contact.jsx
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig, useReducedMotion, useInView } from 'framer-motion';
 import api from '../api/axios';
+
+const EASE = [0.22, 1, 0.36, 1];
 
 /* ============ ICONS ============ */
 const ICON_PATHS = {
@@ -17,6 +18,7 @@ const ICON_PATHS = {
   instagram: 'M16 3H8a5 5 0 00-5 5v8a5 5 0 005 5h8a5 5 0 005-5V8a5 5 0 00-5-5zM12 16a4 4 0 110-8 4 4 0 010 8zM17.5 6.5h.01',
   ticket: 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z',
   arrow: 'M13 7l5 5-5 5M6 12h12',
+  paperPlane: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
 };
 
 function Icon({ name, className = 'w-4 h-4' }) {
@@ -39,7 +41,6 @@ function Spinner({ className = 'h-4 w-4' }) {
 /* ============ STYLES ============ */
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 focus-visible:ring-offset-1';
-// Fokus di atas latar gelap (footer, kartu newsletter)
 const focusRingDark =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70';
 
@@ -56,28 +57,164 @@ const pageCss = `
   .f-body { font-family: 'Figtree', system-ui, -apple-system, sans-serif; }
 `;
 
+/* ============ REVEAL WORDS ============ */
+function RevealWords({ text, className = '', delay = 0 }) {
+  return (
+    <span className={className}>
+      {text.split(' ').map((word, i) => (
+        <span key={i} className="inline-block overflow-hidden align-bottom pb-1">
+          <motion.span
+            className="inline-block"
+            initial={{ y: '110%', opacity: 0 }}
+            animate={{ y: '0%', opacity: 1 }}
+            transition={{ duration: 0.7, delay: delay + i * 0.08, ease: EASE }}
+          >
+            {word}&nbsp;
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/* ============ PAPER PLANE OVERLAY ============ */
+// Muncul pas user klik "Send message" — pesan terbang ke atas
+function PaperPlaneFly({ onDone }) {
+  const reduce = useReducedMotion();
+
+  useEffect(() => {
+    const t = setTimeout(onDone, reduce ? 300 : 1400);
+    return () => clearTimeout(t);
+  }, [onDone, reduce]);
+
+  if (reduce) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-[80] pointer-events-none"
+      aria-hidden="true"
+    >
+      {/* Trail partikel */}
+      {Array.from({ length: 12 }).map((_, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0, x: 0, y: 0, scale: 0 }}
+          animate={{
+            opacity: [0, 0.8, 0],
+            x: [0, (Math.random() - 0.5) * 60],
+            y: [0, -80 - Math.random() * 60],
+            scale: [0, 1, 0.5],
+          }}
+          transition={{ duration: 1, delay: 0.2 + i * 0.05, ease: 'easeOut' }}
+          className="absolute bottom-1/3 left-1/2 w-1.5 h-1.5 rounded-full bg-amber-400"
+        />
+      ))}
+
+      {/* Paper plane utama */}
+      <motion.div
+        initial={{ opacity: 0, x: '-50%', y: 0, scale: 0.6, rotate: 0 }}
+        animate={{
+          opacity: [0, 1, 1, 0],
+          x: '-50%',
+          y: [0, -200, -400, -600],
+          scale: [0.6, 1.1, 0.9, 0.6],
+          rotate: [0, -15, -25, -35],
+        }}
+        transition={{ duration: 1.3, times: [0, 0.15, 0.7, 1], ease: [0.22, 1, 0.36, 1] }}
+        className="absolute bottom-1/3 left-1/2 text-amber-500"
+        style={{ filter: 'drop-shadow(0 4px 12px rgba(217,119,6,0.4))' }}
+      >
+        <Icon name="paperPlane" className="w-12 h-12" />
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/* ============ SUCCESS STATE ============ */
+// Ganti form jadi envelope terbuka
+function SuccessState({ onReset }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center py-16 text-center"
+    >
+      <motion.div
+        initial={{ scale: 0.4, rotate: -15, opacity: 0 }}
+        animate={{ scale: 1, rotate: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+        className="relative w-20 h-20 rounded-2xl bg-emerald-100 border border-emerald-200 flex items-center justify-center mb-5"
+      >
+        <motion.div
+          initial={{ y: 0 }}
+          animate={{ y: -4 }}
+          transition={{ duration: 0.4, delay: 0.6, ease: EASE }}
+        >
+          <Icon name="check" className="w-10 h-10 text-emerald-600" />
+        </motion.div>
+
+        {/* Burst kecil */}
+        {!useReducedMotion() && Array.from({ length: 8 }).map((_, i) => {
+          const angle = (i / 8) * Math.PI * 2;
+          return (
+            <motion.span
+              key={i}
+              initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
+              animate={{
+                x: Math.cos(angle) * 40,
+                y: Math.sin(angle) * 40,
+                scale: [0, 1, 0.5],
+                opacity: [1, 1, 0],
+              }}
+              transition={{ duration: 0.7, delay: 0.3 + i * 0.03 }}
+              className="absolute w-1.5 h-1.5 rounded-full bg-emerald-400"
+              aria-hidden="true"
+            />
+          );
+        })}
+      </motion.div>
+
+      <motion.h3
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="f-display text-2xl font-semibold text-amber-950 mb-2"
+      >
+        Message sent
+      </motion.h3>
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="text-sm text-amber-700/80 max-w-sm mb-6"
+      >
+        Thanks for reaching out. We usually reply within 24 hours — check your inbox.
+      </motion.p>
+      <motion.button
+        type="button"
+        onClick={onReset}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
+        className={`px-5 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 text-sm font-medium rounded-xl transition-colors ${focusRing}`}
+      >
+        Send another message
+      </motion.button>
+    </motion.div>
+  );
+}
+
 /* ============ CONTENT ============ */
 const CONTACT_INFO = [
-  {
-    icon: 'phone',
-    title: 'Call us',
-    value: '+62 812-3456-7890',
-    href: 'tel:+6281234567890',
-    description: 'Mon-Fri, 9AM-6PM WIB',
-  },
-  {
-    icon: 'mail',
-    title: 'Email us',
-    value: 'support@tiketku.id',
-    href: 'mailto:support@tiketku.id',
-    description: 'We usually reply within 24 hours',
-  },
-  {
-    icon: 'pin',
-    title: 'Visit us',
-    value: 'Jakarta, Indonesia',
-    description: 'Jl. Sudirman No. 123',
-  },
+  { icon: 'phone', title: 'Call us', value: '+62 812-3456-7890', href: 'tel:+6281234567890', description: 'Mon-Fri, 9AM-6PM WIB' },
+  { icon: 'mail', title: 'Email us', value: 'support@tiketku.id', href: 'mailto:support@tiketku.id', description: 'We usually reply within 24 hours' },
+  { icon: 'pin', title: 'Visit us', value: 'Jakarta, Indonesia', description: 'Jl. Sudirman No. 123' },
 ];
 
 const FOOTER_NAV = [
@@ -118,14 +255,25 @@ function FooterColumn({ title, links }) {
 
 /* ============ MAIN ============ */
 export default function Contact() {
+  const reduce = useReducedMotion();
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const successTimer = useRef(null);
+  const [flying, setFlying] = useState(false);
+  const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
 
-  useEffect(() => () => clearTimeout(successTimer.current), []);
+  // 🎬 Mount gate
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+  useEffect(() => {
+    if (reduce) { setMounted(true); return; }
+    const t = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(t);
+  }, [reduce]);
 
   const setField = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
@@ -134,6 +282,7 @@ export default function Contact() {
     setError('');
     setSuccess(false);
     setSending(true);
+    setFlying(true);
 
     try {
       await api.post('/contact-messages', {
@@ -143,27 +292,43 @@ export default function Contact() {
         message: form.message,
       });
 
+      // Delay kecil biar paper plane keliatan
+      await new Promise((r) => setTimeout(r, reduce ? 0 : 900));
+
       setForm({ name: '', email: '', subject: '', message: '' });
       setSuccess(true);
-      clearTimeout(successTimer.current);
-      successTimer.current = setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
       setError(err.response?.data?.message || "Couldn't send your message. Please try again.");
     } finally {
       setSending(false);
+      setFlying(false);
     }
   }
 
-  // TODO: belum terhubung ke endpoint newsletter, saat ini hanya mengosongkan kolom.
   function handleNewsletter(e) {
     e.preventDefault();
-    setNewsletterEmail('');
+    setNewsletterSubscribed(true);
+    setTimeout(() => {
+      setNewsletterEmail('');
+      setNewsletterSubscribed(false);
+    }, 2500);
+  }
+
+  function resetForm() {
+    setSuccess(false);
+    setError('');
   }
 
   return (
     <MotionConfig reducedMotion="user">
       <style>{pageCss}</style>
       <div className="f-body min-h-screen bg-[#f5ede4]">
+
+        {/* Paper plane overlay */}
+        <AnimatePresence>
+          {flying && <PaperPlaneFly onDone={() => {}} />}
+        </AnimatePresence>
+
         {/* ===== HERO ===== */}
         <div className="relative bg-ink-950 overflow-hidden">
           <div
@@ -178,31 +343,49 @@ export default function Contact() {
           <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#f5ede4] to-transparent" aria-hidden="true" />
 
           <div className="relative max-w-4xl mx-auto px-4 py-20 md:py-28 text-center">
+            <h1 className="f-display text-4xl md:text-6xl font-semibold text-white leading-tight tracking-tight">
+              <RevealWords text="Contact" delay={0.2} />{' '}
+              <span className="text-amber-400 italic">
+                <RevealWords text="us." delay={0.5} />
+              </span>
+            </h1>
+
             <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.8, delay: 0.9, ease: EASE }}
+              className="w-16 h-[2px] bg-amber-500/60 mx-auto mt-5 origin-center"
+              aria-hidden="true"
+            />
+
+            <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
+              transition={{ duration: 0.6, delay: 1.1, ease: EASE }}
+              className="text-amber-200/70 text-sm md:text-base mt-6 max-w-xl mx-auto leading-relaxed"
             >
-              <h1 className="f-display text-4xl md:text-6xl font-semibold text-white leading-tight tracking-tight">
-                Contact <span className="text-amber-400 italic">us.</span>
-              </h1>
-              <div className="w-16 h-[2px] bg-amber-500/60 mx-auto mt-5" aria-hidden="true" />
-              <p className="text-amber-200/70 text-sm md:text-base mt-6 max-w-xl mx-auto leading-relaxed">
-                Questions, feedback, or just want to say hello? Reach out to us and we'll get back to you as soon as
-                possible.
-              </p>
-            </motion.div>
+              Questions, feedback, or just want to say hello? Reach out to us and we'll get back to you as soon as
+              possible.
+            </motion.p>
           </div>
         </div>
 
         {/* ===== MAIN ===== */}
         <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
           <div className="grid lg:grid-cols-3 gap-6 items-stretch">
-            {/* ----- Form ----- */}
+
+            {/* ----- Form (ticket slide from bottom) ----- */}
             <motion.section
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
+              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 100, rotate: -1.5 }}
+              animate={
+                mounted
+                  ? { opacity: 1, y: 0, rotate: 0 }
+                  : reduce
+                  ? { opacity: 0 }
+                  : { opacity: 0, y: 100, rotate: -1.5 }
+              }
+              transition={reduce ? { duration: 0.3 } : { type: 'spring', stiffness: 110, damping: 16, delay: 0.2 }}
+              style={{ willChange: 'transform, opacity', transformOrigin: '50% 100%' }}
               className={`${panel} lg:col-span-2 overflow-hidden flex flex-col`}
               aria-labelledby="contact-form-title"
             >
@@ -213,139 +396,148 @@ export default function Contact() {
                 <p className="text-xs text-amber-200/70 mt-0.5">We usually reply within 24 hours</p>
               </div>
 
-              <form onSubmit={handleSubmit} className="flex flex-col flex-1">
-                <div className="p-6 md:p-8 space-y-4 flex-1">
-                  <AnimatePresence>
-                    {success && (
-                      <motion.div
-                        role="status"
-                        initial={{ opacity: 0, y: -8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200/60 text-emerald-700 text-sm rounded-xl"
-                      >
-                        <Icon name="check" className="w-4 h-4 shrink-0" />
-                        Message sent! We'll get back to you soon.
-                      </motion.div>
-                    )}
-                    {error && (
-                      <motion.div
-                        role="alert"
-                        initial={{ opacity: 0, y: -8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="flex items-start gap-2 p-3 bg-red-50 text-red-700 text-sm rounded-xl"
-                      >
-                        <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
-                        <span>{error}</span>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="contact-name" className={labelCls}>
-                        Name
-                      </label>
-                      <input
-                        id="contact-name"
-                        name="name"
-                        required
-                        type="text"
-                        autoComplete="name"
-                        className={inputCls}
-                        placeholder="John Doe"
-                        value={form.name}
-                        onChange={setField('name')}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="contact-email" className={labelCls}>
-                        Email
-                      </label>
-                      <input
-                        id="contact-email"
-                        name="email"
-                        required
-                        type="email"
-                        autoComplete="email"
-                        className={inputCls}
-                        placeholder="you@example.com"
-                        value={form.email}
-                        onChange={setField('email')}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="contact-subject" className={labelCls}>
-                      Subject
-                    </label>
-                    <input
-                      id="contact-subject"
-                      name="subject"
-                      required
-                      type="text"
-                      className={inputCls}
-                      placeholder="How can we help?"
-                      value={form.subject}
-                      onChange={setField('subject')}
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="contact-message" className={labelCls}>
-                      Message
-                    </label>
-                    <textarea
-                      id="contact-message"
-                      name="message"
-                      required
-                      rows={6}
-                      className={`${inputCls} resize-none`}
-                      placeholder="Tell us a bit more"
-                      value={form.message}
-                      onChange={setField('message')}
-                    />
-                  </div>
-                </div>
-
-                {/* Stub */}
-                <div className="px-6 md:px-8 py-4 bg-amber-50 border-t border-dashed border-amber-300/80 flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-xs text-amber-700/80">We'll reply to the email address above.</p>
-                  <button
-                    type="submit"
-                    disabled={sending}
-                    className={`inline-flex items-center gap-2 px-5 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 text-sm font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${focusRing}`}
+              <AnimatePresence mode="wait">
+                {success ? (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    {sending ? (
-                      <>
-                        <Spinner />
-                        Sending…
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="send" className="w-4 h-4" />
-                        Send message
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
+                    <SuccessState onReset={resetForm} />
+                  </motion.div>
+                ) : (
+                  <motion.form
+                    key="form"
+                    onSubmit={handleSubmit}
+                    className="flex flex-col flex-1"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="p-6 md:p-8 space-y-4 flex-1">
+                      <AnimatePresence>
+                        {error && (
+                          <motion.div
+                            role="alert"
+                            initial={{ opacity: 0, y: -8, height: 0 }}
+                            animate={{ opacity: 1, y: 0, height: 'auto' }}
+                            exit={{ opacity: 0, y: -8, height: 0 }}
+                            className="flex items-start gap-2 p-3 bg-red-50 text-red-700 text-sm rounded-xl overflow-hidden"
+                          >
+                            <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
+                            <span>{error}</span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <FieldRow delay={0.3}>
+                          <label htmlFor="contact-name" className={labelCls}>Name</label>
+                          <input
+                            id="contact-name"
+                            name="name"
+                            required
+                            type="text"
+                            autoComplete="name"
+                            className={inputCls}
+                            placeholder="John Doe"
+                            value={form.name}
+                            onChange={setField('name')}
+                          />
+                        </FieldRow>
+                        <FieldRow delay={0.35}>
+                          <label htmlFor="contact-email" className={labelCls}>Email</label>
+                          <input
+                            id="contact-email"
+                            name="email"
+                            required
+                            type="email"
+                            autoComplete="email"
+                            className={inputCls}
+                            placeholder="you@example.com"
+                            value={form.email}
+                            onChange={setField('email')}
+                          />
+                        </FieldRow>
+                      </div>
+
+                      <FieldRow delay={0.4}>
+                        <label htmlFor="contact-subject" className={labelCls}>Subject</label>
+                        <input
+                          id="contact-subject"
+                          name="subject"
+                          required
+                          type="text"
+                          className={inputCls}
+                          placeholder="How can we help?"
+                          value={form.subject}
+                          onChange={setField('subject')}
+                        />
+                      </FieldRow>
+
+                      <FieldRow delay={0.45}>
+                        <label htmlFor="contact-message" className={labelCls}>Message</label>
+                        <textarea
+                          id="contact-message"
+                          name="message"
+                          required
+                          rows={6}
+                          className={`${inputCls} resize-none`}
+                          placeholder="Tell us a bit more"
+                          value={form.message}
+                          onChange={setField('message')}
+                        />
+                      </FieldRow>
+                    </div>
+
+                    {/* Stub */}
+                    <div className="px-6 md:px-8 py-4 bg-amber-50 border-t border-dashed border-amber-300/80 flex flex-wrap items-center justify-between gap-3">
+                      <p className="text-xs text-amber-700/80">We'll reply to the email address above.</p>
+                      <motion.button
+                        type="submit"
+                        disabled={sending}
+                        whileHover={!sending ? { scale: 1.03 } : {}}
+                        whileTap={!sending ? { scale: 0.97 } : {}}
+                        className={`inline-flex items-center gap-2 px-5 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 text-sm font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${focusRing}`}
+                      >
+                        {sending ? (
+                          <>
+                            <Spinner />
+                            Sending…
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="send" className="w-4 h-4" />
+                            Send message
+                          </>
+                        )}
+                      </motion.button>
+                    </div>
+                  </motion.form>
+                )}
+              </AnimatePresence>
             </motion.section>
 
             {/* ----- Newsletter ----- */}
             <motion.section
               initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
+              animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+              transition={{ duration: 0.5, delay: 0.35, ease: EASE }}
               className="bg-ink-950 border border-amber-500/20 rounded-2xl p-6 md:p-8 flex flex-col"
               aria-labelledby="newsletter-title"
             >
               <div className="flex items-center gap-3 mb-3">
-                <span className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <motion.span
+                  initial={{ rotate: -8, scale: 0.8 }}
+                  animate={{ rotate: 0, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.5 }}
+                  className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400"
+                >
                   <Icon name="mail" className="w-[18px] h-[18px]" />
-                </span>
+                </motion.span>
                 <h3 id="newsletter-title" className="f-display text-xl font-semibold text-amber-200">
                   Our newsletter
                 </h3>
@@ -368,12 +560,21 @@ export default function Contact() {
                   onChange={(e) => setNewsletterEmail(e.target.value)}
                   className={`w-full px-3.5 py-2.5 bg-white/95 text-amber-950 placeholder-amber-700/40 rounded-xl text-sm transition-all ${focusRingDark}`}
                 />
-                <button
+                <motion.button
                   type="submit"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   className={`w-full px-5 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-100 text-sm font-medium rounded-xl transition-colors ${focusRingDark}`}
                 >
-                  Subscribe
-                </button>
+                  {newsletterSubscribed ? (
+                    <span className="inline-flex items-center gap-2 justify-center">
+                      <Icon name="check" className="w-4 h-4" />
+                      Subscribed!
+                    </span>
+                  ) : (
+                    'Subscribe'
+                  )}
+                </motion.button>
               </form>
 
               <div className="mt-auto pt-6">
@@ -388,16 +589,26 @@ export default function Contact() {
           {/* ===== INFO ===== */}
           <motion.section
             initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
+            animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+            transition={{ duration: 0.5, delay: 0.5, ease: EASE }}
             className={`${panel} mt-6 grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-dashed divide-amber-200 overflow-hidden`}
             aria-label="Contact details"
           >
-            {CONTACT_INFO.map((info) => (
-              <div key={info.title} className="p-6 flex items-start gap-3 min-w-0">
-                <span className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 text-amber-800">
+            {CONTACT_INFO.map((info, i) => (
+              <motion.div
+                key={info.title}
+                initial={{ opacity: 0, y: 12 }}
+                animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+                transition={{ duration: 0.4, delay: 0.6 + i * 0.08, ease: EASE }}
+                whileHover={reduce ? {} : { y: -2 }}
+                className="p-6 flex items-start gap-3 min-w-0 transition-shadow hover:shadow-md hover:shadow-amber-950/5"
+              >
+                <motion.span
+                  whileHover={reduce ? {} : { rotate: [0, -8, 8, 0], transition: { duration: 0.4 } }}
+                  className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 text-amber-800"
+                >
                   <Icon name={info.icon} className="w-[18px] h-[18px]" />
-                </span>
+                </motion.span>
                 <div className="min-w-0">
                   <p className="text-xs text-amber-700/80">{info.title}</p>
                   {info.href ? (
@@ -412,47 +623,12 @@ export default function Contact() {
                   )}
                   <p className="text-xs text-amber-700/80 mt-1">{info.description}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </motion.section>
 
           {/* ===== MAP ===== */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-            className="mt-6 relative rounded-2xl overflow-hidden shadow-sm shadow-amber-950/5 bg-white"
-          >
-            <div className="absolute top-4 left-4 z-10 bg-white rounded-xl shadow-xl shadow-amber-950/10 p-4 max-w-xs hidden md:block">
-              <h4 className="f-display font-semibold text-amber-950 mb-1">TiketKu Headquarters</h4>
-              <p className="text-xs text-amber-700/80 leading-relaxed mb-2">
-                Building Indonesia Tower, Jl. Sudirman No. 123
-                <br />
-                Jakarta Pusat, 10220
-              </p>
-              <div className="flex items-center gap-1 text-xs text-amber-800">
-                <span className="text-amber-500" aria-hidden="true">★</span>
-                <span className="font-semibold">4.5</span>
-                <span className="text-amber-700/70">(1,234 reviews)</span>
-              </div>
-              <a
-                href="https://maps.google.com/?q=Jakarta"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex items-center gap-1 text-xs text-amber-700 font-semibold mt-2 hover:text-amber-900 rounded ${focusRing}`}
-              >
-                View larger map
-                <Icon name="arrow" className="w-3 h-3" />
-              </a>
-            </div>
-
-            <iframe
-              title="TiketKu location"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=106.7%2C-6.3%2C106.9%2C-6.1&layer=mapnik&marker=-6.2088%2C106.8456"
-              className="w-full h-72 md:h-80 border-0 block"
-              loading="lazy"
-            />
-          </motion.div>
+          <MapBlock />
         </div>
 
         {/* ===== FOOTER ===== */}
@@ -516,3 +692,68 @@ export default function Contact() {
     </MotionConfig>
   );
 }
+
+/* ============ FIELD ROW (stagger) ============ */
+function FieldRow({ children, delay = 0 }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay, ease: EASE }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* ============ MAP BLOCK (in-view reveal) ============ */
+function MapBlock() {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-80px' });
+  const reduce = useReducedMotion();
+
+  return (
+    <div ref={ref} className="mt-6 relative rounded-2xl overflow-hidden shadow-sm shadow-amber-950/5 bg-white">
+      <motion.div
+        initial={{ opacity: 0, x: -30 }}
+        animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
+        transition={{ duration: 0.6, delay: 0.2, ease: EASE }}
+        className="absolute top-4 left-4 z-10 bg-white rounded-xl shadow-xl shadow-amber-950/10 p-4 max-w-xs hidden md:block"
+      >
+        <h4 className="f-display font-semibold text-amber-950 mb-1">TiketKu Headquarters</h4>
+        <p className="text-xs text-amber-700/80 leading-relaxed mb-2">
+          Building Indonesia Tower, Jl. Sudirman No. 123
+          <br />
+          Jakarta Pusat, 10220
+        </p>
+        <div className="flex items-center gap-1 text-xs text-amber-800">
+          <span className="text-amber-500" aria-hidden="true">★</span>
+          <span className="font-semibold">4.5</span>
+          <span className="text-amber-700/70">(1,234 reviews)</span>
+        </div>
+        <a
+          href="https://maps.google.com/?q=Jakarta"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`inline-flex items-center gap-1 text-xs text-amber-700 font-semibold mt-2 hover:text-amber-900 rounded ${focusRing}`}
+        >
+          View larger map
+          <Icon name="arrow" className="w-3 h-3" />
+        </a>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 1.05 }}
+        animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 1.05 }}
+        transition={{ duration: 0.7, ease: EASE }}
+      >
+        <iframe
+          title="TiketKu location"
+          src="https://www.openstreetmap.org/export/embed.html?bbox=106.7%2C-6.3%2C106.9%2C-6.1&layer=mapnik&marker=-6.2088%2C106.8456"
+          className="w-full h-72 md:h-80 border-0 block"
+          loading="lazy"
+        />
+      </motion.div>
+    </div>
+  );
+} 

@@ -1,9 +1,20 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
+import {
+  motion,
+  AnimatePresence,
+  MotionConfig,
+  useReducedMotion,
+  useMotionValue,
+  useMotionTemplate,
+  useSpring,
+  useTransform,
+} from 'framer-motion';
 import api from '../../api/axios';
 import { formatRupiah, formatDate } from '../../components/Ui';
 import { getImageUrl } from '../../utils/image';
+
+const EASE = [0.22, 1, 0.36, 1];
 
 /* ============ ICONS ============ */
 const ICON_PATHS = {
@@ -44,35 +55,56 @@ function Spinner({ className = 'h-4 w-4' }) {
   );
 }
 
+function MiniBarcode({ bars = [1, 3, 2, 4, 1, 2, 1, 3], className = 'h-4', barClass = 'bg-amber-700/70' }) {
+  return (
+    <span className={`inline-flex items-end gap-0.5 ${className}`} aria-hidden="true">
+      {bars.map((w, i) => (
+        <span
+          key={i}
+          className={`${barClass} rounded-sm`}
+          style={{ width: `${w}px`, height: i % 2 ? '65%' : '100%' }}
+        />
+      ))}
+    </span>
+  );
+}
+
 /* ============ STYLES ============ */
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 focus-visible:ring-offset-1';
 
 const panel = 'bg-white rounded-2xl shadow-sm shadow-amber-950/5';
-const ticketShadow = 'rounded-2xl drop-shadow-[0_3px_8px_rgba(69,26,3,0.10)]';
+const ticketShadow = 'drop-shadow-[0_3px_8px_rgba(69,26,3,0.10)]';
 
 const inputCls =
   'w-full px-3.5 py-2.5 bg-amber-50/70 border border-amber-200 rounded-xl text-sm text-amber-950 placeholder-amber-700/40 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all';
 
+// The ticket is two separate pieces (body + stub) so the stub can tear off on its own.
 const pageCss = `
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Figtree:wght@400;500;600&display=swap');
 
   .f-display { font-family: 'Fraunces', Georgia, serif; }
   .f-body { font-family: 'Figtree', system-ui, -apple-system, sans-serif; }
 
-  .ticket-card {
-    --stub-h: 4.75rem;
+  .ticket-body {
     -webkit-mask:
-      radial-gradient(circle 9px at 0 calc(100% - var(--stub-h)), #0000 97%, #000) left / 51% 100% no-repeat,
-      radial-gradient(circle 9px at 100% calc(100% - var(--stub-h)), #0000 97%, #000) right / 51% 100% no-repeat;
+      radial-gradient(circle 9px at 0 100%, #0000 97%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle 9px at 100% 100%, #0000 97%, #000) right / 51% 100% no-repeat;
     mask:
-      radial-gradient(circle 9px at 0 calc(100% - var(--stub-h)), #0000 97%, #000) left / 51% 100% no-repeat,
-      radial-gradient(circle 9px at 100% calc(100% - var(--stub-h)), #0000 97%, #000) right / 51% 100% no-repeat;
+      radial-gradient(circle 9px at 0 100%, #0000 97%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle 9px at 100% 100%, #0000 97%, #000) right / 51% 100% no-repeat;
+  }
+  .ticket-stub {
+    -webkit-mask:
+      radial-gradient(circle 9px at 0 0, #0000 97%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle 9px at 100% 0, #0000 97%, #000) right / 51% 100% no-repeat;
+    mask:
+      radial-gradient(circle 9px at 0 0, #0000 97%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle 9px at 100% 0, #0000 97%, #000) right / 51% 100% no-repeat;
   }
 `;
 
 const FEE_PERCENT = 5;
-
 const STEPS = ['Details', 'Payment', 'E-ticket'];
 
 const PAYMENT_METHODS = [
@@ -91,14 +123,10 @@ const TRUST_POINTS = [
 /* ============ SMALL COMPONENTS ============ */
 function CountdownTimer({ minutes = 15 }) {
   const [timeLeft, setTimeLeft] = useState(minutes * 60);
-
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 0) {
-          clearInterval(timer);
-          return 0;
-        }
+        if (prev <= 0) { clearInterval(timer); return 0; }
         return prev - 1;
       });
     }, 1000);
@@ -110,10 +138,7 @@ function CountdownTimer({ minutes = 15 }) {
   const urgent = timeLeft < 300;
 
   return (
-    <div
-      role="timer"
-      className={`flex items-center gap-2 ${urgent ? 'text-red-600' : 'text-amber-700'}`}
-    >
+    <div role="timer" className={`flex items-center gap-2 ${urgent ? 'text-red-600' : 'text-amber-700'}`}>
       <Icon name="clock" className={`w-4 h-4 ${urgent ? 'animate-pulse motion-reduce:animate-none' : ''}`} />
       <span className="f-display font-semibold tabular-nums">
         {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
@@ -172,6 +197,224 @@ function SectionTitle({ children }) {
   return <h2 className="f-display text-xl font-semibold text-amber-950 mb-3">{children}</h2>;
 }
 
+// Each character rolls like an odometer when the amount changes.
+// Rolls up when the total goes up, down when a promo lowers it.
+const rollVariants = {
+  enter: (d) => ({ y: `${d * 70}%`, opacity: 0 }),
+  center: { y: '0%', opacity: 1 },
+  exit: (d) => ({ y: `${d * -70}%`, opacity: 0 }),
+};
+
+function RollingText({ text, amount, className = '' }) {
+  const prevAmount = useRef(amount);
+  const dir = amount >= prevAmount.current ? 1 : -1;
+  useEffect(() => { prevAmount.current = amount; }, [amount]);
+
+  const chars = Array.from(text);
+  return (
+    <span className={`inline-flex overflow-hidden ${className}`} style={{ lineHeight: 1.25 }}>
+      <span className="sr-only">{text}</span>
+      {chars.map((ch, i) => {
+        const pos = chars.length - i; // key from the right so digits keep their place
+        return (
+          <span key={pos} className="relative inline-block" aria-hidden="true">
+            <AnimatePresence mode="popLayout" initial={false} custom={dir}>
+              <motion.span
+                key={ch}
+                custom={dir}
+                variants={rollVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: 'spring', stiffness: 380, damping: 30, delay: i * 0.015 }}
+                className="inline-block"
+              >
+                {ch === ' ' ? '\u00A0' : ch}
+              </motion.span>
+            </AnimatePresence>
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
+/* ============ THE TICKET ============ */
+// 1. prints out of a slot in short bursts
+// 2. tilts toward the pointer with a moving glare (mouse only)
+// 3. the Total stub tears away while the order is being created
+function TicketSummary({
+  concert, category, qty, ticketWord, subtotal, platformFee, discount, total,
+  serial, issuedDate, torn, onPrinted,
+}) {
+  const reduce = useReducedMotion();
+  const [printed, setPrinted] = useState(false);
+
+  const px = useMotionValue(0.5);
+  const py = useMotionValue(0.5);
+  const hover = useMotionValue(0);
+  const sx = useSpring(px, { stiffness: 140, damping: 18 });
+  const sy = useSpring(py, { stiffness: 140, damping: 18 });
+  const glareOpacity = useSpring(hover, { stiffness: 120, damping: 20 });
+  const rotateY = useTransform(sx, [0, 1], [-6, 6]);
+  const rotateX = useTransform(sy, [0, 1], [5, -5]);
+  const gx = useTransform(sx, (v) => v * 100);
+  const gy = useTransform(sy, (v) => v * 100);
+  const glare = useMotionTemplate`radial-gradient(260px circle at ${gx}% ${gy}%, rgba(255,255,255,0.65), transparent 65%)`;
+
+  function handleMove(e) {
+    if (reduce || torn || e.pointerType !== 'mouse') return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    px.set((e.clientX - rect.left) / rect.width);
+    py.set((e.clientY - rect.top) / rect.height);
+    hover.set(1);
+  }
+
+  function handleLeave() {
+    px.set(0.5);
+    py.set(0.5);
+    hover.set(0);
+  }
+
+  function handlePrinted() {
+    setPrinted(true);
+    onPrinted();
+  }
+
+  return (
+    <div className="relative pt-1">
+      {/* Printer slot */}
+      <motion.div
+        aria-hidden="true"
+        initial={{ opacity: 1 }}
+        animate={{ opacity: printed ? 0 : 1 }}
+        transition={{ duration: 0.4 }}
+        className="relative z-20 mx-[-8px] h-3 rounded-full bg-amber-900 shadow-md shadow-amber-950/30"
+      >
+        <span className="absolute inset-x-3 top-1/2 h-px -translate-y-1/2 bg-amber-950/70" />
+      </motion.div>
+
+      {/* The sheet only shows below the slot while printing */}
+      <div
+        className="-mt-1.5"
+        style={{ clipPath: printed ? 'none' : 'inset(0 -40px -60px -40px)' }}
+      >
+        <motion.div
+          initial={{ y: '-100%' }}
+          animate={{ y: ['-100%', '-78%', '-80%', '-46%', '-48%', '-14%', '-15%', '0%'] }}
+          transition={{
+            duration: 1.9,
+            delay: 0.25,
+            ease: 'easeInOut',
+            times: [0, 0.16, 0.24, 0.48, 0.56, 0.8, 0.87, 1],
+          }}
+          onAnimationComplete={handlePrinted}
+          className={ticketShadow}
+          style={{ perspective: 1000 }}
+        >
+          <motion.div
+            onPointerMove={handleMove}
+            onPointerLeave={handleLeave}
+            style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+          >
+            {/* ---- BODY ---- */}
+            <div className="ticket-body relative bg-white rounded-t-2xl overflow-hidden p-6 pb-7">
+              <div className="flex items-center justify-between gap-3 mb-5">
+                <h3 className="f-display text-lg font-semibold text-amber-950">Order summary</h3>
+                <MiniBarcode bars={[1, 2, 1, 3, 1, 2]} className="h-3 opacity-40" barClass="bg-amber-700/60" />
+              </div>
+
+              <div className="flex gap-4 pb-5 border-b border-dashed border-amber-200">
+                <div className="w-20 h-20 rounded-xl overflow-hidden bg-amber-100 shrink-0">
+                  {concert.poster ? (
+                    <img src={getImageUrl(concert.poster)} alt={concert.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-100 to-amber-200/70 text-amber-400">
+                      <Icon name="ticket" className="w-6 h-6" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="f-display font-semibold text-amber-950 leading-snug">{concert.name}</p>
+                  <p className="text-xs text-amber-700/80 mt-1">{category.name}</p>
+                  <p className="text-xs text-amber-700/80">
+                    <span className="tabular-nums">{qty}</span> {ticketWord}
+                  </p>
+                </div>
+              </div>
+
+              <dl className="pt-5 space-y-2.5 text-sm">
+                <div className="flex justify-between text-amber-800/80">
+                  <dt>Subtotal</dt>
+                  <dd className="tabular-nums">{formatRupiah(subtotal)}</dd>
+                </div>
+                <div className="flex justify-between text-amber-800/80">
+                  <dt>Service fee ({FEE_PERCENT}%)</dt>
+                  <dd className="tabular-nums">{formatRupiah(platformFee)}</dd>
+                </div>
+                <AnimatePresence initial={false}>
+                  {discount > 0 && (
+                    <motion.div
+                      key="discount"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3, ease: EASE }}
+                      className="overflow-hidden"
+                    >
+                      <div className="flex justify-between text-emerald-700 pt-0.5">
+                        <dt className="flex items-center gap-1.5">
+                          <motion.span
+                            initial={{ scale: 0, rotate: -40 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 14, delay: 0.1 }}
+                            className="inline-flex"
+                          >
+                            <Icon name="check" className="w-3.5 h-3.5" />
+                          </motion.span>
+                          Discount
+                        </dt>
+                        <dd className="tabular-nums">−{formatRupiah(discount)}</dd>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </dl>
+
+              <div className="mt-4 pt-3 border-t border-dashed border-amber-200/60 flex items-center justify-between text-[10px] font-mono text-amber-700/50">
+                <span>{serial}</span>
+                <span className="tabular-nums">{issuedDate}</span>
+              </div>
+
+              {/* Glare that follows the pointer */}
+              <motion.div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0"
+                style={{ background: glare, opacity: glareOpacity }}
+              />
+            </div>
+
+            {/* ---- STUB ---- */}
+            <motion.div
+              animate={torn ? { y: 18, x: 10, rotate: 4 } : { y: 0, x: 0, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 220, damping: 14 }}
+              style={{ transformOrigin: '0% 0%' }}
+              className="ticket-stub h-[4.75rem] border-t border-dashed border-amber-300/80 bg-amber-50 rounded-b-2xl px-6 flex items-center justify-between gap-3"
+            >
+              <span className="f-display font-semibold text-amber-950">Total</span>
+              <RollingText
+                text={formatRupiah(total)}
+                amount={total}
+                className="f-display text-2xl font-bold text-amber-800 tabular-nums"
+              />
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 /* ============ MAIN ============ */
 export default function Checkout() {
   const { state } = useLocation();
@@ -188,6 +431,13 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [promoChecking, setPromoChecking] = useState(false);
   const [showPromoInput, setShowPromoInput] = useState(false);
+  const [printed, setPrinted] = useState(false);
+
+  // Generated once, so the serial doesn't change every time the total does
+  const [serial] = useState(() => `TK-${Date.now().toString(36).slice(-6).toUpperCase()}`);
+  const [issuedDate] = useState(() =>
+    new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  );
 
   const fetchConcert = useCallback(async () => {
     if (!state) return;
@@ -195,10 +445,7 @@ export default function Checkout() {
     try {
       const res = await api.get(`/concerts/${state.concert_id}`);
       const cat = res.data.ticket_categories?.find((c) => String(c.id) === String(state.ticket_category_id));
-      if (!cat) {
-        setLoadError(true);
-        return;
-      }
+      if (!cat) { setLoadError(true); return; }
       setConcert(res.data);
       setCategory(cat);
       setSchedule(res.data.schedules?.find((s) => String(s.id) === String(state.schedule_id)));
@@ -209,12 +456,11 @@ export default function Checkout() {
   }, [state]);
 
   useEffect(() => {
-    if (!state) {
-      navigate('/');
-      return;
-    }
+    if (!state) { navigate('/'); return; }
     fetchConcert();
   }, [state, navigate, fetchConcert]);
+
+  const handlePrinted = useCallback(() => setPrinted(true), []);
 
   if (!state) return null;
 
@@ -229,17 +475,10 @@ export default function Checkout() {
           <h1 className="f-display text-lg font-semibold text-amber-950 mb-1">Couldn't load your order</h1>
           <p className="text-sm text-amber-800/80 mb-5">Check your connection, or go back and pick your tickets again.</p>
           <div className="flex justify-center gap-3">
-            <Link
-              to={`/concerts/${state.concert_id}`}
-              className={`px-4 py-2.5 bg-white hover:bg-amber-50 text-amber-900 text-sm font-medium rounded-xl transition-colors ${focusRing}`}
-            >
+            <Link to={`/concerts/${state.concert_id}`} className={`px-4 py-2.5 bg-white hover:bg-amber-50 text-amber-900 text-sm font-medium rounded-xl transition-colors ${focusRing}`}>
               Back to event
             </Link>
-            <button
-              type="button"
-              onClick={fetchConcert}
-              className={`px-4 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 text-sm font-medium rounded-xl transition-colors ${focusRing}`}
-            >
+            <button type="button" onClick={fetchConcert} className={`px-4 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-50 text-sm font-medium rounded-xl transition-colors ${focusRing}`}>
               Try again
             </button>
           </div>
@@ -324,6 +563,7 @@ export default function Checkout() {
       <style>{pageCss}</style>
       <div className="f-body min-h-screen bg-[#f5ede4]">
         <div className="max-w-6xl mx-auto px-4 py-8">
+
           {/* ===== TOP BAR ===== */}
           <div className="flex items-center justify-between mb-8">
             <Link
@@ -333,7 +573,6 @@ export default function Checkout() {
               <Icon name="chevronLeft" className="w-4 h-4 group-hover:-translate-x-1 transition-transform motion-reduce:transition-none" />
               Back to event
             </Link>
-
             <div className="flex items-center gap-2 text-xs text-amber-700/80">
               <Icon name="lock" className="w-4 h-4 text-amber-600" />
               Secure checkout
@@ -341,20 +580,25 @@ export default function Checkout() {
           </div>
 
           {/* ===== HEADER ===== */}
-          <header className="mb-8">
+          <motion.header
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: EASE }}
+            className="mb-8"
+          >
             <h1 className="f-display text-4xl md:text-5xl font-bold text-amber-950 mb-6">Checkout</h1>
             <StepProgress current={0} />
-          </header>
+          </motion.header>
 
           <div className="grid lg:grid-cols-5 gap-6 lg:gap-8 items-start">
-            {/* ===== LEFT: DETAILS ===== */}
+
+            {/* ===== LEFT: DETAILS (one calm entrance for the whole column) ===== */}
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
               className="lg:col-span-3 space-y-6 min-w-0"
             >
-              {/* Timer */}
               <div className={`${panel} flex items-center justify-between gap-3 px-5 py-4`}>
                 <div className="flex items-center gap-2 text-sm text-amber-800/80">
                   <Icon name="alert" className="w-4 h-4 text-amber-600 shrink-0" />
@@ -363,7 +607,6 @@ export default function Checkout() {
                 <CountdownTimer minutes={15} />
               </div>
 
-              {/* Contact */}
               <section>
                 <SectionTitle>Contact information</SectionTitle>
                 <div className={`${panel} px-5 py-1`}>
@@ -373,7 +616,6 @@ export default function Checkout() {
                 </div>
               </section>
 
-              {/* Event details */}
               <section>
                 <SectionTitle>Event details</SectionTitle>
                 <div className={`${panel} px-5 divide-y divide-dashed divide-amber-200`}>
@@ -399,7 +641,6 @@ export default function Checkout() {
                 </div>
               </section>
 
-              {/* Promo */}
               <section>
                 <SectionTitle>Promo code</SectionTitle>
                 <div className={`${panel} p-5`}>
@@ -435,9 +676,7 @@ export default function Checkout() {
                         className="overflow-hidden"
                       >
                         <form onSubmit={checkPromo} className="flex gap-2 mt-4">
-                          <label htmlFor="promo-input" className="sr-only">
-                            Promo code
-                          </label>
+                          <label htmlFor="promo-input" className="sr-only">Promo code</label>
                           <input
                             id="promo-input"
                             className={`${inputCls} flex-1 uppercase`}
@@ -460,9 +699,7 @@ export default function Checkout() {
                         </form>
 
                         {promoError && (
-                          <p role="alert" className="text-red-600 text-xs mt-2">
-                            {promoError}
-                          </p>
+                          <p role="alert" className="text-red-600 text-xs mt-2">{promoError}</p>
                         )}
                         {promo && (
                           <div className="flex items-center justify-between gap-3 mt-3 px-3.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200/60 text-emerald-700 text-sm">
@@ -487,74 +724,24 @@ export default function Checkout() {
             </motion.div>
 
             {/* ===== RIGHT: SUMMARY ===== */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: 0.08 }}
-              className="lg:col-span-2 min-w-0"
-            >
+            <div className="lg:col-span-2 min-w-0">
               <div className="lg:sticky lg:top-8 space-y-5">
-                {/* Order summary: tiket dengan stub total */}
-                <div className={ticketShadow}>
-                  <div className="ticket-card bg-white rounded-2xl overflow-hidden grid grid-rows-[1fr_var(--stub-h)]">
-                    <div className="p-6">
-                      <h3 className="f-display text-lg font-semibold text-amber-950 mb-5">Order summary</h3>
 
-                      <div className="flex gap-4 pb-5 border-b border-dashed border-amber-200">
-                        <div className="w-20 h-20 rounded-xl overflow-hidden bg-amber-100 shrink-0">
-                          {concert.poster ? (
-                            <img src={getImageUrl(concert.poster)} alt={concert.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-100 to-amber-200/70 text-amber-400">
-                              <Icon name="ticket" className="w-6 h-6" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="f-display font-semibold text-amber-950 leading-snug">{concert.name}</p>
-                          <p className="text-xs text-amber-700/80 mt-1">{category.name}</p>
-                          <p className="text-xs text-amber-700/80">
-                            <span className="tabular-nums">{state.qty}</span> {ticketWord}
-                          </p>
-                        </div>
-                      </div>
+                <TicketSummary
+                  concert={concert}
+                  category={category}
+                  qty={state.qty}
+                  ticketWord={ticketWord}
+                  subtotal={subtotal}
+                  platformFee={platformFee}
+                  discount={discount}
+                  total={total}
+                  serial={serial}
+                  issuedDate={issuedDate}
+                  torn={loading}
+                  onPrinted={handlePrinted}
+                />
 
-                      <dl className="pt-5 space-y-2.5 text-sm">
-                        <div className="flex justify-between text-amber-800/80">
-                          <dt>Subtotal</dt>
-                          <dd className="tabular-nums">{formatRupiah(subtotal)}</dd>
-                        </div>
-                        <div className="flex justify-between text-amber-800/80">
-                          <dt>Service fee ({FEE_PERCENT}%)</dt>
-                          <dd className="tabular-nums">{formatRupiah(platformFee)}</dd>
-                        </div>
-                        {discount > 0 && (
-                          <div className="flex justify-between text-emerald-700">
-                            <dt>Discount</dt>
-                            <dd className="tabular-nums">−{formatRupiah(discount)}</dd>
-                          </div>
-                        )}
-                      </dl>
-                    </div>
-
-                    <div className="border-t border-dashed border-amber-300/80 bg-amber-50 px-6 flex items-center justify-between gap-3">
-                      <span className="f-display font-semibold text-amber-950">Total</span>
-                      <AnimatePresence mode="popLayout" initial={false}>
-                        <motion.span
-                          key={total}
-                          initial={{ opacity: 0, y: -6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 6 }}
-                          className="f-display text-2xl font-bold text-amber-800 tabular-nums"
-                        >
-                          {formatRupiah(total)}
-                        </motion.span>
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Error + CTA */}
                 {error && (
                   <div role="alert" className="flex items-start gap-2 p-3 rounded-xl bg-red-50 text-red-700 text-sm">
                     <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
@@ -562,11 +749,18 @@ export default function Checkout() {
                   </div>
                 )}
 
-                <button
+                {/* These arrive once the ticket has finished printing */}
+                <motion.button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={loading}
-                  className={`w-full py-3.5 bg-amber-700 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-amber-900/20 ${focusRing}`}
+                  disabled={loading || !printed}
+                  tabIndex={printed ? 0 : -1}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={printed ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+                  transition={{ duration: 0.45, ease: EASE }}
+                  whileHover={!loading && printed ? { scale: 1.01 } : {}}
+                  whileTap={!loading && printed ? { scale: 0.98 } : {}}
+                  className={`group w-full py-3.5 bg-amber-700 hover:bg-amber-600 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-amber-900/20 ${loading ? 'opacity-60' : ''} ${focusRing}`}
                 >
                   {loading ? (
                     <>
@@ -576,13 +770,17 @@ export default function Checkout() {
                   ) : (
                     <>
                       Continue to payment
-                      <Icon name="arrow" className="w-4 h-4" />
+                      <Icon name="arrow" className="w-4 h-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none" />
                     </>
                   )}
-                </button>
+                </motion.button>
 
-                {/* Payment methods */}
-                <div className={`${panel} p-5`}>
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={printed ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+                  transition={{ duration: 0.45, delay: 0.12, ease: EASE }}
+                  className={`${panel} p-5`}
+                >
                   <ul className="grid grid-cols-3 gap-2 pb-4 mb-4 border-b border-dashed border-amber-200">
                     {TRUST_POINTS.map((b) => (
                       <li key={b.label} className="flex flex-col items-center text-center gap-1.5">
@@ -613,9 +811,9 @@ export default function Checkout() {
                       the payment page after clicking Continue.
                     </p>
                   </div>
-                </div>
+                </motion.div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
