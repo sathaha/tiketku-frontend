@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import api from '../../api/axios';
-import { Loading, StarRating, formatRupiah, formatDate } from '../../components/Ui';
+import { Loading, formatRupiah, formatDate } from '../../components/Ui';
+
+const EASE = [0.22, 1, 0.36, 1];
 
 // ===== ICON COMPONENT =====
 function Icon({ name, className = 'w-4 h-4' }) {
@@ -30,9 +32,10 @@ function Icon({ name, className = 'w-4 h-4' }) {
     quote: 'M3 21c3 0 7-1 7-8V5c0-1.25-.756-2-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1zM15 21c3 0 7-1 7-8V5c0-1.25-.757-2-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z',
     close: 'M6 18L18 6M6 6l12 12',
     send: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
+    spark: 'M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12',
   };
   return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d={paths[name]} />
     </svg>
   );
@@ -84,23 +87,125 @@ function CountdownTimer({ expiresAt }) {
   );
 }
 
+// ===== SUCCESS BURST =====
+function SuccessBurst({ onDone }) {
+  const reduce = useReducedMotion();
+  const particles = Array.from({ length: 16 });
+
+  useEffect(() => {
+    if (reduce) {
+      const t = setTimeout(onDone, 400);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(onDone, 1400);
+    return () => clearTimeout(t);
+  }, [onDone, reduce]);
+
+  if (reduce) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[80] flex items-center justify-center pointer-events-none"
+      >
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="w-24 h-24 rounded-full bg-emerald-500 flex items-center justify-center shadow-2xl"
+        >
+          <Icon name="check" className="w-12 h-12 text-white" />
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      className="fixed inset-0 z-[80] flex items-center justify-center pointer-events-none"
+    >
+      {/* Backdrop flash */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 0.35, 0] }}
+        transition={{ duration: 1.0, times: [0, 0.3, 1] }}
+        className="absolute inset-0 bg-amber-300"
+        aria-hidden="true"
+      />
+
+      {/* Checkmark spring */}
+      <motion.div
+        initial={{ scale: 0, rotate: -180, opacity: 0 }}
+        animate={{ scale: 1, rotate: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+        className="relative w-28 h-28 rounded-full bg-emerald-500 flex items-center justify-center shadow-2xl shadow-emerald-500/40"
+      >
+        <svg viewBox="0 0 24 24" className="w-16 h-16 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+          <motion.path
+            d="M20 6L9 17l-5-5"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.5, delay: 0.35, ease: 'easeOut' }}
+          />
+        </svg>
+      </motion.div>
+
+      {/* Radial spark particles */}
+      {particles.map((_, i) => {
+        const angle = (i / particles.length) * Math.PI * 2;
+        const distance = 90 + Math.random() * 40;
+        const x = Math.cos(angle) * distance;
+        const y = Math.sin(angle) * distance;
+        return (
+          <motion.span
+            key={i}
+            initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
+            animate={{ x, y, scale: [0, 1, 0.6], opacity: [1, 1, 0] }}
+            transition={{ duration: 0.9, delay: 0.2 + Math.random() * 0.1, ease: 'easeOut' }}
+            className="absolute w-2 h-2 rounded-full bg-amber-500"
+            aria-hidden="true"
+          />
+        );
+      })}
+    </motion.div>
+  );
+}
+
+// ===== EMERGING TICKET WRAPPER =====
+function EmergingTicketWrapper({ children, delay = 0 }) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      initial={reduce ? { opacity: 0 } : { opacity: 0, y: 60, clipPath: 'inset(0 0 100% 0)' }}
+      animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)' }}
+      transition={{ duration: 0.7, delay, ease: EASE }}
+      style={{ willChange: 'clip-path, transform' }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 // ===== TICKET CARD =====
 function TicketCard({ ticket, index }) {
   const [copied, setCopied] = useState(false);
 
   async function copyTicketCode() {
-    await navigator.clipboard.writeText(ticket.ticket_code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(ticket.ticket_code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // silent
+    }
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.08, type: 'spring', stiffness: 260, damping: 22 }}
-      className="relative bg-white border border-amber-200/50 rounded-xl overflow-hidden shadow-sm"
-    >
+    <div className="relative bg-white border border-amber-200/50 rounded-xl overflow-hidden shadow-sm">
       <div className="p-5">
         <div className="flex items-center justify-between mb-3">
           <span className="font-serif text-[9px] tracking-[0.3em] text-amber-600/60 uppercase">
@@ -127,6 +232,7 @@ function TicketCard({ ticket, index }) {
 
         <div className="flex items-center justify-center gap-3">
           <button
+            type="button"
             onClick={copyTicketCode}
             className="flex items-center gap-1 text-xs font-serif text-amber-700 hover:text-amber-900 transition-colors"
           >
@@ -153,7 +259,7 @@ function TicketCard({ ticket, index }) {
           </a>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -198,15 +304,12 @@ function Stepper({ currentStep }) {
   );
 }
 
-// ===================================================================
-// ⭐ TESTIMONIAL SECTION — Submit a platform testimonial
-// ===================================================================
+// ===== TESTIMONIAL SECTION =====
 function TestimonialSection({ orderId }) {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [checking, setChecking] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
-  // Form state
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
   const [text, setText] = useState('');
@@ -219,7 +322,6 @@ function TestimonialSection({ orderId }) {
   const remaining = MAX_CHARS - text.length;
   const isValid = text.trim().length >= MIN_CHARS && text.length <= MAX_CHARS;
 
-  // Check if a testimonial has already been submitted for this order
   useEffect(() => {
     let mounted = true;
     api
@@ -227,7 +329,6 @@ function TestimonialSection({ orderId }) {
       .then((res) => {
         if (!mounted) return;
         setHasSubmitted(res.data.hasSubmitted);
-        // Auto-show form if not yet submitted
         if (!res.data.hasSubmitted) setShowForm(true);
       })
       .catch(() => {})
@@ -240,16 +341,10 @@ function TestimonialSection({ orderId }) {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!isValid) return;
-
     setSubmitting(true);
     setError('');
-
     try {
-      await api.post('/testimonials', {
-        text: text.trim(),
-        rating,
-        order_id: orderId,
-      });
+      await api.post('/testimonials', { text: text.trim(), rating, order_id: orderId });
       setSuccess(true);
       setHasSubmitted(true);
       setTimeout(() => setShowForm(false), 2500);
@@ -269,7 +364,6 @@ function TestimonialSection({ orderId }) {
     );
   }
 
-  // If already submitted & form is dismissed
   if (hasSubmitted && !showForm) {
     return (
       <motion.div
@@ -281,14 +375,11 @@ function TestimonialSection({ orderId }) {
           <Icon name="checkCircle" className="w-5 h-5 text-emerald-600" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-serif text-sm font-semibold text-emerald-900">
-            Testimonial submitted
-          </p>
-          <p className="font-serif text-xs text-emerald-700/70 mt-0.5">
-            Thank you for sharing your experience!
-          </p>
+          <p className="font-serif text-sm font-semibold text-emerald-900">Testimonial submitted</p>
+          <p className="font-serif text-xs text-emerald-700/70 mt-0.5">Thank you for sharing your experience!</p>
         </div>
         <button
+          type="button"
           onClick={() => setShowForm(true)}
           className="text-xs font-serif text-emerald-700 hover:text-emerald-900 underline"
         >
@@ -298,7 +389,6 @@ function TestimonialSection({ orderId }) {
     );
   }
 
-  // SUCCESS STATE
   if (success) {
     return (
       <motion.div
@@ -322,16 +412,15 @@ function TestimonialSection({ orderId }) {
     );
   }
 
-  // FORM STATE
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="relative bg-[#faf6ef] border-2 border-amber-300/50 rounded-2xl p-6 md:p-8 shadow-xl"
     >
-      {/* Close button (only if already submitted, so it can be dismissed) */}
       {hasSubmitted && (
         <button
+          type="button"
           onClick={() => setShowForm(false)}
           className="absolute top-4 right-4 w-8 h-8 rounded-full bg-amber-100 hover:bg-amber-200 flex items-center justify-center text-amber-700 transition-colors"
           aria-label="Close"
@@ -340,7 +429,6 @@ function TestimonialSection({ orderId }) {
         </button>
       )}
 
-      {/* Header */}
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-700/10 border border-amber-700/20 mb-3">
           <Icon name="quote" className="w-6 h-6 text-amber-700" />
@@ -357,7 +445,6 @@ function TestimonialSection({ orderId }) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Star rating */}
         <div className="text-center">
           <label className="block font-serif text-[10px] tracking-[0.3em] text-amber-700/70 uppercase mb-3">
             Your Rating
@@ -378,19 +465,13 @@ function TestimonialSection({ orderId }) {
                   aria-label={`Rate ${star}`}
                 >
                   <svg
-                    className={`w-9 h-9 transition-colors duration-150 ${
-                      active ? 'text-amber-500' : 'text-amber-200'
-                    }`}
+                    className={`w-9 h-9 transition-colors duration-150 ${active ? 'text-amber-500' : 'text-amber-200'}`}
                     fill={active ? 'currentColor' : 'none'}
                     stroke="currentColor"
                     strokeWidth={1.5}
                     viewBox="0 0 24 24"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                   </svg>
                 </motion.button>
               );
@@ -401,7 +482,6 @@ function TestimonialSection({ orderId }) {
           </p>
         </div>
 
-        {/* Textarea */}
         <div>
           <label className="block font-serif text-[10px] tracking-[0.3em] text-amber-700/70 uppercase mb-2">
             Tell Us Your Experience
@@ -416,13 +496,10 @@ function TestimonialSection({ orderId }) {
           />
           <div className="flex items-center justify-between mt-2 text-[10px] font-serif text-amber-600/50">
             <span>Min. {MIN_CHARS} characters</span>
-            <span className={remaining < 50 ? 'text-red-500' : ''}>
-              {remaining} characters left
-            </span>
+            <span className={remaining < 50 ? 'text-red-500' : ''}>{remaining} characters left</span>
           </div>
         </div>
 
-        {/* Error */}
         <AnimatePresence>
           {error && (
             <motion.div
@@ -436,7 +513,6 @@ function TestimonialSection({ orderId }) {
           )}
         </AnimatePresence>
 
-        {/* Submit */}
         <motion.button
           type="submit"
           disabled={submitting || !isValid}
@@ -472,6 +548,14 @@ export default function OrderDetail() {
   const [eticket, setEticket] = useState(null);
   const [copiedVa, setCopiedVa] = useState(false);
 
+  // 🎉 State animasi kemenangan
+  const [showBurst, setShowBurst] = useState(false);
+  const [justPaid, setJustPaid] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
   useEffect(() => {
     fetchOrder();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -500,16 +584,21 @@ export default function OrderDetail() {
     try {
       const res = await api.get(`/orders/${id}/check-payment`);
       if (res.data.status === 'lunas') {
+        // 🎉 Trigger burst + emerge
+        setShowBurst(true);
         setCheckMsg('Payment confirmed! Your tickets are ready.');
         setCheckOk('success');
+        setJustPaid(true);
+        await fetchOrder();
       } else if (res.data.status === 'kadaluarsa') {
         setCheckMsg('The payment window has expired.');
         setCheckOk('expired');
+        fetchOrder();
       } else {
         setCheckMsg('We have not received your payment yet. Have you completed the payment?');
         setCheckOk('pending');
+        fetchOrder();
       }
-      fetchOrder();
     } catch (err) {
       setCheckMsg(err.response?.data?.message || 'Failed to check payment status.');
       setCheckOk('pending');
@@ -519,12 +608,17 @@ export default function OrderDetail() {
   }
 
   async function copyVaNumber() {
-    await navigator.clipboard.writeText(order.va_number || '');
-    setCopiedVa(true);
-    setTimeout(() => setCopiedVa(false), 2000);
+    try {
+      await navigator.clipboard.writeText(order.va_number || '');
+      setCopiedVa(true);
+      setTimeout(() => setCopiedVa(false), 2000);
+    } catch {
+      // silent
+    }
   }
 
   if (loading) return <Loading />;
+
   if (!order)
     return (
       <div className="min-h-screen bg-[#f5ede4] flex items-center justify-center px-4">
@@ -605,11 +699,16 @@ export default function OrderDetail() {
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
           backgroundSize: '200px 200px',
         }}
+        aria-hidden="true"
       />
+
+      {/* 🎉 SUCCESS BURST — overlay saat pembayaran baru lunas */}
+      <AnimatePresence>
+        {showBurst && <SuccessBurst onDone={() => setShowBurst(false)} />}
+      </AnimatePresence>
 
       <div className="max-w-5xl mx-auto px-4 py-8 relative">
 
-        {/* Back button */}
         <Link
           to="/my-orders"
           className="inline-flex items-center gap-1 text-sm font-serif text-amber-700/50 hover:text-amber-900 transition-colors group mb-6"
@@ -632,6 +731,7 @@ export default function OrderDetail() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={justPaid ? { delay: 1.4, duration: 0.6, ease: EASE } : { duration: 0.5 }}
             className="bg-emerald-50/80 border border-emerald-200/50 rounded-2xl p-5 mb-6 flex items-start gap-4"
           >
             <div className="w-12 h-12 rounded-xl bg-white border border-emerald-200/60 flex items-center justify-center flex-shrink-0">
@@ -652,7 +752,7 @@ export default function OrderDetail() {
         {/* ===== 2-COLUMN GRID ===== */}
         <div className="grid lg:grid-cols-3 gap-6">
 
-          {/* ===== LEFT COLUMN (2/3) ===== */}
+          {/* ===== LEFT COLUMN ===== */}
           <div className="lg:col-span-2 space-y-5">
 
             {/* BOOKING DETAILS */}
@@ -667,46 +767,28 @@ export default function OrderDetail() {
 
               <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
                 <div>
-                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">
-                    Customer
-                  </p>
-                  <p className="font-serif text-sm text-amber-950 font-medium">
-                    {order.customer_name || '-'}
-                  </p>
+                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">Customer</p>
+                  <p className="font-serif text-sm text-amber-950 font-medium">{order.customer_name || '-'}</p>
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">
-                    Order Code
-                  </p>
-                  <p className="font-mono text-sm text-amber-950">
-                    #{order.order_code}
-                  </p>
+                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">Order Code</p>
+                  <p className="font-mono text-sm text-amber-950">#{order.order_code}</p>
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">
-                    Email
-                  </p>
-                  <p className="font-serif text-sm text-amber-950 break-all">
-                    {order.customer_email || '-'}
-                  </p>
+                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">Email</p>
+                  <p className="font-serif text-sm text-amber-950 break-all">{order.customer_email || '-'}</p>
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">
-                    Order Date
-                  </p>
-                  <p className="font-serif text-sm text-amber-950">
-                    {formatDate(order.created_at)}
-                  </p>
+                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">Order Date</p>
+                  <p className="font-serif text-sm text-amber-950">{formatDate(order.created_at)}</p>
                 </div>
 
                 {order.event_date && (
                   <div>
-                    <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">
-                      Event Date
-                    </p>
+                    <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">Event Date</p>
                     <p className="font-serif text-sm text-amber-950">
                       {formatDate(order.event_date)}
                       {order.start_time && (
@@ -717,9 +799,7 @@ export default function OrderDetail() {
                 )}
 
                 <div>
-                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">
-                    Ticket Category
-                  </p>
+                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1.5">Ticket Category</p>
                   <p className="font-serif text-sm text-amber-950">
                     {order.ticket_category_name} · {order.qty}× tickets
                   </p>
@@ -727,12 +807,12 @@ export default function OrderDetail() {
               </div>
             </motion.div>
 
-            {/* E-TICKET SECTION */}
+            {/* ===== E-TICKET SECTION ===== */}
             {eticket && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 }}
+                transition={justPaid ? { delay: 0.4, duration: 0.5, ease: EASE } : { delay: 0.05 }}
                 className="bg-white/90 border border-amber-200/40 rounded-2xl p-6 shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-5">
@@ -751,7 +831,12 @@ export default function OrderDetail() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   {eticket.tickets.map((t, index) => (
-                    <TicketCard key={t.id} ticket={t} index={index} />
+                    <EmergingTicketWrapper
+                      key={t.id}
+                      delay={justPaid ? 0.9 + index * 0.15 : 0}
+                    >
+                      <TicketCard ticket={t} index={index} />
+                    </EmergingTicketWrapper>
                   ))}
                 </div>
               </motion.div>
@@ -762,7 +847,7 @@ export default function OrderDetail() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
+                transition={justPaid ? { delay: 1.4, duration: 0.5, ease: EASE } : { delay: 0.1 }}
                 className="bg-white/90 border border-amber-200/40 rounded-2xl p-6 shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-5">
@@ -770,25 +855,17 @@ export default function OrderDetail() {
                     <Icon name="pin" className="w-5 h-5 text-amber-700" />
                   </div>
                   <div>
-                    <h2 className="font-serif text-base font-semibold text-amber-950">
-                      Venue Location
-                    </h2>
-                    <p className="text-xs font-serif text-amber-700/50">
-                      Navigate to the concert location
-                    </p>
+                    <h2 className="font-serif text-base font-semibold text-amber-950">Venue Location</h2>
+                    <p className="text-xs font-serif text-amber-700/50">Navigate to the concert location</p>
                   </div>
                 </div>
 
                 <div className="bg-amber-50/50 border border-amber-200/40 rounded-xl p-4 mb-4">
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="min-w-0">
-                      <p className="font-serif font-medium text-amber-900">
-                        {order.venue_name || '-'}
-                      </p>
+                      <p className="font-serif font-medium text-amber-900">{order.venue_name || '-'}</p>
                       {order.venue_address && (
-                        <p className="text-sm font-serif text-amber-700/60 mt-1">
-                          {order.venue_address}
-                        </p>
+                        <p className="text-sm font-serif text-amber-700/60 mt-1">{order.venue_address}</p>
                       )}
                       {order.city && (
                         <p className="text-sm font-serif text-amber-600/50 mt-1">{order.city}</p>
@@ -830,9 +907,7 @@ export default function OrderDetail() {
                 ) : (
                   <div className="bg-amber-50/50 border border-amber-200/30 rounded-xl p-6 text-center mb-4">
                     <Icon name="pin" className="w-10 h-10 text-amber-300/50 mx-auto mb-2" />
-                    <p className="text-sm font-serif text-amber-700/50">
-                      Map is not available for this venue
-                    </p>
+                    <p className="text-sm font-serif text-amber-700/50">Map is not available for this venue</p>
                   </div>
                 )}
 
@@ -887,6 +962,7 @@ export default function OrderDetail() {
                           {order.va_number}
                         </span>
                         <button
+                          type="button"
                           onClick={copyVaNumber}
                           className="p-2 hover:bg-amber-100/50 rounded-md transition-colors"
                           aria-label="Copy VA number"
@@ -926,6 +1002,7 @@ export default function OrderDetail() {
                       </a>
                     )}
                     <button
+                      type="button"
                       onClick={handleCheckStatus}
                       disabled={checking}
                       className="w-full py-3 bg-white/80 border border-amber-200/40 hover:border-amber-500/50 text-amber-950 font-serif text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 rounded-lg"
@@ -967,13 +1044,13 @@ export default function OrderDetail() {
               )}
             </AnimatePresence>
 
-            {/* ===== ⭐ TESTIMONIAL SECTION (REPLACES THE OLD REVIEW SECTION) ===== */}
+            {/* TESTIMONIAL SECTION */}
             {order.status === 'lunas' && (
               <TestimonialSection orderId={order.id} />
             )}
           </div>
 
-          {/* ===== RIGHT COLUMN — SIDEBAR (1/3) ===== */}
+          {/* ===== RIGHT COLUMN — SIDEBAR ===== */}
           <div className="lg:col-span-1 space-y-5">
 
             {/* RESERVATION SUMMARY */}
@@ -995,17 +1072,13 @@ export default function OrderDetail() {
                   {order.concert_name}
                 </p>
                 {order.artist && (
-                  <p className="text-xs font-serif text-amber-700/60 mt-0.5">
-                    {order.artist}
-                  </p>
+                  <p className="text-xs font-serif text-amber-700/60 mt-0.5">{order.artist}</p>
                 )}
               </div>
 
               {order.event_date && (
                 <div className="mb-4">
-                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1">
-                    Schedule
-                  </p>
+                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1">Schedule</p>
                   <p className="font-serif text-sm text-amber-950 flex items-center gap-1.5">
                     <Icon name="calendar" className="w-3.5 h-3.5 text-amber-500" />
                     {formatDate(order.event_date)}
@@ -1021,9 +1094,7 @@ export default function OrderDetail() {
 
               {order.venue_name && (
                 <div className="mb-4">
-                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1">
-                    Venue
-                  </p>
+                  <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1">Venue</p>
                   <p className="font-serif text-sm text-amber-950 flex items-start gap-1.5">
                     <Icon name="pin" className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
                     <span>{order.venue_name}{order.city ? `, ${order.city}` : ''}</span>
@@ -1032,9 +1103,7 @@ export default function OrderDetail() {
               )}
 
               <div className="mb-4">
-                <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1">
-                  Tickets
-                </p>
+                <p className="text-[10px] font-serif tracking-[0.2em] text-amber-600/50 uppercase mb-1">Tickets</p>
                 <p className="font-serif text-sm text-amber-950">
                   {order.ticket_category_name} × {order.qty}
                 </p>
@@ -1063,25 +1132,19 @@ export default function OrderDetail() {
                 {order.discount_amount > 0 && (
                   <div className="flex justify-between text-emerald-700">
                     <span>Discount</span>
-                    <span className="font-mono tabular-nums">
-                      −{formatRupiah(order.discount_amount)}
-                    </span>
+                    <span className="font-mono tabular-nums">−{formatRupiah(order.discount_amount)}</span>
                   </div>
                 )}
 
                 {order.platform_fee_amount > 0 && (
                   <div className="flex justify-between text-amber-800/70">
                     <span>Platform fee</span>
-                    <span className="font-mono tabular-nums">
-                      {formatRupiah(order.platform_fee_amount)}
-                    </span>
+                    <span className="font-mono tabular-nums">{formatRupiah(order.platform_fee_amount)}</span>
                   </div>
                 )}
 
                 <div className="pt-3 mt-3 border-t border-amber-200/40 flex justify-between items-baseline">
-                  <span className="text-[10px] font-serif tracking-[0.2em] text-amber-700/60 uppercase">
-                    Total
-                  </span>
+                  <span className="text-[10px] font-serif tracking-[0.2em] text-amber-700/60 uppercase">Total</span>
                   <span className="font-serif text-xl font-bold text-amber-800 tabular-nums">
                     {formatRupiah(order.total_price)}
                   </span>

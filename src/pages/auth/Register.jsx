@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
+import {
+  motion,
+  AnimatePresence,
+  MotionConfig,
+  useAnimationControls,
+  useReducedMotion,
+} from 'framer-motion';
 import { GoogleLogin } from '@react-oauth/google';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
@@ -21,8 +27,11 @@ const ROUTES_BY_ROLE = {
   eo: '/eo/dashboard',
 };
 
-const BARS = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 1, 3, 2, 1, 3, 1];
+const BARS = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 1, 3, 2, 1, 3, 1, 2, 2, 1, 4];
 const PERKS = ['Free to join', 'Instant tickets', 'Secure payments'];
+const MIN_PASSWORD = 6;
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /* ============ ICONS ============ */
 const ICON_PATHS = {
@@ -48,30 +57,60 @@ function Spinner({ className = 'h-4 w-4' }) {
   );
 }
 
+/* ============ ANIMASI ============ */
+const TEAR_MS = 780;
+const tearTransition = { duration: 0.65, ease: [0.5, 0, 0.2, 1] };
+
+const barcodeVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.025, delayChildren: 0.6 } },
+};
+const barVariants = {
+  hidden: { scaleY: 0 },
+  show: { scaleY: 1, transition: { duration: 0.25, ease: 'easeOut' } },
+};
+
+const lineVariants = {
+  hidden: { opacity: 0, y: 14 },
+  show: (i) => ({ opacity: 1, y: 0, transition: { delay: 0.3 + i * 0.1, duration: 0.4, ease: 'easeOut' } }),
+};
+
 /* ============ STYLES ============ */
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 focus-visible:ring-offset-1';
+const focusRingDark =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70 focus-visible:ring-offset-1 focus-visible:ring-offset-amber-950';
 
 const inputCls =
-  'w-full px-4 py-3 bg-white border border-amber-200 rounded-xl text-sm text-amber-950 placeholder-amber-700/40 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all';
+  'w-full px-4 py-3 bg-white/70 border border-amber-200 rounded-xl text-sm text-amber-950 placeholder-amber-700/40 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all';
 
-/* Ticket with a tear line between the dark and light halves.
-   The notches are cut out with a mask, so they work on any background (desktop only). */
+/*
+  Tiket terdiri dari dua bagian yang masing-masing punya lubang sendiri di sisi sobekan,
+  jadi keduanya bisa terpisah saat disobek.
+*/
 const pageCss = `
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Figtree:wght@400;500;600&display=swap');
 
   .f-display { font-family: 'Fraunces', Georgia, serif; }
   .f-body { font-family: 'Figtree', system-ui, -apple-system, sans-serif; }
 
-  .register-pass { --left-w: 20rem; }
+  .register-pass { --left-w: 19rem; }
   @media (min-width: 768px) {
-    .register-pass {
+    .pass-left {
       -webkit-mask:
-        radial-gradient(circle 11px at var(--left-w) 0, #0000 97%, #000) top / 100% 51% no-repeat,
-        radial-gradient(circle 11px at var(--left-w) 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
+        radial-gradient(circle 11px at 100% 0, #0000 97%, #000) top / 100% 51% no-repeat,
+        radial-gradient(circle 11px at 100% 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
       mask:
-        radial-gradient(circle 11px at var(--left-w) 0, #0000 97%, #000) top / 100% 51% no-repeat,
-        radial-gradient(circle 11px at var(--left-w) 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
+        radial-gradient(circle 11px at 100% 0, #0000 97%, #000) top / 100% 51% no-repeat,
+        radial-gradient(circle 11px at 100% 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
+    }
+    .pass-right {
+      -webkit-mask:
+        radial-gradient(circle 11px at 0 0, #0000 97%, #000) top / 100% 51% no-repeat,
+        radial-gradient(circle 11px at 0 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
+      mask:
+        radial-gradient(circle 11px at 0 0, #0000 97%, #000) top / 100% 51% no-repeat,
+        radial-gradient(circle 11px at 0 100%, #0000 97%, #000) bottom / 100% 51% no-repeat;
     }
   }
 `;
@@ -98,15 +137,28 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [tearing, setTearing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [ticketNo] = useState(generateTicketNo);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
+  const shake = useAnimationControls();
 
-  // The Google button follows the form width (Google only accepts 200 to 400)
+  // Arah sobekan mengikuti tata letak: menyamping di desktop, atas-bawah di mobile
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onChange = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  // Tombol Google mengikuti lebar form (Google hanya menerima angka 200 sampai 400)
   const googleRef = useRef(null);
   const [googleWidth, setGoogleWidth] = useState(280);
-
   useEffect(() => {
     const el = googleRef.current;
     if (!el) return undefined;
@@ -119,18 +171,27 @@ export default function Register() {
 
   const issuedDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-  const redirectAfterAuth = (user) => {
-    navigate(ROUTES_BY_ROLE[user.role] || '/', { replace: true });
-  };
-
   const setField = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  // Tiket disobek dulu, baru sesi dimulai dan halaman berpindah
+  async function finishAuth(data) {
+    setTearing(true);
+    if (!reduceMotion) await wait(TEAR_MS);
+    login(data.token, data.user);
+    navigate(ROUTES_BY_ROLE[data.user.role] || '/', { replace: true });
+  }
+
+  function fail(message) {
+    setError(message);
+    shake.start({ x: [0, -9, 9, -6, 6, -3, 0], transition: { duration: 0.45, ease: 'easeOut' } });
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (form.password.length < 6) {
-      setError('Use a password with at least 6 characters.');
+    if (form.password.length < MIN_PASSWORD) {
+      fail(`Use a password with at least ${MIN_PASSWORD} characters.`);
       return;
     }
 
@@ -138,10 +199,10 @@ export default function Register() {
 
     try {
       const { data } = await api.post('/auth/register', form);
-      login(data.token, data.user);
-      redirectAfterAuth(data.user);
+      await finishAuth(data);
     } catch (err) {
-      setError(err.response?.data?.message || "Couldn't create your account. Please try again.");
+      setTearing(false);
+      fail(err.response?.data?.message || "Couldn't create your account. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -154,223 +215,290 @@ export default function Register() {
       const { data } = await api.post('/auth/google', {
         token: credentialResponse.credential,
       });
-      login(data.token, data.user);
-      redirectAfterAuth(data.user);
+      await finishAuth(data);
     } catch (err) {
-      setError(err.response?.data?.message || "Couldn't sign you up with Google. Please try again.");
+      setTearing(false);
+      fail(err.response?.data?.message || "Couldn't sign you up with Google. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Posisi akhir tiap bagian saat disobek
+  const restState = { x: 0, y: 0, rotate: 0, opacity: 1 };
+  const leftTear = isDesktop
+    ? { x: -60, y: 16, rotate: -6, opacity: 0 }
+    : { x: 0, y: -40, rotate: -2, opacity: 0 };
+  const rightTear = isDesktop
+    ? { x: 60, y: -10, rotate: 4, opacity: 0 }
+    : { x: 0, y: 40, rotate: 2, opacity: 0 };
+
+  const passwordGap = MIN_PASSWORD - form.password.length;
+
   return (
     <MotionConfig reducedMotion="user">
       <style>{pageCss}</style>
-      <div className="f-body min-h-screen relative flex items-center justify-center px-4 py-8">
-        {/* Background photo */}
+      <div className="f-body min-h-screen relative flex items-center justify-center px-4 py-8 overflow-hidden">
+        {/* Foto latar: gelap netral, sama seperti halaman Login */}
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url('https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600&q=80')` }}
           aria-hidden="true"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-950/80 via-amber-950/70 to-amber-950/90" aria-hidden="true" />
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
 
         <motion.main
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          initial={{ opacity: 0, y: 36, rotate: -1.5 }}
+          animate={{ opacity: 1, y: 0, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 140, damping: 18 }}
           className="w-full max-w-3xl relative"
+          aria-busy={loading}
         >
-          <div className="drop-shadow-[0_20px_40px_rgba(0,0,0,0.45)]">
-            <div className="register-pass grid md:grid-cols-[var(--left-w)_1fr] rounded-2xl overflow-hidden">
-              {/* ===== Dark half: pitch ===== */}
-              <section className="bg-amber-950 text-amber-50 p-7 md:p-8 flex flex-col">
-                <Link to="/" className={`inline-flex items-center gap-2.5 self-start rounded-lg ${focusRing}`}>
-                  <span className="w-9 h-9 rounded-full ring-2 ring-amber-400/70 flex items-center justify-center f-display text-lg font-semibold text-amber-300">
-                    T
-                  </span>
-                  <span className="f-display text-2xl font-bold text-amber-50">
+          <div className="drop-shadow-[0_16px_36px_rgba(0,0,0,0.4)]">
+            <motion.div animate={shake}>
+              <div className="register-pass grid md:grid-cols-[var(--left-w)_1fr]">
+                {/* ===== Bagian gelap: ajakan ===== */}
+                <motion.section
+                  animate={tearing ? leftTear : restState}
+                  transition={tearTransition}
+                  style={{ transformOrigin: isDesktop ? '100% 100%' : '50% 100%' }}
+                  className="pass-left relative bg-amber-950 text-amber-50 p-7 md:p-9 flex flex-col rounded-t-2xl md:rounded-tr-none md:rounded-l-2xl overflow-hidden"
+                >
+                  {/* Garis bingkai tipis di dalam, seperti tiket cetak */}
+                  <span className="pointer-events-none absolute inset-3 rounded-lg border border-amber-200/10" aria-hidden="true" />
+
+                  <Link
+                    to="/"
+                    className={`relative inline-flex items-baseline self-start rounded-lg f-display text-2xl font-bold ${focusRingDark}`}
+                  >
                     tiket<span className="text-amber-400">ku</span>
-                  </span>
-                </Link>
+                  </Link>
 
-                <h1 className="f-display text-4xl font-semibold leading-tight mt-8 md:mt-12">
-                  Join the
-                  <br />
-                  <span className="text-amber-300">experience.</span>
-                </h1>
-                <p className="text-sm text-amber-200/70 mt-3 leading-relaxed max-w-xs">
-                  Create your account and never miss a beat. Your next event is one ticket away.
-                </p>
+                  <div className="relative mt-8 md:mt-12">
+                    <h1 className="f-display text-4xl md:text-5xl font-semibold leading-[1.05] tracking-tight">
+                      <motion.span custom={0} variants={lineVariants} initial="hidden" animate="show" className="block">
+                        Join the
+                      </motion.span>
+                      <motion.span custom={1} variants={lineVariants} initial="hidden" animate="show" className="block">
+                        experience<span className="text-amber-400">.</span>
+                      </motion.span>
+                    </h1>
+                    <motion.p
+                      custom={2}
+                      variants={lineVariants}
+                      initial="hidden"
+                      animate="show"
+                      className="text-sm text-amber-200/70 mt-4 leading-relaxed max-w-[15rem]"
+                    >
+                      Create your account and never miss a beat. Your next event is one ticket away.
+                    </motion.p>
 
-                <ul className="mt-6 space-y-2">
-                  {PERKS.map((label) => (
-                    <li key={label} className="flex items-center gap-2 text-sm text-amber-100">
-                      <span className="w-5 h-5 rounded-full bg-amber-900 text-amber-300 flex items-center justify-center shrink-0">
-                        <Icon name="check" className="w-3 h-3" />
-                      </span>
-                      {label}
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="hidden md:block mt-auto pt-10">
-                  <div className="border-t border-dashed border-amber-800 pt-4 flex items-end justify-between gap-3">
-                    <div>
-                      <p className="text-xs text-amber-200/60">Entry pass</p>
-                      <p className="f-display text-base font-semibold tabular-nums">{ticketNo}</p>
-                      <p className="text-xs text-amber-200/60 mt-0.5">{issuedDate}</p>
-                    </div>
-                    <div className="flex items-end gap-0.5 opacity-60" aria-hidden="true">
-                      {BARS.map((w, i) => (
-                        <span
-                          key={i}
-                          className="bg-amber-300"
-                          style={{ width: `${w}px`, height: i % 3 === 0 ? '28px' : '22px' }}
-                        />
+                    <motion.ul custom={3} variants={lineVariants} initial="hidden" animate="show" className="mt-6 space-y-2">
+                      {PERKS.map((label) => (
+                        <li key={label} className="flex items-center gap-2 text-sm text-amber-100">
+                          <span className="w-5 h-5 rounded-full bg-amber-900 text-amber-400 flex items-center justify-center shrink-0">
+                            <Icon name="check" className="w-3 h-3" />
+                          </span>
+                          {label}
+                        </li>
                       ))}
+                    </motion.ul>
+                  </div>
+
+                  <div className="relative hidden md:block mt-auto pt-10">
+                    <div className="border-t border-dashed border-amber-800 pt-4 flex items-end justify-between gap-3">
+                      <div>
+                        <p className="text-xs text-amber-200/60">Issued</p>
+                        <p className="f-display text-base font-semibold tabular-nums">{issuedDate}</p>
+                      </div>
+                      {/* Barcode tercetak batang demi batang */}
+                      <motion.div
+                        variants={barcodeVariants}
+                        initial="hidden"
+                        animate="show"
+                        className="flex items-end gap-0.5 opacity-50"
+                        aria-hidden="true"
+                      >
+                        {BARS.map((w, i) => (
+                          <motion.span
+                            key={i}
+                            variants={barVariants}
+                            className="bg-amber-200 origin-bottom"
+                            style={{ width: `${w}px`, height: i % 3 === 0 ? '28px' : '22px' }}
+                          />
+                        ))}
+                      </motion.div>
                     </div>
                   </div>
-                </div>
-              </section>
 
-              {/* ===== Light half: form ===== */}
-              <section className="bg-amber-50 p-7 md:p-10">
-                <h2 className="f-display text-2xl font-semibold text-amber-950 mb-6">Sign up</h2>
-
-                <AnimatePresence>
-                  {error && (
-                    <motion.div
-                      role="alert"
-                      initial={{ opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      className="mb-5 flex items-start gap-2 p-3 rounded-xl bg-red-50 text-red-700 text-sm"
-                    >
-                      <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
-                      {error}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <Field id="reg-name" label="Full name">
-                    <input
-                      id="reg-name"
-                      name="name"
-                      type="text"
-                      required
-                      autoComplete="name"
-                      className={inputCls}
-                      value={form.name}
-                      onChange={setField('name')}
-                      placeholder="John Doe"
-                    />
-                  </Field>
-
-                  <Field id="reg-email" label="Email">
-                    <input
-                      id="reg-email"
-                      name="email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      className={inputCls}
-                      value={form.email}
-                      onChange={setField('email')}
-                      placeholder="you@example.com"
-                    />
-                  </Field>
-
-                  <Field id="reg-phone" label="Phone" optional>
-                    <input
-                      id="reg-phone"
-                      name="phone"
-                      type="tel"
-                      inputMode="tel"
-                      autoComplete="tel"
-                      className={inputCls}
-                      value={form.phone}
-                      onChange={setField('phone')}
-                      placeholder="0812xxxxxxx"
-                    />
-                  </Field>
-
-                  <Field id="reg-password" label="Password">
-                    <div className="relative">
-                      <input
-                        id="reg-password"
-                        name="password"
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        minLength={6}
-                        autoComplete="new-password"
-                        className={`${inputCls} pr-16`}
-                        value={form.password}
-                        onChange={setField('password')}
-                        placeholder="At least 6 characters"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((s) => !s)}
-                        aria-pressed={showPassword}
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
-                        className={`absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md text-sm font-medium text-amber-700 hover:text-amber-950 transition-colors ${focusRing}`}
-                      >
-                        {showPassword ? 'Hide' : 'Show'}
-                      </button>
-                    </div>
-                  </Field>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className={`w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-amber-800 hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed text-amber-50 text-sm font-semibold rounded-xl transition-colors ${focusRing}`}
+                  {/* Nomor seri, dicetak tegak di tepi sobekan */}
+                  <span
+                    className="hidden md:block absolute right-5 top-1/2 -translate-y-1/2 rotate-180 text-xs tracking-[0.25em] text-amber-200/35 tabular-nums"
+                    style={{ writingMode: 'vertical-rl' }}
+                    aria-hidden="true"
                   >
-                    {loading ? (
-                      <>
-                        <Spinner />
-                        Creating your account…
-                      </>
-                    ) : (
-                      <>
-                        Create account
-                        <Icon name="arrow" className="w-4 h-4" />
-                      </>
-                    )}
-                  </button>
-                </form>
+                    No. {ticketNo}
+                  </span>
+                </motion.section>
 
-                {/* "or" divider */}
-                <div className="flex items-center gap-3 my-5" aria-hidden="true">
-                  <span className="flex-1 border-t border-dashed border-amber-300" />
-                  <span className="text-sm text-amber-700/80">or</span>
-                  <span className="flex-1 border-t border-dashed border-amber-300" />
-                </div>
-
-                <div ref={googleRef} className="flex justify-center">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => setError("Google sign-up didn't complete. Please try again.")}
-                    theme="outline"
-                    size="large"
-                    text="signup_with"
-                    shape="pill"
-                    width={String(googleWidth)}
+                {/* ===== Bagian terang: form ===== */}
+                <motion.section
+                  animate={tearing ? rightTear : restState}
+                  transition={tearTransition}
+                  style={{ transformOrigin: isDesktop ? '0% 0%' : '50% 0%' }}
+                  className="pass-right relative bg-[#faf6ef] p-7 md:p-10 border-t border-dashed border-amber-300/80 md:border-t-0 rounded-b-2xl md:rounded-bl-none md:rounded-r-2xl overflow-hidden"
+                >
+                  <span
+                    className="hidden md:block absolute left-0 top-6 bottom-6 border-l-2 border-dashed border-amber-300/70"
+                    aria-hidden="true"
                   />
-                </div>
 
-                <p className="text-center text-sm text-amber-800 mt-6">
-                  Already have an account?{' '}
-                  <Link
-                    to="/login"
-                    className={`font-semibold text-amber-900 underline underline-offset-4 decoration-amber-400 hover:decoration-amber-800 rounded ${focusRing}`}
-                  >
-                    Sign in
-                  </Link>
-                </p>
-              </section>
-            </div>
+                  <h2 className="f-display text-2xl font-semibold text-amber-950">Sign up</h2>
+
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div
+                        role="alert"
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        className="mt-5 flex items-start gap-2 p-3 rounded-xl bg-red-50 text-red-700 text-sm"
+                      >
+                        <Icon name="alert" className="w-4 h-4 shrink-0 mt-0.5" />
+                        {error}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+                    <Field id="reg-name" label="Full name">
+                      <input
+                        id="reg-name"
+                        name="name"
+                        type="text"
+                        required
+                        autoComplete="name"
+                        className={inputCls}
+                        value={form.name}
+                        onChange={setField('name')}
+                        placeholder="John Doe"
+                      />
+                    </Field>
+
+                    <Field id="reg-email" label="Email">
+                      <input
+                        id="reg-email"
+                        name="email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                        className={inputCls}
+                        value={form.email}
+                        onChange={setField('email')}
+                        placeholder="you@example.com"
+                      />
+                    </Field>
+
+                    <Field id="reg-phone" label="Phone" optional>
+                      <input
+                        id="reg-phone"
+                        name="phone"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        className={inputCls}
+                        value={form.phone}
+                        onChange={setField('phone')}
+                        placeholder="0812xxxxxxx"
+                      />
+                    </Field>
+
+                    <Field id="reg-password" label="Password">
+                      <div className="relative">
+                        <input
+                          id="reg-password"
+                          name="password"
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          minLength={MIN_PASSWORD}
+                          autoComplete="new-password"
+                          aria-describedby="reg-password-hint"
+                          className={`${inputCls} pr-16`}
+                          value={form.password}
+                          onChange={setField('password')}
+                          placeholder={`At least ${MIN_PASSWORD} characters`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((s) => !s)}
+                          aria-pressed={showPassword}
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          className={`absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md text-sm font-medium text-amber-700 hover:text-amber-950 transition-colors ${focusRing}`}
+                        >
+                          {showPassword ? 'Hide' : 'Show'}
+                        </button>
+                      </div>
+                      <p
+                        id="reg-password-hint"
+                        aria-live="polite"
+                        className="text-xs text-amber-700/80 mt-1.5 min-h-[1rem]"
+                      >
+                        {form.password.length > 0 && passwordGap > 0
+                          ? `${passwordGap} more ${passwordGap === 1 ? 'character' : 'characters'} to go`
+                          : ''}
+                      </p>
+                    </Field>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className={`w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-amber-800 hover:bg-amber-700 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed text-amber-50 text-sm font-semibold rounded-xl transition-all ${focusRing}`}
+                    >
+                      {loading ? (
+                        <>
+                          <Spinner />
+                          {tearing ? 'Welcome in…' : 'Creating your account…'}
+                        </>
+                      ) : (
+                        <>
+                          Create account
+                          <Icon name="arrow" className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+
+                  {/* Pemisah "or" */}
+                  <div className="flex items-center gap-3 my-5" aria-hidden="true">
+                    <span className="flex-1 border-t border-dashed border-amber-300/80" />
+                    <span className="text-sm text-amber-700/80">or</span>
+                    <span className="flex-1 border-t border-dashed border-amber-300/80" />
+                  </div>
+
+                  <div ref={googleRef} className="flex justify-center">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={() => fail("Google sign-up didn't complete. Please try again.")}
+                      theme="outline"
+                      size="large"
+                      text="signup_with"
+                      shape="pill"
+                      width={String(googleWidth)}
+                    />
+                  </div>
+
+                  <p className="text-center text-sm text-amber-800 mt-6">
+                    Already have an account?{' '}
+                    <Link
+                      to="/login"
+                      className={`font-semibold text-amber-900 underline underline-offset-4 decoration-amber-400 hover:decoration-amber-800 rounded ${focusRing}`}
+                    >
+                      Sign in
+                    </Link>
+                  </p>
+                </motion.section>
+              </div>
+            </motion.div>
           </div>
         </motion.main>
       </div>
