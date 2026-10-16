@@ -117,7 +117,7 @@ function DropdownItem({ to, icon, label, onClick, danger = false }) {
   );
 }
 
-// ===== USER AVATAR (reusable) =====
+// ===== USER AVATAR =====
 function UserAvatar({ user, size = 'sm' }) {
   const sizeClass = size === 'lg' ? 'w-12 h-12 text-lg' : 'w-7 h-7 text-xs';
   const img = user?.profile_picture ? getImageUrl(user.profile_picture) : null;
@@ -243,7 +243,7 @@ export default function Navbar() {
           {/* LEFT — Brand */}
           <Brand to={homePath} />
 
-          {/* CENTER — Nav links */}
+          {/* CENTER — Nav links (desktop) */}
           <div className="hidden md:flex items-center gap-0.5 flex-1 justify-center">
             {visibleLinks.map((item) => {
               const active = isActive(item.to);
@@ -319,8 +319,8 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* RIGHT — User / Login / Hamburger */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* RIGHT — User / Login / Hamburger (mentok kanan) */}
+          <div className="flex items-center gap-2 shrink-0 ml-auto">
             {user ? (
               <div className="relative">
                 <button
@@ -351,7 +351,6 @@ export default function Navbar() {
                       transition={{ duration: reduceMotion ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
                       className="absolute right-0 top-full mt-3 w-72 bg-white border border-amber-200 rounded-2xl shadow-xl overflow-hidden z-20"
                     >
-                      {/* Header */}
                       <div className="relative bg-amber-950 px-4 py-4 overflow-hidden">
                         <div
                           className="absolute inset-0 opacity-[0.06] pointer-events-none"
@@ -385,7 +384,6 @@ export default function Navbar() {
                         </div>
                       </div>
 
-                      {/* Items */}
                       <div className="p-2">
                         <DropdownItem to={profilePath} icon="user" label="My Profile" onClick={() => setMenu(null)} />
                         {user.role === 'customer' && (
@@ -413,7 +411,6 @@ export default function Navbar() {
                         </button>
                       </div>
 
-                      {/* Serial footer */}
                       <div className="px-4 py-2 bg-amber-50/60 border-t border-dashed border-amber-200 flex items-center justify-between text-[10px] font-serif text-amber-700/60 tabular-nums">
                         <span>✂ No. TK-{String(user.id || 0).padStart(4, '0')}</span>
                         <span>Signed in</span>
@@ -444,7 +441,7 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-expanded={mobileMenuOpen}
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-              className={`md:hidden w-9 h-9 rounded-lg bg-amber-900/60 hover:bg-amber-900 flex items-center justify-center text-amber-50 transition-colors shrink-0 ${focusRing}`}
+              className={`md:hidden w-9 h-9 rounded-lg bg-amber-900/60 hover:bg-amber-900 flex items-center justify-center text-amber-50 transition-colors shrink-0 border border-amber-800/60 ${focusRing}`}
             >
               <Icon name={mobileMenuOpen ? 'close' : 'menu'} className="w-4 h-4" />
             </button>
@@ -463,7 +460,6 @@ export default function Navbar() {
               className="md:hidden mt-2 overflow-hidden"
             >
               <div className="bg-white border border-amber-200 rounded-xl shadow-lg overflow-hidden">
-                {/* Mobile user header */}
                 {user && (
                   <div className="px-3.5 py-3 border-b border-dashed border-amber-200 flex items-center gap-3">
                     <UserAvatar user={user} size="lg" />

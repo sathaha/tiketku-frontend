@@ -13,7 +13,6 @@ import { useAuth } from '../../context/AuthContext';
 
 const EASE = [0.22, 1, 0.36, 1];
 
-/* Demo shortcuts fill the form for quick testing. */
 const SHOW_DEMO_ACCOUNTS = true;
 const DEMO_PASSWORD = 'Nabil261108';
 const DEMO_ACCOUNTS = [
@@ -55,7 +54,6 @@ function toSafePath(value) {
   return value;
 }
 
-/* ============ ANIMASI ============ */
 const TEAR_MS = 780;
 const tearTransition = { duration: 0.65, ease: [0.5, 0, 0.2, 1] };
 
@@ -73,7 +71,6 @@ const lineVariants = {
   show: (i) => ({ opacity: 1, y: 0, transition: { delay: 0.3 + i * 0.1, duration: 0.4, ease: 'easeOut' } }),
 };
 
-/* ============ ICONS ============ */
 const ICON_PATHS = {
   check: 'M5 13l4 4L19 7',
   arrow: 'M13 7l5 5-5 5M6 12h12',
@@ -99,7 +96,6 @@ function Spinner({ className = 'h-4 w-4' }) {
   );
 }
 
-/* ============ STYLES ============ */
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 focus-visible:ring-offset-1';
 const focusRingDark =
@@ -135,16 +131,13 @@ const pageCss = `
   }
 `;
 
-/* ============ SMALL COMPONENTS ============ */
 function Field({ id, label, children }) {
   return (
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-amber-900 mb-1.5">
         {label}
       </label>
-      <div className="relative">
-        {children}
-      </div>
+      <div className="relative">{children}</div>
     </div>
   );
 }
@@ -168,7 +161,6 @@ function LiveText({ text }) {
   );
 }
 
-/* ============ LIVE TICKET PANEL ============ */
 function LiveTicketPanel({ email, contextNote, issuedDate, ticketNo, isDesktop, tearing, tearState }) {
   const hasEmail = email.trim().length > 0;
   const emailName = hasEmail ? email.split('@')[0].split(/[._-]/)[0] : '';
@@ -179,7 +171,7 @@ function LiveTicketPanel({ email, contextNote, issuedDate, ticketNo, isDesktop, 
       animate={tearing ? tearState : { x: 0, y: 0, rotate: 0, opacity: 1 }}
       transition={tearTransition}
       style={{ transformOrigin: isDesktop ? '100% 100%' : '50% 100%' }}
-      className="pass-left relative bg-amber-950 text-amber-50 p-7 md:p-9 flex flex-col rounded-t-2xl md:rounded-tr-none md:rounded-l-2xl overflow-hidden"
+      className="pass-left relative bg-amber-950 text-amber-50 p-7 md:p-9 flex flex-col md:min-h-[30rem] overflow-hidden"
     >
       <span className="pointer-events-none absolute inset-3 rounded-lg border border-amber-200/10" aria-hidden="true" />
 
@@ -308,7 +300,6 @@ function LiveRow({ icon, label, value, show }) {
   );
 }
 
-/* ============ MAIN ============ */
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -420,7 +411,7 @@ export default function Login() {
   return (
     <MotionConfig reducedMotion="user">
       <style>{pageCss}</style>
-      <div className="f-body min-h-screen relative flex items-center justify-center px-4 py-8 overflow-hidden">
+      <div className="f-body min-h-dvh relative flex flex-col items-center justify-center px-4 py-8">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url('https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600&q=80')` }}
@@ -428,19 +419,18 @@ export default function Login() {
         />
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
 
-        <div className="w-full max-w-3xl relative" style={{ perspective: 1400 }}>
+        <div className="w-full max-w-3xl relative flex flex-col items-center gap-6" style={{ perspective: 1400 }}>
           <motion.main
             initial={{ opacity: 0, y: 56, rotateX: 16 }}
             animate={{ opacity: 1, y: 0, rotateX: 0 }}
             transition={{ type: 'spring', stiffness: 130, damping: 17 }}
             style={{ transformOrigin: '50% 100%' }}
-            className="relative"
+            className="relative w-full"
             aria-busy={loading}
           >
             <div className="drop-shadow-[0_16px_36px_rgba(0,0,0,0.4)]">
               <motion.div animate={shake}>
-                <div className="login-pass relative grid md:grid-cols-[var(--left-w)_1fr]">
-
+                <div className="login-pass relative grid md:grid-cols-[var(--left-w)_1fr] rounded-2xl overflow-hidden">
                   <LiveTicketPanel
                     email={form.email}
                     contextNote={contextNote}
@@ -455,7 +445,7 @@ export default function Login() {
                     animate={tearing ? rightTear : { x: 0, y: 0, rotate: 0, opacity: 1 }}
                     transition={tearTransition}
                     style={{ transformOrigin: isDesktop ? '0% 0%' : '50% 0%' }}
-                    className="pass-right relative bg-[#faf6ef] p-7 md:p-10 border-t border-dashed border-amber-300/80 md:border-t-0 rounded-b-2xl md:rounded-bl-none md:rounded-r-2xl overflow-hidden"
+                    className="pass-right relative bg-[#faf6ef] p-7 md:p-10 border-t border-dashed border-amber-300/80 md:border-t-0 overflow-hidden"
                   >
                     <motion.span
                       initial={{ scaleY: 0 }}
@@ -597,33 +587,35 @@ export default function Login() {
               </motion.div>
             </div>
           </motion.main>
-        </div>
 
-        {SHOW_DEMO_ACCOUNTS && (
-          <motion.div
-            animate={{ opacity: tearing ? 0 : 1 }}
-            transition={{ duration: 0.3 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 flex flex-wrap items-center gap-2 justify-center z-10"
-          >
-            <span className="text-sm text-amber-100/70">Demo accounts:</span>
-            {DEMO_ACCOUNTS.map((acc) => {
-              const active = activeDemo === acc.role;
-              return (
-                <button
-                  key={acc.role}
-                  type="button"
-                  onClick={() => fillDemo(acc)}
-                  aria-pressed={active}
-                  className={`text-sm font-medium rounded-full px-4 py-1.5 transition-colors ${focusRingDark} ${
-                    active ? 'bg-amber-100 text-amber-950' : 'text-amber-50 bg-white/10 hover:bg-white/20'
-                  }`}
-                >
-                  {acc.role}
-                </button>
-              );
-            })}
-          </motion.div>
-        )}
+          {/* Demo accounts — di bawah card, jadi bagian dari flow */}
+          {SHOW_DEMO_ACCOUNTS && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: tearing ? 0 : 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              className="flex flex-wrap items-center gap-2 justify-center"
+            >
+              <span className="text-sm text-amber-100/70">Demo accounts:</span>
+              {DEMO_ACCOUNTS.map((acc) => {
+                const active = activeDemo === acc.role;
+                return (
+                  <button
+                    key={acc.role}
+                    type="button"
+                    onClick={() => fillDemo(acc)}
+                    aria-pressed={active}
+                    className={`text-sm font-medium rounded-full px-4 py-1.5 transition-colors ${focusRingDark} ${
+                      active ? 'bg-amber-100 text-amber-950' : 'text-amber-50 bg-white/10 hover:bg-white/20'
+                    }`}
+                  >
+                    {acc.role}
+                  </button>
+                );
+              })}
+            </motion.div>
+          )}
+        </div>
       </div>
     </MotionConfig>
   );
