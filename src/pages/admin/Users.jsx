@@ -3,6 +3,7 @@ import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { getAllUsersWithStats, updateUserStatus } from '../../api/userApi';
+import { getImageUrl } from '../../utils/image';
 
 /* ============ ICONS ============ */
 const ICON_PATHS = {
@@ -50,7 +51,6 @@ const ROLE_KEYS = ['admin', 'petugas', 'eo', 'customer'];
 
 const emptyForm = { name: '', email: '', password: '', phone: '', role: 'petugas' };
 
-// Keys match the API. Pills and avatars (rows) plus folder themes (summary cards).
 const roleConfig = {
   admin: {
     label: 'Admin',
@@ -93,7 +93,31 @@ const roleOptions = [
   { value: 'customer', label: 'Customer' },
 ];
 
-/* ============ ROLE FOLDER (also the role filter) ============ */
+/* ============ USER AVATAR (reusable) ============ */
+function UserAvatar({ user, size = 'md', className = '' }) {
+  const sizeClass = size === 'sm' ? 'w-7 h-7 text-xs' : size === 'lg' ? 'w-12 h-12 text-lg' : 'w-10 h-10 text-base';
+  const img = user?.profile_picture ? getImageUrl(user.profile_picture) : null;
+
+  return (
+    <span
+      className={`${sizeClass} rounded-full flex items-center justify-center font-semibold shrink-0 overflow-hidden ${className}`}
+      title={user?.name}
+    >
+      {img ? (
+        <img
+          src={img}
+          alt={user?.name || 'User'}
+          className="w-full h-full object-cover"
+          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+        />
+      ) : (
+        user?.name?.charAt(0)?.toUpperCase() || '?'
+      )}
+    </span>
+  );
+}
+
+/* ============ ROLE FOLDER ============ */
 function RoleSummaryCard({ roleKey, count, allUsers, activeCount, isActiveFilter, onSelect }) {
   const role = roleConfig[roleKey];
   const t = role.folder;
@@ -107,10 +131,8 @@ function RoleSummaryCard({ roleKey, count, allUsers, activeCount, isActiveFilter
       onClick={onSelect}
       className={`relative text-left w-full h-[170px] pt-3 rounded-2xl transition-[filter,transform] hover:brightness-110 active:scale-[0.98] ${focusRing}`}
     >
-      {/* Folder tab */}
       <span className={`absolute top-0 left-0 h-4 w-24 rounded-t-lg ${t.bg}`} />
 
-      {/* Folder body */}
       <span
         className={`relative h-full rounded-b-2xl rounded-tr-2xl ${t.bg} ${t.text} p-4 flex flex-col justify-between ${
           isActiveFilter ? 'ring-2 ring-offset-2 ring-offset-[#f5ede4] ring-amber-600' : ''
@@ -127,13 +149,12 @@ function RoleSummaryCard({ roleKey, count, allUsers, activeCount, isActiveFilter
           <span className="flex -space-x-2">
             {sampleUsers.length > 0
               ? sampleUsers.map((u) => (
-                  <span
+                  <UserAvatar
                     key={u.id}
-                    title={u.name}
-                    className={`w-7 h-7 rounded-full ${t.avatar} flex items-center justify-center text-xs font-semibold ring-2 ${t.ring} shrink-0`}
-                  >
-                    {u.name?.charAt(0)?.toUpperCase() || '?'}
-                  </span>
+                    user={u}
+                    size="sm"
+                    className={`${t.avatar} ring-2 ${t.ring}`}
+                  />
                 ))
               : [0, 1, 2].map((i) => (
                   <span key={i} className={`w-7 h-7 rounded-full ${t.chip} ring-2 ${t.ring} shrink-0`} />
@@ -187,7 +208,7 @@ function SkeletonRows() {
       {[...Array(5)].map((_, i) => (
         <div key={i} className="flex items-center justify-between gap-4 px-5 py-4 border-t border-dashed border-amber-200">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-amber-100" />
+            <div className="w-10 h-10 rounded-full bg-amber-100" />
             <div className="space-y-2">
               <div className="h-3 w-36 bg-amber-100 rounded" />
               <div className="h-3 w-48 bg-amber-100 rounded" />
@@ -433,7 +454,7 @@ export default function Users() {
             </button>
           </header>
 
-          {/* Role folders (also the role filter) */}
+          {/* Role folders */}
           <section className="mb-6" aria-label="Roles">
             <div className="flex items-baseline justify-between gap-3 mb-3">
               <h2 className="f-display text-lg font-semibold text-amber-950">Roles</h2>
@@ -454,7 +475,7 @@ export default function Users() {
             </div>
           </section>
 
-          {/* Order totals for the users currently listed */}
+          {/* Order totals */}
           {!loading && users.length > 0 && (
             <div className="bg-white rounded-2xl grid grid-cols-2 divide-x divide-dashed divide-amber-200 mb-6">
               <div className="p-4">
@@ -564,9 +585,7 @@ export default function Users() {
                       className={`grid grid-cols-2 ${tableCols} gap-x-4 gap-y-3 items-center px-5 py-4 hover:bg-amber-50/60 transition-colors`}
                     >
                       <div className={`order-1 lg:order-none col-span-2 lg:col-span-1 flex items-center gap-3 min-w-0 ${dimmed}`}>
-                        <span className={`w-10 h-10 rounded-full ${role.avatar} f-display text-base font-semibold flex items-center justify-center shrink-0`}>
-                          {user.name?.charAt(0)?.toUpperCase() || '?'}
-                        </span>
+                        <UserAvatar user={user} size="md" className={role.avatar} />
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-amber-950 truncate">{user.name}</p>
                           <p className="text-xs text-amber-700/80 truncate">{user.email}</p>

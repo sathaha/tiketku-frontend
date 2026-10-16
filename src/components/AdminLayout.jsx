@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import BrandLogo from './BrandLogo';
+import { getImageUrl } from '../utils/image';
 
 function Icon({ name, className = 'w-5 h-5' }) {
   const paths = {
@@ -40,6 +41,28 @@ function Badge({ count, className = '' }) {
       className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-amber-600 text-amber-50 text-[10px] font-bold font-mono tabular-nums ${className}`}
     >
       {count > 99 ? '99+' : count}
+    </span>
+  );
+}
+
+function UserAvatar({ user, size = 'md' }) {
+  const sizeClass = size === 'sm' ? 'w-8 h-8 text-xs' : 'w-9 h-9 text-sm';
+  const img = user?.profile_picture ? getImageUrl(user.profile_picture) : null;
+
+  return (
+    <span
+      className={`${sizeClass} rounded-full bg-amber-700 flex items-center justify-center text-amber-50 font-serif font-semibold shrink-0 overflow-hidden`}
+    >
+      {img ? (
+        <img
+          src={img}
+          alt={user?.name || 'Profile'}
+          className="w-full h-full object-cover"
+          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+        />
+      ) : (
+        user?.name?.charAt(0).toUpperCase() || '?'
+      )}
     </span>
   );
 }
@@ -312,9 +335,7 @@ export default function AdminLayout({ children }) {
             className={`flex items-center gap-3 px-1 pb-3 ${compact ? 'justify-center' : ''}`}
             title={compact ? user?.name : undefined}
           >
-            <div className="w-9 h-9 rounded-full bg-amber-700 flex items-center justify-center text-amber-50 font-serif font-semibold shrink-0">
-              {user?.name?.charAt(0).toUpperCase()}
-            </div>
+            <UserAvatar user={user} size="md" />
             {!compact && (
               <div className="min-w-0 flex-1">
                 <p className="font-serif text-sm font-medium text-amber-950 truncate">{user?.name}</p>
@@ -359,7 +380,10 @@ export default function AdminLayout({ children }) {
               <span className="font-serif text-sm font-medium text-amber-800">{roleLabel}</span>
             )}
           </div>
-          {totalBadges > 0 && <Badge count={totalBadges} className="ml-auto" />}
+          <div className="ml-auto flex items-center gap-2">
+            {totalBadges > 0 && <Badge count={totalBadges} />}
+            <UserAvatar user={user} size="sm" />
+          </div>
         </header>
 
         {/* Content */}
