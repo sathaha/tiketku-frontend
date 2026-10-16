@@ -13,8 +13,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const EASE = [0.22, 1, 0.36, 1];
 
-/* Demo shortcuts fill the form for quick testing.
-   Set to false before deploying: the password below ships in the client bundle. */
+/* Demo shortcuts fill the form for quick testing. */
 const SHOW_DEMO_ACCOUNTS = true;
 const DEMO_PASSWORD = 'Nabil261108';
 const DEMO_ACCOUNTS = [
@@ -49,7 +48,6 @@ const BARS = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 1, 3, 2, 1, 3, 1, 2, 2, 1, 4];
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/* Hanya path di dalam aplikasi yang boleh diikuti */
 function toSafePath(value) {
   if (typeof value !== 'string') return null;
   if (!value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\')) return null;
@@ -58,7 +56,6 @@ function toSafePath(value) {
 }
 
 /* ============ ANIMASI ============ */
-const STAMP_MS = 620;
 const TEAR_MS = 780;
 const tearTransition = { duration: 0.65, ease: [0.5, 0, 0.2, 1] };
 
@@ -152,7 +149,6 @@ function Field({ id, label, children }) {
   );
 }
 
-// Huruf baru muncul satu per satu
 function LiveText({ text }) {
   return (
     <span aria-label={text}>
@@ -224,7 +220,6 @@ function LiveTicketPanel({ email, contextNote, issuedDate, ticketNo, isDesktop, 
             : 'Your tickets are right where you left them.'}
         </motion.p>
 
-        {/* LIVE PREVIEW — email muncul pas diisi */}
         <AnimatePresence mode="wait">
           {hasEmail && (
             <motion.div
@@ -264,7 +259,6 @@ function LiveTicketPanel({ email, contextNote, issuedDate, ticketNo, isDesktop, 
                 />
               ))}
             </motion.div>
-            {/* Sinar scanner menyapu barcode sekali setelah selesai tercetak */}
             <motion.span
               aria-hidden="true"
               initial={{ left: '-20%', opacity: 0 }}
@@ -319,7 +313,7 @@ export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [phase, setPhase] = useState('idle'); // idle -> stamp -> tear
+  const [tearing, setTearing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [activeDemo, setActiveDemo] = useState('');
   const [ticketNo] = useState(generateTicketNo);
@@ -328,8 +322,6 @@ export default function Login() {
   const location = useLocation();
   const reduceMotion = useReducedMotion();
   const shake = useAnimationControls();
-
-  const tearing = phase === 'tear';
 
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches
@@ -369,16 +361,7 @@ export default function Login() {
 
   async function finishLogin(data) {
     if (!reduceMotion) {
-      // 1. cap menghantam tiket
-      setPhase('stamp');
-      shake.start({
-        scale: [1, 0.975, 1.01, 1],
-        y: [0, 5, -2, 0],
-        transition: { duration: 0.35, delay: 0.12 },
-      });
-      await wait(STAMP_MS);
-      // 2. tiket disobek
-      setPhase('tear');
+      setTearing(true);
       await wait(TEAR_MS);
     }
     login(data.token, data.user);
@@ -386,7 +369,7 @@ export default function Login() {
   }
 
   function fail(message) {
-    setPhase('idle');
+    setTearing(false);
     setError(message);
     shake.start({ x: [0, -9, 9, -6, 6, -3, 0], transition: { duration: 0.45, ease: 'easeOut' } });
   }
@@ -445,7 +428,6 @@ export default function Login() {
         />
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
 
-        {/* Tiket naik dari bawah sambil menegak */}
         <div className="w-full max-w-3xl relative" style={{ perspective: 1400 }}>
           <motion.main
             initial={{ opacity: 0, y: 56, rotateX: 16 }}
@@ -459,7 +441,6 @@ export default function Login() {
               <motion.div animate={shake}>
                 <div className="login-pass relative grid md:grid-cols-[var(--left-w)_1fr]">
 
-                  {/* ===== KIRI: LIVE TICKET PANEL ===== */}
                   <LiveTicketPanel
                     email={form.email}
                     contextNote={contextNote}
@@ -470,7 +451,6 @@ export default function Login() {
                     tearState={leftTear}
                   />
 
-                  {/* ===== KANAN: FORM ===== */}
                   <motion.section
                     animate={tearing ? rightTear : { x: 0, y: 0, rotate: 0, opacity: 1 }}
                     transition={tearTransition}
@@ -568,7 +548,7 @@ export default function Login() {
                         {loading ? (
                           <>
                             <Spinner />
-                            {phase !== 'idle' ? 'Welcome in…' : 'Signing in…'}
+                            {tearing ? 'Welcome in…' : 'Signing in…'}
                           </>
                         ) : (
                           <>
@@ -613,60 +593,15 @@ export default function Login() {
                       </Link>
                     </p>
                   </motion.section>
-
-                  {/* ===== CAP "WELCOME IN" ===== */}
-                  <AnimatePresence>
-                    {phase !== 'idle' && (
-                      <motion.div
-                        key="stamp"
-                        aria-hidden="true"
-                        initial={{ scale: 2.6, opacity: 0, rotate: -24 }}
-                        animate={
-                          tearing
-                            ? { scale: 1, opacity: 0, rotate: -10, y: -16 }
-                            : { scale: 1, opacity: 1, rotate: -10, y: 0 }
-                        }
-                        exit={{ opacity: 0 }}
-                        transition={
-                          tearing
-                            ? { duration: 0.3 }
-                            : { type: 'spring', stiffness: 520, damping: 22, mass: 0.8 }
-                        }
-                        className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
-                      >
-                        <div className="relative">
-                          <motion.span
-                            initial={{ scale: 1, opacity: 0 }}
-                            animate={{ scale: 2.2, opacity: [0, 0.6, 0] }}
-                            transition={{ duration: 0.7, delay: 0.1, ease: 'easeOut' }}
-                            className="absolute inset-0 rounded-full border-2 border-emerald-400"
-                          />
-                          <div className="relative w-36 h-36 rounded-full bg-[#faf6ef] border-4 border-emerald-500 shadow-2xl shadow-black/40 flex flex-col items-center justify-center text-emerald-600">
-                            <span className="absolute inset-1.5 rounded-full border border-emerald-500/50" />
-                            <svg viewBox="0 0 24 24" className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-                              <motion.path
-                                d="M5 13l4 4L19 7"
-                                initial={{ pathLength: 0 }}
-                                animate={{ pathLength: 1 }}
-                                transition={{ duration: 0.3, delay: 0.15, ease: 'easeOut' }}
-                              />
-                            </svg>
-                            <span className="f-display text-base font-bold mt-1">Welcome in</span>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
               </motion.div>
             </div>
           </motion.main>
         </div>
 
-        {/* Akun demo */}
         {SHOW_DEMO_ACCOUNTS && (
           <motion.div
-            animate={{ opacity: phase !== 'idle' ? 0 : 1 }}
+            animate={{ opacity: tearing ? 0 : 1 }}
             transition={{ duration: 0.3 }}
             className="fixed bottom-6 left-1/2 -translate-x-1/2 flex flex-wrap items-center gap-2 justify-center z-10"
           >
@@ -680,9 +615,7 @@ export default function Login() {
                   onClick={() => fillDemo(acc)}
                   aria-pressed={active}
                   className={`text-sm font-medium rounded-full px-4 py-1.5 transition-colors ${focusRingDark} ${
-                    active
-                      ? 'bg-amber-100 text-amber-950'
-                      : 'text-amber-50 bg-white/10 hover:bg-white/20'
+                    active ? 'bg-amber-100 text-amber-950' : 'text-amber-50 bg-white/10 hover:bg-white/20'
                   }`}
                 >
                   {acc.role}
