@@ -22,7 +22,7 @@ function Icon({ name, className = 'w-4 h-4' }) {
     info: 'M12 22a10 10 0 100-20 10 10 0 000 20zM12 16v-4M12 8h.01',
   };
   return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d={paths[name]} />
     </svg>
   );
@@ -46,7 +46,7 @@ function StatusBadge({ status }) {
   );
 }
 
-// ===== ORDER CARD (reference layout — wide horizontal) =====
+// ===== ORDER CARD =====
 function OrderCard({ order }) {
   const isPending = order.status === 'menunggu_pembayaran';
   const isPaid = order.status === 'lunas';
@@ -54,12 +54,11 @@ function OrderCard({ order }) {
   return (
     <Link
       to={`/orders/${order.id}`}
-      className="group block bg-white/90 hover:bg-white border border-amber-200/40 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_-8px_rgba(120,72,20,0.15)] hover:border-amber-300/60"
+      className="group block bg-white border border-amber-200/60 rounded-2xl overflow-hidden transition-colors duration-300 hover:border-amber-300/80 hover:shadow-[0_8px_30px_-8px_rgba(120,72,20,0.15)]"
     >
-      {/* ===== TOP BAR: Order info (Order Date, Total, Venue, Order #) ===== */}
-      <div className="px-5 md:px-6 py-4 border-b border-amber-200/30 bg-amber-50/30">
+      {/* ===== TOP BAR ===== */}
+      <div className="px-5 md:px-6 py-4 border-b border-dashed border-amber-200/70 bg-amber-50/30">
         <div className="flex flex-wrap items-start gap-x-8 gap-y-3">
-          {/* Order Date */}
           <div className="min-w-[100px]">
             <div className="text-[10px] font-serif tracking-[0.15em] text-amber-700/50 uppercase mb-0.5">
               Order Date
@@ -69,7 +68,6 @@ function OrderCard({ order }) {
             </div>
           </div>
 
-          {/* Total Amount */}
           <div className="min-w-[100px]">
             <div className="text-[10px] font-serif tracking-[0.15em] text-amber-700/50 uppercase mb-0.5">
               Total Amount
@@ -79,7 +77,6 @@ function OrderCard({ order }) {
             </div>
           </div>
 
-          {/* Venue */}
           <div className="min-w-[120px] flex-1">
             <div className="text-[10px] font-serif tracking-[0.15em] text-amber-700/50 uppercase mb-0.5">
               Venue
@@ -89,7 +86,6 @@ function OrderCard({ order }) {
             </div>
           </div>
 
-          {/* Order # + View Order (right) */}
           <div className="flex items-center gap-3 ml-auto">
             <div className="text-right hidden sm:block">
               <div className="text-[10px] font-serif tracking-[0.15em] text-amber-700/50 uppercase mb-0.5">
@@ -100,7 +96,7 @@ function OrderCard({ order }) {
               </div>
             </div>
 
-            <span className="px-3 py-1.5 text-[10px] font-serif uppercase tracking-wider text-white bg-amber-700 group-hover:bg-amber-600 rounded-md transition-colors flex items-center gap-1.5">
+            <span className="px-3 py-1.5 text-[10px] font-serif uppercase tracking-wider text-white bg-amber-700 group-hover:bg-amber-600 rounded-lg transition-colors flex items-center gap-1.5">
               View Order
               <Icon name="chevronRight" className="w-3 h-3" />
             </span>
@@ -108,18 +104,22 @@ function OrderCard({ order }) {
         </div>
       </div>
 
-      {/* ===== REVIEW BANNER (pending state) ===== */}
+      {/* ===== PENDING BANNER ===== */}
       {isPending && (
-        <div className="px-5 md:px-6 py-2 bg-amber-100/50 border-b border-amber-200/40 flex items-center justify-between">
+        <div className="px-5 md:px-6 py-2 bg-amber-100/50 border-b border-dashed border-amber-200/60 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Icon name="info" className="w-3.5 h-3.5 text-amber-600" />
+            <motion.span
+              animate={{ scale: [1, 1.15, 1], opacity: [0.7, 1, 0.7] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+              className="inline-flex"
+              aria-hidden="true"
+            >
+              <Icon name="info" className="w-3.5 h-3.5 text-amber-600" />
+            </motion.span>
             <span className="text-[11px] font-serif text-amber-800">
               Complete the payment before the ticket is released back
             </span>
           </div>
-          <button className="text-amber-600 hover:text-amber-900 transition-colors">
-            <Icon name="x" className="w-3 h-3" />
-          </button>
         </div>
       )}
 
@@ -127,12 +127,9 @@ function OrderCard({ order }) {
       <div className="px-5 md:px-6 pt-4 pb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm font-serif font-semibold text-amber-950">
-            {isPaid
-              ? 'Active Ticket'
-              : isPending
-              ? 'Awaiting Payment'
-              : order.status === 'kadaluarsa'
-              ? 'Expired'
+            {isPaid ? 'Active Ticket'
+              : isPending ? 'Awaiting Payment'
+              : order.status === 'kadaluarsa' ? 'Expired'
               : 'Cancelled'}
           </span>
           <span className="text-amber-400/50">·</span>
@@ -143,16 +140,15 @@ function OrderCard({ order }) {
         <StatusBadge status={order.status} />
       </div>
 
-      {/* ===== PRODUCT ROW: poster + info ===== */}
+      {/* ===== PRODUCT ROW ===== */}
       <div className="px-5 md:px-6 pb-5 flex gap-4">
-        {/* Poster */}
         <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-xl overflow-hidden bg-amber-100 border border-amber-200/50">
           {order.poster ? (
             <img
               src={getImageUrl(order.poster)}
               alt={order.concert_name}
               loading="lazy"
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-amber-400/40 bg-gradient-to-br from-amber-100 to-amber-200/60">
@@ -161,7 +157,6 @@ function OrderCard({ order }) {
           )}
         </div>
 
-        {/* Info */}
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           <div>
             <h4 className="font-serif text-base text-amber-950 group-hover:text-amber-800 transition-colors leading-snug">
@@ -171,17 +166,13 @@ function OrderCard({ order }) {
               {order.ticket_category_name} · {order.qty}× tickets
             </p>
             <p className="text-[11px] font-serif text-amber-600/50 mt-1.5">
-              {isPaid
-                ? 'E-ticket is available'
-                : isPending
-                ? 'Pay within 15 minutes'
-                : order.status === 'kadaluarsa'
-                ? 'Payment deadline has passed'
+              {isPaid ? 'E-ticket is available'
+                : isPending ? 'Pay within 15 minutes'
+                : order.status === 'kadaluarsa' ? 'Payment deadline has passed'
                 : 'Order has been cancelled'}
             </p>
           </div>
 
-          {/* Action row — only View E-Ticket / Pay Now */}
           {(isPaid || isPending) && (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-dashed border-amber-200/50">
               {isPaid && (
@@ -199,6 +190,12 @@ function OrderCard({ order }) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ===== SERIAL FOOTER ===== */}
+      <div className="px-5 md:px-6 py-2 bg-amber-50/50 border-t border-dashed border-amber-200/70 flex items-center justify-between text-[10px] font-mono text-amber-700/50 tabular-nums">
+        <span>✂ {order.order_code}</span>
+        <span>{order.qty} pcs</span>
       </div>
     </Link>
   );
@@ -234,7 +231,6 @@ export default function MyOrders() {
     return matchesTab && matchesSearch;
   });
 
-  // Group orders by date
   const groupedOrders = filteredOrders.reduce((groups, order) => {
     const date = new Date(order.created_at);
     const today = new Date();
@@ -252,9 +248,7 @@ export default function MyOrders() {
       groupKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
     }
 
-    if (!groups[groupKey]) {
-      groups[groupKey] = [];
-    }
+    if (!groups[groupKey]) groups[groupKey] = [];
     groups[groupKey].push(order);
     return groups;
   }, {});
@@ -273,7 +267,7 @@ export default function MyOrders() {
         }}
       />
 
-      {/* Soft radial glow behind header */}
+      {/* Soft radial glow */}
       <div
         className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] pointer-events-none opacity-40"
         style={{ background: 'radial-gradient(ellipse at center, rgba(180,120,40,0.08), transparent 70%)' }}
@@ -312,7 +306,6 @@ export default function MyOrders() {
 
           {/* Tab row + Sort */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            {/* Left tabs */}
             <div className="flex gap-1 bg-white/60 border border-amber-200/40 rounded-full p-1 shadow-sm overflow-x-auto">
               {tabs.map((tab) => {
                 const count = orders.filter((o) => tab.id === 'all' || o.status === tab.id).length;
@@ -337,7 +330,6 @@ export default function MyOrders() {
               })}
             </div>
 
-            {/* Right sort dropdown */}
             <button className="flex items-center gap-2 px-4 py-2 bg-white/60 border border-amber-200/40 rounded-lg text-sm font-serif text-amber-800 hover:border-amber-400/60 transition-colors shadow-sm">
               Past 1 Year
               <Icon name="chevronDown" className="w-3.5 h-3.5" />

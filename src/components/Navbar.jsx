@@ -13,6 +13,7 @@ function Icon({ name, className = 'w-5 h-5' }) {
     user: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
     chevronDown: 'M6 9l6 6 6-6',
     inbox: 'M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z',
+    arrowRight: 'M5 12h14M12 5l7 7-7 7',
   };
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden="true">
@@ -67,11 +68,9 @@ const roleLabel = {
   petugas: 'Staff',
 };
 
-// If there are more menu items than this, the rest go into a "More" dropdown
 const MAX_VISIBLE = 6;
 
-const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/70';
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400';
 
 // ===== BRAND =====
 function Brand({ to = '/' }) {
@@ -79,14 +78,40 @@ function Brand({ to = '/' }) {
     <Link
       to={to}
       aria-label="TiketKu Home"
-      className={`flex items-center gap-2.5 shrink-0 rounded-full pr-1 lg:pr-3 ${focusRing}`}
+      className={`flex items-center gap-2.5 shrink-0 rounded-lg ${focusRing}`}
     >
-      <span className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-900 hover:bg-amber-50 transition-colors shadow-md shadow-black/30">
-        <Icon name="ticket" className="w-5 h-5" />
+      <span className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center text-amber-950">
+        <Icon name="ticket" className="w-4 h-4" />
       </span>
       <span className="hidden lg:block font-serif text-lg font-semibold text-amber-50 tracking-tight">
-        TiketKu
+        tiket<span className="text-amber-400">ku</span>
       </span>
+    </Link>
+  );
+}
+
+// ===== DROPDOWN ITEM =====
+function DropdownItem({ to, icon, label, onClick, danger = false }) {
+  const baseColor = danger ? 'text-red-600' : 'text-amber-900';
+  const hoverBg = danger ? 'hover:bg-red-50' : 'hover:bg-amber-50';
+  const iconBg = danger ? 'bg-red-100 group-hover:bg-red-200/70' : 'bg-amber-100 group-hover:bg-amber-200/70';
+  const iconColor = danger ? 'text-red-600' : 'text-amber-800';
+  const arrowColor = danger ? 'text-red-400' : 'text-amber-400';
+
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-serif transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70 ${baseColor} ${hoverBg}`}
+    >
+      <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${iconBg}`}>
+        <Icon name={icon} className={`w-4 h-4 ${iconColor}`} />
+      </span>
+      <span className="flex-1">{label}</span>
+      <Icon
+        name="arrowRight"
+        className={`w-4 h-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 ${arrowColor}`}
+      />
     </Link>
   );
 }
@@ -98,7 +123,7 @@ export default function Navbar() {
   const location = useLocation();
   const reduceMotion = useReducedMotion();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [menu, setMenu] = useState(null); // 'user' | 'more' | null
+  const [menu, setMenu] = useState(null);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -124,7 +149,6 @@ export default function Navbar() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // ===== LOGOUT → REDIRECT TO LANDING PAGE =====
   function handleLogout() {
     logout();
     navigate('/', { replace: true });
@@ -150,43 +174,52 @@ export default function Navbar() {
   const moreLinks = overflow ? navLinks.slice(MAX_VISIBLE - 1) : [];
   const moreActive = moreLinks.some((l) => isActive(l.to));
 
-  const slide = reduceMotion
-    ? { duration: 0 }
-    : { type: 'spring', stiffness: 380, damping: 32 };
-
   const dropdownMotion = {
-    initial: { opacity: 0, y: 8, scale: 0.97 },
-    animate: { opacity: 1, y: 0, scale: 1 },
-    exit: { opacity: 0, y: 8, scale: 0.97 },
-    transition: { duration: 0.15 },
+    initial: { opacity: 0, y: 6 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: 6 },
+    transition: { duration: reduceMotion ? 0 : 0.15, ease: [0.22, 1, 0.36, 1] },
   };
 
-  const menuItem =
-    'flex items-center gap-2.5 px-3 py-2 text-sm font-serif rounded-xl transition-colors';
+  const mobileListVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: reduceMotion ? 0 : 0.03,
+        delayChildren: 0.05,
+      },
+    },
+  };
+  const mobileItemVariants = {
+    hidden: { opacity: 0, y: -4 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } },
+  };
+
+  const menuItem = 'flex items-center gap-2.5 px-3 py-2 text-sm font-serif rounded-lg transition-colors';
 
   return (
     <div className="sticky top-0 z-50 pt-3 pb-2 px-3 sm:px-4">
-      {/* Outside-click catcher for the dropdown. Placed outside the nav so it truly covers the screen. */}
       {menu && <div className="fixed inset-0 z-10" onClick={() => setMenu(null)} aria-hidden="true" />}
 
       <motion.nav
-        initial={reduceMotion ? false : { y: -60, opacity: 0 }}
+        initial={reduceMotion ? false : { y: -40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 24 }}
         className="relative z-20 max-w-6xl mx-auto"
       >
-        {/* ===== PILL CONTAINER — BROWN GLASS ===== */}
+        {/* ===== PILL CONTAINER ===== */}
         <div
-          className={`rounded-full backdrop-blur-xl border border-amber-200/20 ring-1 ring-inset ring-white/5 px-2 py-2 flex items-center gap-2 sm:gap-3 transition-all duration-300 ${
+          className={`rounded-2xl border transition-colors duration-200 px-2.5 py-2 flex items-center gap-2 sm:gap-3 ${
             scrolled
-              ? 'bg-amber-950/60 shadow-2xl shadow-amber-950/50'
-              : 'bg-amber-950/40 shadow-xl shadow-amber-950/30'
+              ? 'bg-amber-950 border-amber-900 shadow-sm'
+              : 'bg-amber-950/85 border-amber-900/60'
           }`}
         >
-          {/* LEFT */}
+          {/* LEFT — Brand */}
           <Brand to={homePath} />
 
-          {/* CENTER — nav links (desktop) */}
+          {/* CENTER — Nav links (desktop) — flex-1 justify-center biar di tengah */}
           <div className="hidden md:flex items-center gap-0.5 flex-1 justify-center">
             {visibleLinks.map((item) => {
               const active = isActive(item.to);
@@ -195,18 +228,22 @@ export default function Navbar() {
                   key={item.to}
                   to={item.to}
                   aria-current={active ? 'page' : undefined}
-                  className={`relative px-3.5 py-2 text-sm font-serif rounded-full transition-colors ${focusRing} ${
-                    active ? 'text-amber-50' : 'text-amber-100/70 hover:text-amber-50 hover:bg-amber-500/10'
+                  className={`group relative px-3 py-2 text-sm font-serif rounded-lg transition-colors ${focusRing} ${
+                    active
+                      ? 'text-amber-50 bg-amber-900/70'
+                      : 'text-amber-100/60 hover:text-amber-50 hover:bg-amber-900/40'
                   }`}
                 >
+                  <span className="relative z-10">{item.label}</span>
+                  {/* Underline amber tipis di bawah text */}
                   {active && (
                     <motion.span
-                      layoutId="nav-active"
-                      transition={slide}
-                      className="absolute inset-0 rounded-full bg-amber-500/25"
+                      layoutId="nav-underline"
+                      transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 32 }}
+                      className="absolute left-3 right-3 bottom-1 h-px bg-amber-400/80"
+                      aria-hidden="true"
                     />
                   )}
-                  <span className="relative">{item.label}</span>
                 </Link>
               );
             })}
@@ -218,10 +255,10 @@ export default function Navbar() {
                   onClick={() => setMenu(menu === 'more' ? null : 'more')}
                   aria-expanded={menu === 'more'}
                   aria-haspopup="true"
-                  className={`inline-flex items-center gap-1 px-3.5 py-2 text-sm font-serif rounded-full transition-colors ${focusRing} ${
+                  className={`inline-flex items-center gap-1 px-3 py-2 text-sm font-serif rounded-lg transition-colors ${focusRing} ${
                     moreActive
-                      ? 'text-amber-50 bg-amber-500/25'
-                      : 'text-amber-100/70 hover:text-amber-50 hover:bg-amber-500/10'
+                      ? 'text-amber-50 bg-amber-900/70'
+                      : 'text-amber-100/60 hover:text-amber-50 hover:bg-amber-900/40'
                   }`}
                 >
                   More
@@ -235,7 +272,7 @@ export default function Navbar() {
                   {menu === 'more' && (
                     <motion.div
                       {...dropdownMotion}
-                      className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-52 bg-amber-950/95 backdrop-blur-xl border border-amber-200/20 rounded-2xl shadow-2xl shadow-amber-950/50 p-1.5 z-20"
+                      className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-52 bg-white border border-amber-200 rounded-xl shadow-lg overflow-hidden p-1 z-20"
                     >
                       {moreLinks.map((item) => (
                         <Link
@@ -245,8 +282,8 @@ export default function Navbar() {
                           aria-current={isActive(item.to) ? 'page' : undefined}
                           className={`${menuItem} ${
                             isActive(item.to)
-                              ? 'text-amber-50 bg-amber-500/25'
-                              : 'text-amber-100/80 hover:text-amber-50 hover:bg-amber-500/10'
+                              ? 'text-amber-950 bg-amber-100'
+                              : 'text-amber-900 hover:bg-amber-50'
                           }`}
                         >
                           {item.label}
@@ -259,11 +296,8 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile: spacer */}
-          <div className="flex-1 md:hidden" />
-
-          {/* RIGHT */}
-          <div className="flex items-center gap-2">
+          {/* RIGHT — User / Login / Hamburger */}
+          <div className="flex items-center gap-2 shrink-0">
             {user ? (
               <div className="relative">
                 <button
@@ -271,9 +305,11 @@ export default function Navbar() {
                   onClick={() => setMenu(menu === 'user' ? null : 'user')}
                   aria-expanded={menu === 'user'}
                   aria-haspopup="true"
-                  className={`flex items-center gap-2 bg-amber-100/95 hover:bg-amber-50 rounded-full pl-1 pr-3 py-1 transition-colors shadow-md shadow-black/20 ${focusRing}`}
+                  className={`flex items-center gap-2 rounded-full pl-1 pr-3 py-1 transition-colors ${focusRing} ${
+                    menu === 'user' ? 'bg-amber-100' : 'bg-amber-100/90 hover:bg-amber-100'
+                  }`}
                 >
-                  <span className="w-8 h-8 rounded-full bg-amber-800 flex items-center justify-center text-amber-50 text-sm font-serif font-semibold shrink-0">
+                  <span className="w-7 h-7 rounded-full bg-amber-900 flex items-center justify-center text-amber-50 text-xs font-serif font-semibold shrink-0">
                     {user.name?.charAt(0).toUpperCase()}
                   </span>
                   <span className="hidden sm:block text-xs font-serif font-medium text-amber-950 max-w-[110px] truncate">
@@ -288,54 +324,78 @@ export default function Navbar() {
                 <AnimatePresence>
                   {menu === 'user' && (
                     <motion.div
-                      {...dropdownMotion}
-                      className="absolute right-0 top-full mt-3 w-60 bg-white border border-amber-200/50 rounded-2xl shadow-xl shadow-amber-950/10 overflow-hidden z-20"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      transition={{ duration: reduceMotion ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute right-0 top-full mt-3 w-72 bg-white border border-amber-200 rounded-2xl shadow-xl overflow-hidden z-20"
                     >
-                      <div className="px-4 py-3.5 border-b border-amber-200/40 flex items-center gap-3">
-                        <span className="w-10 h-10 rounded-full bg-amber-800 flex items-center justify-center text-amber-50 font-serif font-semibold shrink-0">
-                          {user.name?.charAt(0).toUpperCase()}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="font-serif font-medium text-amber-950 truncate">{user.name}</p>
-                          <p className="text-xs font-serif text-amber-700/70 truncate">{user.email}</p>
-                          <p className="text-xs font-serif text-amber-800 mt-0.5">{roleLabel[user.role] || user.role}</p>
+                      {/* Header */}
+                      <div className="relative bg-amber-950 px-4 py-4 overflow-hidden">
+                        <div
+                          className="absolute inset-0 opacity-[0.06] pointer-events-none"
+                          style={{
+                            backgroundImage: 'radial-gradient(circle, #fbbf24 1px, transparent 1px)',
+                            backgroundSize: '18px 18px',
+                          }}
+                          aria-hidden="true"
+                        />
+                        <div className="relative flex items-center gap-3">
+                          <motion.span
+                            initial={{ scale: 0.7, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.05 }}
+                            className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-950 font-serif font-bold text-lg shrink-0 ring-2 ring-amber-500/40 ring-offset-2 ring-offset-amber-950"
+                          >
+                            {user.name?.charAt(0).toUpperCase()}
+                          </motion.span>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-serif font-semibold text-amber-50 truncate leading-tight">
+                              {user.name}
+                            </p>
+                            <p className="text-xs font-serif text-amber-200/70 truncate mt-0.5">
+                              {user.email}
+                            </p>
+                            <span className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full bg-amber-500/20 border border-dashed border-amber-400/60 text-[10px] font-serif tracking-wider text-amber-300 uppercase">
+                              <span className="w-1 h-1 rounded-full bg-amber-400" />
+                              {roleLabel[user.role] || user.role}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <div className="p-1.5">
-                        <Link
-                          to={profilePath}
-                          className={`${menuItem} text-amber-800/80 hover:bg-amber-50 hover:text-amber-950`}
-                        >
-                          <Icon name="user" className="w-4 h-4" />
-                          My Profile
-                        </Link>
+
+                      {/* Items */}
+                      <div className="p-2">
+                        <DropdownItem to={profilePath} icon="user" label="My Profile" onClick={() => setMenu(null)} />
                         {user.role === 'customer' && (
                           <>
-                            <Link
-                              to="/my-orders"
-                              className={`${menuItem} text-amber-800/80 hover:bg-amber-50 hover:text-amber-950`}
-                            >
-                              <Icon name="ticket" className="w-4 h-4" />
-                              Order History
-                            </Link>
-                            <Link
-                              to="/contact-history"
-                              className={`${menuItem} text-amber-800/80 hover:bg-amber-50 hover:text-amber-950`}
-                            >
-                              <Icon name="inbox" className="w-4 h-4" />
-                              My Messages
-                            </Link>
+                            <DropdownItem to="/my-orders" icon="ticket" label="Order History" onClick={() => setMenu(null)} />
+                            <DropdownItem to="/contact-history" icon="inbox" label="My Messages" onClick={() => setMenu(null)} />
                           </>
                         )}
-                        <div className="my-1.5 border-t border-amber-200/40" />
+
+                        <div className="my-1.5 mx-2 border-t border-dashed border-amber-200/80" />
+
                         <button
                           type="button"
                           onClick={handleLogout}
-                          className={`${menuItem} w-full text-red-500 hover:bg-red-50/80`}
+                          className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-serif text-red-600 hover:bg-red-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
                         >
-                          <Icon name="logout" className="w-4 h-4" />
-                          Logout
+                          <span className="w-8 h-8 rounded-lg bg-red-100 group-hover:bg-red-200/70 flex items-center justify-center shrink-0 transition-colors">
+                            <Icon name="logout" className="w-4 h-4 text-red-600" />
+                          </span>
+                          <span className="flex-1 text-left">Logout</span>
+                          <Icon
+                            name="arrowRight"
+                            className="w-4 h-4 text-red-400 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
+                          />
                         </button>
+                      </div>
+
+                      {/* Serial footer */}
+                      <div className="px-4 py-2 bg-amber-50/60 border-t border-dashed border-amber-200 flex items-center justify-between text-[10px] font-serif text-amber-700/60 tabular-nums">
+                        <span>✂ No. TK-{String(user.id || 0).padStart(4, '0')}</span>
+                        <span>Signed in</span>
                       </div>
                     </motion.div>
                   )}
@@ -345,89 +405,105 @@ export default function Navbar() {
               <>
                 <Link
                   to="/login"
-                  className={`hidden sm:block px-4 py-2 text-xs font-serif text-amber-100/80 hover:text-amber-50 rounded-full transition-colors ${focusRing}`}
+                  className={`hidden sm:block px-3.5 py-2 text-sm font-serif text-amber-100/80 hover:text-amber-50 rounded-lg transition-colors ${focusRing}`}
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className={`px-4 py-2 text-xs font-serif font-semibold text-amber-950 bg-amber-100/95 hover:bg-amber-50 rounded-full transition-colors shadow-md shadow-black/20 whitespace-nowrap ${focusRing}`}
+                  className={`px-3.5 py-2 text-sm font-serif font-medium text-amber-950 bg-amber-100 hover:bg-amber-50 rounded-lg transition-colors whitespace-nowrap ${focusRing}`}
                 >
                   Register
                 </Link>
               </>
             )}
 
-            {/* Mobile menu toggle — now also available for guests */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-expanded={mobileMenuOpen}
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-              className={`md:hidden w-10 h-10 rounded-full bg-amber-100/20 hover:bg-amber-100/30 flex items-center justify-center text-amber-100 transition-colors shrink-0 border border-amber-200/20 ${focusRing}`}
+              className={`md:hidden w-9 h-9 rounded-lg bg-amber-900/60 hover:bg-amber-900 flex items-center justify-center text-amber-50 transition-colors shrink-0 ${focusRing}`}
             >
-              <Icon name={mobileMenuOpen ? 'close' : 'menu'} className="w-5 h-5" />
+              <Icon name={mobileMenuOpen ? 'close' : 'menu'} className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {/* ===== MOBILE MENU ===== */}
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {mobileMenuOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -8, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: 'auto' }}
-              exit={{ opacity: 0, y: -8, height: 0 }}
-              transition={{ duration: reduceMotion ? 0 : 0.2 }}
-              className="md:hidden mt-2 bg-amber-950/60 backdrop-blur-xl rounded-3xl shadow-2xl shadow-amber-950/40 border border-amber-200/20 ring-1 ring-inset ring-white/5 overflow-hidden"
+              key="mobile-menu"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{
+                duration: reduceMotion ? 0 : 0.22,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="md:hidden mt-2 overflow-hidden"
             >
-              <div className="p-2 space-y-0.5">
-                {navLinks.map((item) => {
-                  const active = isActive(item.to);
-                  return (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setMobileMenuOpen(false)}
-                      aria-current={active ? 'page' : undefined}
-                      className={`block px-4 py-2.5 rounded-2xl text-sm font-serif transition-colors ${
-                        active
-                          ? 'text-amber-50 bg-amber-500/25'
-                          : 'text-amber-100/80 hover:text-amber-50 hover:bg-amber-500/10'
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
+              <div className="bg-white border border-amber-200 rounded-xl shadow-lg overflow-hidden">
+                <motion.div
+                  variants={mobileListVariants}
+                  initial="hidden"
+                  animate="show"
+                  className="p-1.5 space-y-0.5"
+                >
+                  {navLinks.map((item) => {
+                    const active = isActive(item.to);
+                    return (
+                      <motion.div key={item.to} variants={mobileItemVariants}>
+                        <Link
+                          to={item.to}
+                          onClick={() => setMobileMenuOpen(false)}
+                          aria-current={active ? 'page' : undefined}
+                          className={`block px-3.5 py-2.5 rounded-lg text-sm font-serif transition-colors ${
+                            active
+                              ? 'text-amber-950 bg-amber-100'
+                              : 'text-amber-900 hover:bg-amber-50'
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
 
-                <div className="pt-2 mt-1 border-t border-amber-200/15">
-                  {user ? (
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-serif text-red-400 hover:bg-red-500/10 transition-colors"
-                    >
-                      <Icon name="logout" className="w-4 h-4" />
-                      Logout
-                    </button>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-2 pb-1">
-                      <Link
-                        to="/login"
-                        className="text-center px-4 py-2.5 rounded-2xl text-sm font-serif text-amber-100 border border-amber-200/30 hover:bg-amber-500/10 transition-colors"
+                  <motion.div
+                    variants={mobileItemVariants}
+                    className="pt-2 mt-1 border-t border-dashed border-amber-200/70"
+                  >
+                    {user ? (
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm font-serif text-red-600 hover:bg-red-50 transition-colors"
                       >
-                        Login
-                      </Link>
-                      <Link
-                        to="/register"
-                        className="text-center px-4 py-2.5 rounded-2xl text-sm font-serif font-semibold text-amber-950 bg-amber-100/95 hover:bg-amber-50 transition-colors"
-                      >
-                        Register
-                      </Link>
-                    </div>
-                  )}
-                </div>
+                        <Icon name="logout" className="w-4 h-4" />
+                        Logout
+                      </button>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2 p-1">
+                        <Link
+                          to="/login"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="text-center px-3 py-2.5 rounded-lg text-sm font-serif text-amber-900 border border-amber-200 hover:bg-amber-50 transition-colors"
+                        >
+                          Login
+                        </Link>
+                        <Link
+                          to="/register"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="text-center px-3 py-2.5 rounded-lg text-sm font-serif font-medium text-amber-950 bg-amber-100 hover:bg-amber-50 transition-colors"
+                        >
+                          Register
+                        </Link>
+                      </div>
+                    )}
+                  </motion.div>
+                </motion.div>
               </div>
             </motion.div>
           )}
