@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import api from '../../api/axios';
@@ -39,6 +39,57 @@ function Icon({ name, className = 'w-4 h-4' }) {
       <path strokeLinecap="round" strokeLinejoin="round" d={paths[name]} />
     </svg>
   );
+}
+
+// ===== PAYMENT SUCCESS: SOUND =====
+let audioCtx = null;
+function getAudioCtx() {
+  if (typeof window === 'undefined') return null;
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    audioCtx = new Ctx();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function tone({ freq, duration, type = 'sine', delay = 0, volume = 0.12 }) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  const t0 = ctx.currentTime + delay;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t0);
+  gain.gain.setValueAtTime(0, t0);
+  gain.gain.linearRampToValueAtTime(volume, t0 + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(t0);
+  osc.stop(t0 + duration + 0.05);
+}
+
+// A short "ka-ching", a rising C-major run, then a bright sparkle on top.
+function playPaymentChime() {
+  // coin
+  tone({ freq: 1568, duration: 0.09, type: 'triangle', volume: 0.1 });
+  tone({ freq: 2093, duration: 0.45, type: 'triangle', volume: 0.1, delay: 0.07 });
+  // rising run, lands as the check mark finishes drawing
+  tone({ freq: 523, duration: 0.5, type: 'sine', volume: 0.12, delay: 0.3 });
+  tone({ freq: 659, duration: 0.5, type: 'sine', volume: 0.12, delay: 0.41 });
+  tone({ freq: 784, duration: 0.5, type: 'sine', volume: 0.12, delay: 0.52 });
+  tone({ freq: 1046, duration: 0.9, type: 'triangle', volume: 0.14, delay: 0.63 });
+  // low body under the last note
+  tone({ freq: 131, duration: 0.9, type: 'sine', volume: 0.06, delay: 0.63 });
+  // sparkle
+  tone({ freq: 2093, duration: 0.18, type: 'sine', volume: 0.05, delay: 0.95 });
+  tone({ freq: 2637, duration: 0.3, type: 'sine', volume: 0.05, delay: 1.06 });
+}
+
+function vibratePaid() {
+  if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([40, 50, 40, 50, 120]);
 }
 
 // ===== STATUS BADGE =====
@@ -87,90 +138,182 @@ function CountdownTimer({ expiresAt }) {
   );
 }
 
-// ===== SUCCESS BURST =====
-function SuccessBurst({ onDone }) {
+// ===== PAYMENT SUCCESS: ANIMATION =====
+// Same pseudo-random value every render, so the confetti never re-rolls.
+function seeded(i, salt = 1) {
+  const x = Math.sin(i * 12.9898 + salt * 78.233) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+const CONFETTI_COLORS = ['bg-amber-400', 'bg-amber-300', 'bg-emerald-400', 'bg-emerald-500', 'bg-white'];
+
+function PaymentSuccess({ amount, qty, onDone }) {
   const reduce = useReducedMotion();
-  const particles = Array.from({ length: 16 });
+  const total = Number(amount) || 0;
+  const [shown, setShown] = useState(reduce ? total : 0);
+  const [hint, setHint] = useState(false);
+
+  const pieces = useMemo(
+    () =>
+      Array.from({ length: 34 }, (_, i) => {
+        const angle = (i / 34) * Math.PI * 2 + seeded(i, 2) * 0.5;
+        const dist = 110 + seeded(i, 3) * 170;
+        return {
+          id: i,
+          x: Math.cos(angle) * dist,
+          up: Math.sin(angle) * dist * 0.75 - 50,
+          fall: 230 + seeded(i, 4) * 160,
+          rotate: (seeded(i, 5) - 0.5) * 900,
+          delay: 0.42 + seeded(i, 6) * 0.12,
+          duration: 1.7 + seeded(i, 7) * 0.9,
+          color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+          round: i % 4 === 0,
+        };
+      }),
+    []
+  );
+
+  // Count the amount up while the ticket settles
+  useEffect(() => {
+    if (reduce) return undefined;
+    let raf;
+    const start = performance.now() + 500;
+    const tick = (now) => {
+      const p = Math.min(1, Math.max(0, (now - start) / 1000));
+      setShown(total * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [total, reduce]);
 
   useEffect(() => {
-    if (reduce) {
-      const t = setTimeout(onDone, 400);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(onDone, 1400);
-    return () => clearTimeout(t);
+    const auto = setTimeout(onDone, reduce ? 2200 : 3800);
+    const showHint = setTimeout(() => setHint(true), 1500);
+    const onKey = (e) => { if (e.key === 'Escape' || e.key === 'Enter') onDone(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      clearTimeout(auto);
+      clearTimeout(showHint);
+      window.removeEventListener('keydown', onKey);
+    };
   }, [onDone, reduce]);
-
-  if (reduce) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[80] flex items-center justify-center pointer-events-none"
-      >
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="w-24 h-24 rounded-full bg-emerald-500 flex items-center justify-center shadow-2xl"
-        >
-          <Icon name="check" className="w-12 h-12 text-white" />
-        </motion.div>
-      </motion.div>
-    );
-  }
 
   return (
     <motion.div
+      role="status"
+      aria-live="polite"
+      onClick={onDone}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
-      className="fixed inset-0 z-[80] flex items-center justify-center pointer-events-none"
+      transition={{ duration: 0.3 }}
+      className="fixed inset-0 z-[80] flex flex-col items-center justify-center px-4 cursor-pointer"
     >
-      {/* Backdrop flash */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: [0, 0.35, 0] }}
-        transition={{ duration: 1.0, times: [0, 0.3, 1] }}
-        className="absolute inset-0 bg-amber-300"
-        aria-hidden="true"
-      />
+      <div className="absolute inset-0 bg-amber-950/70 backdrop-blur-sm" aria-hidden="true" />
+      <span className="sr-only">Payment received. {qty} e-tickets are ready.</span>
 
-      {/* Checkmark spring */}
-      <motion.div
-        initial={{ scale: 0, rotate: -180, opacity: 0 }}
-        animate={{ scale: 1, rotate: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
-        className="relative w-28 h-28 rounded-full bg-emerald-500 flex items-center justify-center shadow-2xl shadow-emerald-500/40"
-      >
-        <svg viewBox="0 0 24 24" className="w-16 h-16 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-          <motion.path
-            d="M20 6L9 17l-5-5"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.5, delay: 0.35, ease: 'easeOut' }}
-          />
-        </svg>
-      </motion.div>
+      {/* Confetti, fired from behind the ticket */}
+      {!reduce && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
+          {pieces.map((p) => (
+            <motion.span
+              key={p.id}
+              initial={{ x: 0, y: 0, opacity: 0, scale: 0.4, rotate: 0 }}
+              animate={{
+                x: [0, p.x, p.x * 1.12],
+                y: [0, p.up, p.up + p.fall],
+                opacity: [0, 1, 1, 0],
+                scale: [0.4, 1, 1],
+                rotate: p.rotate,
+              }}
+              transition={{ duration: p.duration, delay: p.delay, ease: 'easeOut', times: [0, 0.35, 1] }}
+              className={`absolute ${p.round ? 'w-2 h-2 rounded-full' : 'w-2 h-3.5 rounded-[1px]'} ${p.color}`}
+            />
+          ))}
+        </div>
+      )}
 
-      {/* Radial spark particles */}
-      {particles.map((_, i) => {
-        const angle = (i / particles.length) * Math.PI * 2;
-        const distance = 90 + Math.random() * 40;
-        const x = Math.cos(angle) * distance;
-        const y = Math.sin(angle) * distance;
-        return (
-          <motion.span
-            key={i}
-            initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
-            animate={{ x, y, scale: [0, 1, 0.6], opacity: [1, 1, 0] }}
-            transition={{ duration: 0.9, delay: 0.2 + Math.random() * 0.1, ease: 'easeOut' }}
-            className="absolute w-2 h-2 rounded-full bg-amber-500"
-            aria-hidden="true"
-          />
-        );
-      })}
+      <div className="relative w-full max-w-xs">
+        {/* Ticket body */}
+        <motion.div
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 48, scale: 0.9, rotate: -3 }}
+          animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 180, damping: 16 }}
+          className="bg-white border border-amber-200/50 rounded-t-2xl px-6 pt-8 pb-6 text-center shadow-2xl shadow-amber-950/30"
+        >
+          <div className="relative w-20 h-20 mx-auto mb-5">
+            {!reduce && [0.35, 0.65].map((d) => (
+              <motion.span
+                key={d}
+                initial={{ scale: 1, opacity: 0 }}
+                animate={{ scale: 2.3, opacity: [0, 0.55, 0] }}
+                transition={{ duration: 1.1, delay: d, ease: 'easeOut' }}
+                className="absolute inset-0 rounded-full border-2 border-emerald-400"
+                aria-hidden="true"
+              />
+            ))}
+            <motion.div
+              initial={{ scale: reduce ? 1 : 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 15, delay: 0.25 }}
+              className="relative w-20 h-20 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/40"
+            >
+              <svg viewBox="0 0 24 24" className="w-10 h-10 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                <motion.path
+                  d="M20 6L9 17l-5-5"
+                  initial={{ pathLength: reduce ? 1 : 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 0.45, delay: 0.5, ease: 'easeOut' }}
+                />
+              </svg>
+            </motion.div>
+          </div>
+
+          <h2 className="font-serif text-xl font-bold text-amber-950">Payment received</h2>
+          <p className="font-serif text-3xl font-bold text-amber-800 tabular-nums mt-2">
+            {formatRupiah(Math.round(shown))}
+          </p>
+        </motion.div>
+
+        {/* Stub: tears away from the body at the perforation */}
+        <motion.div
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 48, scale: 0.9, rotate: -3 }}
+          animate={
+            reduce
+              ? { opacity: 1 }
+              : { opacity: 1, y: [0, 0, 8], scale: 1, rotate: [0, 0, 2.5], x: [0, 0, 4] }
+          }
+          transition={
+            reduce
+              ? { duration: 0.3 }
+              : { type: 'spring', stiffness: 180, damping: 16, y: { duration: 0.5, delay: 1.1 }, rotate: { duration: 0.5, delay: 1.1 }, x: { duration: 0.5, delay: 1.1 } }
+          }
+          style={{ transformOrigin: 'top left' }}
+          className="bg-amber-50 border border-t-0 border-dashed border-amber-200 rounded-b-2xl px-6 py-4 flex items-center justify-between shadow-xl shadow-amber-950/20"
+        >
+          <span className="font-serif text-sm text-amber-900">
+            {qty} e-ticket{Number(qty) === 1 ? '' : 's'}
+          </span>
+          <span className="inline-flex items-center gap-1.5 font-serif text-sm font-semibold text-emerald-700">
+            <Icon name="check" className="w-4 h-4" />
+            Ready
+          </span>
+        </motion.div>
+
+        <AnimatePresence>
+          {hint && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute left-0 right-0 -bottom-14 text-center text-xs font-serif text-amber-50/70"
+            >
+              Tap anywhere to see your tickets
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 }
@@ -548,9 +691,15 @@ export default function OrderDetail() {
   const [eticket, setEticket] = useState(null);
   const [copiedVa, setCopiedVa] = useState(false);
 
-  // 🎉 State animasi kemenangan
-  const [showBurst, setShowBurst] = useState(false);
+  // Payment success moment
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [holdReveal, setHoldReveal] = useState(false); // keep tickets hidden until the overlay closes
   const [justPaid, setJustPaid] = useState(false);
+
+  const finishSuccess = useCallback(() => {
+    setShowSuccess(false);
+    setHoldReveal(false);
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -561,8 +710,10 @@ export default function OrderDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  async function fetchOrder() {
-    setLoading(true);
+  // `silent` refreshes the data without swapping the whole page for the loader,
+  // which would unmount the success overlay mid-animation.
+  async function fetchOrder(silent = false) {
+    if (!silent) setLoading(true);
     try {
       const res = await api.get(`/orders/${id}`);
       setOrder(res.data);
@@ -584,20 +735,23 @@ export default function OrderDetail() {
     try {
       const res = await api.get(`/orders/${id}/check-payment`);
       if (res.data.status === 'lunas') {
-        // 🎉 Trigger burst + emerge
-        setShowBurst(true);
+        // Play inside the click handler so the browser allows audio
+        playPaymentChime();
+        vibratePaid();
+        setHoldReveal(true);
+        setShowSuccess(true);
+        setJustPaid(true);
         setCheckMsg('Payment confirmed! Your tickets are ready.');
         setCheckOk('success');
-        setJustPaid(true);
-        await fetchOrder();
+        await fetchOrder(true);
       } else if (res.data.status === 'kadaluarsa') {
         setCheckMsg('The payment window has expired.');
         setCheckOk('expired');
-        fetchOrder();
+        fetchOrder(true);
       } else {
         setCheckMsg('We have not received your payment yet. Have you completed the payment?');
         setCheckOk('pending');
-        fetchOrder();
+        fetchOrder(true);
       }
     } catch (err) {
       setCheckMsg(err.response?.data?.message || 'Failed to check payment status.');
@@ -641,46 +795,11 @@ export default function OrderDetail() {
       </div>
     );
 
+  const reveal = !holdReveal;
+
   const currentStep =
     order.status === 'lunas' ? 3 :
     order.status === 'menunggu_pembayaran' ? 2 : 2;
-
-  const statusInfo = {
-    menunggu_pembayaran: {
-      label: 'Awaiting Payment',
-      description: 'Complete your payment before time runs out',
-      icon: 'clock',
-      color: 'text-amber-700',
-      bg: 'bg-amber-50/80',
-      border: 'border-amber-200/50',
-    },
-    lunas: {
-      label: 'Payment Successful',
-      description: 'Your tickets are ready to use',
-      icon: 'checkCircle',
-      color: 'text-emerald-700',
-      bg: 'bg-emerald-50/80',
-      border: 'border-emerald-200/50',
-    },
-    kadaluarsa: {
-      label: 'Payment Expired',
-      description: 'The payment window for this order has ended',
-      icon: 'alert',
-      color: 'text-red-600',
-      bg: 'bg-red-50/80',
-      border: 'border-red-200/50',
-    },
-    dibatalkan: {
-      label: 'Order Cancelled',
-      description: 'This order has been cancelled',
-      icon: 'alert',
-      color: 'text-gray-500',
-      bg: 'bg-gray-50/80',
-      border: 'border-gray-200/50',
-    },
-  };
-
-  const currentStatus = statusInfo[order.status] || statusInfo.menunggu_pembayaran;
 
   const checkMsgStyle =
     {
@@ -702,9 +821,11 @@ export default function OrderDetail() {
         aria-hidden="true"
       />
 
-      {/* 🎉 SUCCESS BURST — overlay saat pembayaran baru lunas */}
+      {/* Payment success overlay */}
       <AnimatePresence>
-        {showBurst && <SuccessBurst onDone={() => setShowBurst(false)} />}
+        {showSuccess && (
+          <PaymentSuccess amount={order.total_price} qty={order.qty} onDone={finishSuccess} />
+        )}
       </AnimatePresence>
 
       <div className="max-w-5xl mx-auto px-4 py-8 relative">
@@ -727,11 +848,11 @@ export default function OrderDetail() {
         </motion.div>
 
         {/* ===== CONFIRMED BANNER ===== */}
-        {order.status === 'lunas' && (
+        {order.status === 'lunas' && reveal && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={justPaid ? { delay: 1.4, duration: 0.6, ease: EASE } : { duration: 0.5 }}
+            transition={{ duration: 0.5, ease: EASE }}
             className="bg-emerald-50/80 border border-emerald-200/50 rounded-2xl p-5 mb-6 flex items-start gap-4"
           >
             <div className="w-12 h-12 rounded-xl bg-white border border-emerald-200/60 flex items-center justify-center flex-shrink-0">
@@ -808,11 +929,11 @@ export default function OrderDetail() {
             </motion.div>
 
             {/* ===== E-TICKET SECTION ===== */}
-            {eticket && (
+            {eticket && reveal && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={justPaid ? { delay: 0.4, duration: 0.5, ease: EASE } : { delay: 0.05 }}
+                transition={{ delay: 0.05 }}
                 className="bg-white/90 border border-amber-200/40 rounded-2xl p-6 shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-5">
@@ -833,7 +954,7 @@ export default function OrderDetail() {
                   {eticket.tickets.map((t, index) => (
                     <EmergingTicketWrapper
                       key={t.id}
-                      delay={justPaid ? 0.9 + index * 0.15 : 0}
+                      delay={justPaid ? 0.2 + index * 0.15 : 0}
                     >
                       <TicketCard ticket={t} index={index} />
                     </EmergingTicketWrapper>
@@ -843,11 +964,11 @@ export default function OrderDetail() {
             )}
 
             {/* VENUE & MAP */}
-            {eticket && (
+            {eticket && reveal && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={justPaid ? { delay: 1.4, duration: 0.5, ease: EASE } : { delay: 0.1 }}
+                transition={justPaid ? { delay: 0.6, duration: 0.5, ease: EASE } : { delay: 0.1 }}
                 className="bg-white/90 border border-amber-200/40 rounded-2xl p-6 shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-5">
@@ -1045,7 +1166,7 @@ export default function OrderDetail() {
             </AnimatePresence>
 
             {/* TESTIMONIAL SECTION */}
-            {order.status === 'lunas' && (
+            {order.status === 'lunas' && reveal && (
               <TestimonialSection orderId={order.id} />
             )}
           </div>
