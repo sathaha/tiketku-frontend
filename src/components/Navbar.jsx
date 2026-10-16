@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { getImageUrl } from '../utils/image';
 
 // ===== ICON COMPONENT =====
 function Icon({ name, className = 'w-5 h-5' }) {
@@ -116,6 +117,29 @@ function DropdownItem({ to, icon, label, onClick, danger = false }) {
   );
 }
 
+// ===== USER AVATAR (reusable) =====
+function UserAvatar({ user, size = 'sm' }) {
+  const sizeClass = size === 'lg' ? 'w-12 h-12 text-lg' : 'w-7 h-7 text-xs';
+  const img = user?.profile_picture ? getImageUrl(user.profile_picture) : null;
+
+  return (
+    <span
+      className={`${sizeClass} rounded-full bg-amber-900 flex items-center justify-center text-amber-50 font-serif font-semibold shrink-0 overflow-hidden`}
+    >
+      {img ? (
+        <img
+          src={img}
+          alt={user.name || 'Profile'}
+          className="w-full h-full object-cover"
+          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+        />
+      ) : (
+        user.name?.charAt(0).toUpperCase() || '?'
+      )}
+    </span>
+  );
+}
+
 // ===== MAIN NAVBAR =====
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -219,7 +243,7 @@ export default function Navbar() {
           {/* LEFT — Brand */}
           <Brand to={homePath} />
 
-          {/* CENTER — Nav links (desktop) — flex-1 justify-center biar di tengah */}
+          {/* CENTER — Nav links */}
           <div className="hidden md:flex items-center gap-0.5 flex-1 justify-center">
             {visibleLinks.map((item) => {
               const active = isActive(item.to);
@@ -235,7 +259,6 @@ export default function Navbar() {
                   }`}
                 >
                   <span className="relative z-10">{item.label}</span>
-                  {/* Underline amber tipis di bawah text */}
                   {active && (
                     <motion.span
                       layoutId="nav-underline"
@@ -309,9 +332,7 @@ export default function Navbar() {
                     menu === 'user' ? 'bg-amber-100' : 'bg-amber-100/90 hover:bg-amber-100'
                   }`}
                 >
-                  <span className="w-7 h-7 rounded-full bg-amber-900 flex items-center justify-center text-amber-50 text-xs font-serif font-semibold shrink-0">
-                    {user.name?.charAt(0).toUpperCase()}
-                  </span>
+                  <UserAvatar user={user} size="sm" />
                   <span className="hidden sm:block text-xs font-serif font-medium text-amber-950 max-w-[110px] truncate">
                     {user.name?.split(' ')[0]}
                   </span>
@@ -341,14 +362,14 @@ export default function Navbar() {
                           aria-hidden="true"
                         />
                         <div className="relative flex items-center gap-3">
-                          <motion.span
+                          <motion.div
                             initial={{ scale: 0.7, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.05 }}
-                            className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-950 font-serif font-bold text-lg shrink-0 ring-2 ring-amber-500/40 ring-offset-2 ring-offset-amber-950"
+                            className="rounded-full ring-2 ring-amber-500/40 ring-offset-2 ring-offset-amber-950 overflow-hidden shrink-0"
                           >
-                            {user.name?.charAt(0).toUpperCase()}
-                          </motion.span>
+                            <UserAvatar user={user} size="lg" />
+                          </motion.div>
                           <div className="min-w-0 flex-1">
                             <p className="font-serif font-semibold text-amber-50 truncate leading-tight">
                               {user.name}
@@ -438,13 +459,21 @@ export default function Navbar() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{
-                duration: reduceMotion ? 0 : 0.22,
-                ease: [0.22, 1, 0.36, 1],
-              }}
+              transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
               className="md:hidden mt-2 overflow-hidden"
             >
               <div className="bg-white border border-amber-200 rounded-xl shadow-lg overflow-hidden">
+                {/* Mobile user header */}
+                {user && (
+                  <div className="px-3.5 py-3 border-b border-dashed border-amber-200 flex items-center gap-3">
+                    <UserAvatar user={user} size="lg" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-serif font-semibold text-amber-950 text-sm truncate">{user.name}</p>
+                      <p className="text-[11px] font-serif text-amber-700/60 truncate">{user.email}</p>
+                    </div>
+                  </div>
+                )}
+
                 <motion.div
                   variants={mobileListVariants}
                   initial="hidden"
